@@ -1454,8 +1454,8 @@ margin:10px 0
 text-align:center
 }
 .post-title{
-margin:0
-text-align: center !important;
+margin: unset
+text-align: center;
 }
 .post-title,.post-title a{
 font:$(posts.title.font)
@@ -1739,7 +1739,7 @@ max-width:$(3 * posts.width.stream + 2 * 16px + 15px + sidebar.width)
 max-width:$(3 * posts.width.stream + 2 * 16px + 143px + 15px + sidebar.width)
 }
 .centered-top .blog-name,.centered-top .hamburger-section,.centered-top .search{
-margin-$startSide:16px
+margin-$startSide:16px 
 }
 .centered-top .return_link{
 -webkit-box-flex:0;
@@ -2665,6 +2665,12 @@ margin:0;
 padding:32px;
 width:auto
 }
+@media (max-width: 600px) {
+  .item-view .post-wrapper {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+}
 .item-view .post-outer{
 padding:8px
 }
@@ -2674,7 +2680,8 @@ color:$(posts.text.color);
 margin:0 8px 8px
 }
 .item-view .post-title{
-font:$(posts.title.font)
+font:$(posts.title.font);
+text-align: center !important;
 }
 .item-view .post-header{
 display:block;
@@ -2944,7 +2951,7 @@ display:none
           <!-- Snippetize the post title -->
           <div class='post-title-container'>
             <a expr:name='data:post.id'/>
-            <h3 class='post-title entry-title'>
+            <h3 class='post-title entry-title' style='text-align: center !important;'>
               <b:if cond='data:post.link or (data:post.url and data:view.url != data:post.url)'>
                 <a expr:href='data:post.link ?: data:post.url'>
                   <div class='snippet-container r-snippet-container'>
@@ -3205,7 +3212,396 @@ display:none
     <b:include data='blog' name='google-analytics'/>
 
     <script async='async' src='https://www.gstatic.com/external_hosted/clipboardjs/clipboard.min.js'/>
-  </head>
+  
+<!-- style untuk isi postingan -->
+<style>
+	
+  /* sembunyikan gambar thumbnail */
+  .gambarthumbnail {
+      display: none;
+}
+  
+  /* hiddentxt untuk deskripsi */
+		.hiddentxt {
+		display: none;
+  	}
+  
+    /* Gaya untuk overlay gambar */
+    .image-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .image-overlay img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+
+/* Style ini dipakai pada tab2 */
+    p {
+        margin-bottom: 1em; /* Jarak antar paragraf */
+    }
+    li {
+        margin-bottom: 1.5em; /* Jarak antar item daftar */
+    }
+	
+  @media (max-width: 768px) {
+    .baris1, .baris2 {
+        display: block;
+    }
+}
+  
+/* Style ini dipakai pada tab3 */
+  
+.judulvideo {
+  text-align: center;
+}
+  
+  .video-wrapper {
+        position: relative;
+        width: 100%;
+        height: 0;
+        padding-bottom: 56.25%;
+        margin-bottom: 20px; /* Menambahkan spasi di bawah video */
+    }
+  
+  .videoiframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+  /* Style ini dipakai pada tab4 */
+  
+  /* Hak Cipta */
+  .hakcipta {
+  font-style: italic;
+  font-size: 12px;
+  text-align: center;
+  margin-top: 15px;
+}
+  
+/* Style ini dipakai pada tab5 */
+  
+  .pengantarpostingan {
+  text-align: justify;
+  }
+  
+/* Style CSS untuk Infobox */
+    .infobox-container {
+        display: none;
+        justify-content: center;
+        margin: 20px auto;
+        width: 100%;
+    }
+    .infobox {
+        border: 1px solid #a2a9b1;
+        border-collapse: collapse;
+        width: 100%;
+        max-width: 600px; /* Diperbesar dari 400px menjadi 600px */
+        font-size: 14px;
+        margin: 0 auto;
+    }
+    .infobox th {
+        background-color: #f8f9fa;
+        font-weight: bold;
+        text-align: left;
+        padding: 8px;
+        border: 1px solid #a2a9b1;
+        width: 35%; /* Sedikit disesuaikan */
+    }
+    .infobox td {
+        padding: 8px;
+        border: 1px solid #a2a9b1;
+        width: 65%; /* Disesuaikan */
+    }
+    .category {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    text-align: center !important; /* Pastikan ini ada */
+    padding: 8px;
+    border: 1px solid #a2a9b1;
+    grid-column: 1 / -1;
+}
+    @media (max-width: 768px) {
+        .infobox {
+            max-width: 95%; /* Lebih responsif di layar kecil */
+            font-size: 13px;
+        }
+        .infobox th, .infobox td {
+            padding: 6px;
+        }
+    }
+/* Tampilkan infobox hanya ketika tab5 (Detail Lagu) dipilih */
+#tab5:checked ~ .infobox-container {
+    display: block;
+}
+
+/* Semua di bawah ini ada CSS untuk Tab */
+  .tab-wrap {
+  -webkit-transition: 0.3s box-shadow ease;
+  transition: 0.3s box-shadow ease;
+  border-radius: 6px;
+  max-width: 100%;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-wrap: wrap;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+    z-index: 0;
+  position: relative;
+  list-style: none;
+  background-color: #fff;
+  margin: 40px 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+.tab-wrap:hover { box-shadow: 0 10px 10px rgba(0, 0, 0, 0.23), 0 5px 5px rgba(0, 0, 0, 0.19); }
+
+.tab { display: none; }
+
+.tab__content {
+  padding: 10px 25px;
+  background-color: transparent;
+  position: relative;
+  width: 100%;
+  z-index: -1;
+  display: none;
+  left: 0;
+  -webkit-transform: translateY(-3px);
+  transform: translateY(-3px);
+  border-radius: 6px;
+}
+  
+  .tab:checked ~ .tab__content {
+  display: none; /* Sembunyikan semua tab content terlebih dahulu */
+}
+  
+  .tab:checked:nth-of-type(1) ~ .tab__content:nth-of-type(1),
+.tab:checked:nth-of-type(2) ~ .tab__content:nth-of-type(2),
+.tab:checked:nth-of-type(3) ~ .tab__content:nth-of-type(3),
+.tab:checked:nth-of-type(4) ~ .tab__content:nth-of-type(4),
+.tab:checked:nth-of-type(5) ~ .tab__content:nth-of-type(5) {
+  display: block; /* Tampilkan hanya tab content yang sesuai */
+  opacity: 1;
+  -webkit-transition: 0.5s opacity ease-in, 0.2s transform ease;
+  transition: 0.5s opacity ease-in, 0.2s transform ease;
+  position: relative;
+  top: 0;
+  z-index: 100;
+  transform: translateY(0px);
+  text-shadow: 0 0 0;
+}
+  
+
+.tab:first-of-type:not(:last-of-type) + label {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.tab:not(:first-of-type):not(:last-of-type) + label { border-radius: 0; }
+
+.tab:last-of-type:not(:first-of-type) + label {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.tab:checked + label {
+  background-color: #fff;
+  box-shadow: 0 -1px 0 #fff inset;
+  cursor: default;
+}
+
+.tab:checked + label:hover {
+  box-shadow: 0 -1px 0 #fff inset;
+  background-color: #fff;
+}
+
+.tab + label {
+  width: 100%;
+  box-shadow: 0 -1px 0 #eee inset;
+  border-radius: 6px 6px 0 0;
+  cursor: pointer;
+  display: block;
+  text-decoration: none;
+  color: #333;
+  -webkit-box-flex: 3;
+  -webkit-flex-grow: 3;
+  -ms-flex-positive: 3;
+  flex-grow: 3;
+  text-align: center;
+  background-color: #f2f2f2;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  text-align: center;
+  -webkit-transition: 0.3s background-color ease, 0.3s box-shadow ease;
+  transition: 0.3s background-color ease, 0.3s box-shadow ease;
+  height: 50px;
+  box-sizing: border-box;
+  padding: 15px;
+}
+@media (min-width:768px) {
+
+.tab + label { width: auto; }
+}
+
+.tab + label:hover {
+  background-color: #f9f9f9;
+  box-shadow: 0 1px 0 #f4f4f4 inset;
+}
+  
+  /* Tambahkan kode baru di sini */
+  .tab-wrap {
+    flex-direction: row; /* Tetap horizontal */
+  }
+
+  /* Responsif - Hanya berlaku di layar kecil */
+  @media (max-width: 768px) {
+    .tab-wrap {
+      margin: 0; /* Menghilangkan margin pada layar kecil */
+      padding: 0; /* Opsional, jika ingin menghilangkan padding juga */
+      flex-direction: row; /* Pastikan tetap horizontal pada layar kecil */
+      border-radius: 0;    /* Baru: hilangkan lengkungan */
+      box-shadow: none;    /* Baru: hilangkan bayangan */
+    }
+    .tab-wrap:hover {
+    box-shadow: none;
+}
+    .tab + label {
+        width: auto;
+        font-size: 13px;
+  		padding: 10px;
+  		height: auto;
+   		white-space: normal;
+    	word-wrap: break-word;
+  		border-radius: 0;   /* Baru: hilangkan lengkungan label */
+    	box-shadow: none;   /* Baru: hilangkan bayangan label */
+  }
+  
+}
+  /* -----------------------------
+   Tambahan Style Kebutuhan Tab1
+   ----------------------------- */
+  .tab-wrap {
+  margin: 0px 0;
+}
+  
+.tab__content:nth-of-type(1) {
+    text-align: center;
+    padding: 0px 0px;
+}
+.tab__content:nth-of-type(1) figure img {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 768px) {
+.tab__content:nth-of-type(1) {figure {
+    width: 100%;
+    margin: 0 auto;
+  }
+}
+.tab__content:nth-of-type(1) figure img {
+    box-shadow: none;
+  }
+}
+
+  /* Endnote */
+  .endnote {
+  font-style: italic;
+  font-size: 12px;
+  text-align: center;
+  margin-top: 15px;
+}
+  
+    /* Styling untuk form komentar */
+  #disqus_thread {
+    margin-top: 30px;
+  }
+
+  .disqus-comment-body {
+    font-size: 100px;
+  }
+  
+  /* Styling untuk Commento */
+  font-size: 1px:
+  }
+  .commento {
+  font-size: 1px:
+  }
+  
+    /* -----------------------------
+              Custom Header
+   ----------------------------- */
+.customheader {
+  width: 100%;
+  height: 100%;
+  max-width: 200px;
+  margin: 0;
+  background-color: transparent;
+}
+
+.customheader img {
+  width: auto;
+  height: 80%;
+}
+  
+</style>
+
+<script>
+    // Fungsi untuk menampilkan gambar penuh
+    function showFullImage(src) {
+        const overlay = document.createElement(&#39;div&#39;);
+        overlay.classList.add(&#39;image-overlay&#39;);
+        
+        const img = document.createElement(&#39;img&#39;);
+        img.src = src;
+        
+        overlay.appendChild(img);
+        document.body.appendChild(overlay);
+        
+        // Tambahkan event listener untuk menutup overlay
+        overlay.addEventListener(&#39;click&#39;, function() {
+            document.body.removeChild(overlay);
+        });
+        
+        overlay.style.display = &#39;flex&#39;;
+    }
+  
+/*
+  // Fungsi menuliskan hakcipta
+        document.addEventListener(&quot;DOMContentLoaded&quot;, () =&gt; {
+            const endnoteDiv = document.getElementById(&quot;hakcipta&quot;);
+            endnoteDiv.textContent = &quot;Hak Cipta.&quot;;
+            endnoteDiv.classList.add(&quot;endnote&quot;);
+        });
+*/
+  
+/*
+  // Fungsi menuliskan endnote
+        document.addEventListener(&quot;DOMContentLoaded&quot;, () =&gt; {
+            const endnoteDiv = document.getElementById(&quot;endnote&quot;);
+            endnoteDiv.textContent = &quot;Ini adalah contoh.&quot;;
+            endnoteDiv.classList.add(&quot;endnote&quot;);
+        });
+*/
+  
+</script>
+</head>
 
   <body>
     <b:class cond='data:view.isPreview' name='preview'/>
@@ -3254,13 +3650,13 @@ display:none
                   <b:section id='header' name='Header' showaddelement='false'>
                     <b:widget id='Header1' locked='true' title='Nyanyian Liturgi (Header)' type='Header' visible='true'>
                       <b:widget-settings>
-                        <b:widget-setting name='displayUrl'/>
-                        <b:widget-setting name='displayHeight'>0</b:widget-setting>
-                        <b:widget-setting name='sectionWidth'>-1</b:widget-setting>
-                        <b:widget-setting name='useImage'>false</b:widget-setting>
-                        <b:widget-setting name='shrinkToFit'>false</b:widget-setting>
-                        <b:widget-setting name='imagePlacement'>BEHIND</b:widget-setting>
-                        <b:widget-setting name='displayWidth'>0</b:widget-setting>
+                        <b:widget-setting name='displayUrl'>https://blogger.googleusercontent.com/img/a/AVvXsEiatbX4oVcv3W5ii-TppB_aLLY31NMuxKUZrkJcyivfj4W3rSb3sEwmkH5YtGe6wxwuI8_mYYPoOTjsBuaEyWBwWIWAIXmJ4jMMX1kkctsPJyHpbCim0Gq0Tpsw3ZlEtaxo6hcwJota2BtQv5pW8xEnT5Ei1s8P9vpjsVqTpBjDEfVcvV1-q3-fhrskDJAh=s150</b:widget-setting>
+                        <b:widget-setting name='displayHeight'>14</b:widget-setting>
+                        <b:widget-setting name='sectionWidth'>150</b:widget-setting>
+                        <b:widget-setting name='useImage'>true</b:widget-setting>
+                        <b:widget-setting name='shrinkToFit'>true</b:widget-setting>
+                        <b:widget-setting name='imagePlacement'>REPLACE</b:widget-setting>
+                        <b:widget-setting name='displayWidth'>150</b:widget-setting>
                       </b:widget-settings>
                       <b:includable id='main' var='this'>
     <div class='header-widget'>
@@ -3298,6 +3694,25 @@ display:none
           </div>
         </b:includable>
                     </b:widget>
+                    <b:widget id='HTML1' locked='false' title='' type='HTML' visible='false'>
+                      <b:widget-settings>
+                        <b:widget-setting name='content'><![CDATA[<a href='/'>
+      <figure class='customheader' data-ckbox-resource-id='ws6LoGo-ZMQc'>
+        <picture>
+          <source sizes='(max-width: 782px) 100vw, 782px' srcset='https://ckbox.cloud/46eb1b2bc4a9019326aa/assets/ws6LoGo-ZMQc/images/80.webp 80w,https://ckbox.cloud/46eb1b2bc4a9019326aa/assets/ws6LoGo-ZMQc/images/160.webp 160w,https://ckbox.cloud/46eb1b2bc4a9019326aa/assets/ws6LoGo-ZMQc/images/240.webp 240w,https://ckbox.cloud/46eb1b2bc4a9019326aa/assets/ws6LoGo-ZMQc/images/320.webp 320w,https://ckbox.cloud/46eb1b2bc4a9019326aa/assets/ws6LoGo-ZMQc/images/400.webp 400w,https://ckbox.cloud/46eb1b2bc4a9019326aa/assets/ws6LoGo-ZMQc/images/480.webp 480w,https://ckbox.cloud/46eb1b2bc4a9019326aa/assets/ws6LoGo-ZMQc/images/560.webp 560w,https://ckbox.cloud/46eb1b2bc4a9019326aa/assets/ws6LoGo-ZMQc/images/640.webp 640w,https://ckbox.cloud/46eb1b2bc4a9019326aa/assets/ws6LoGo-ZMQc/images/720.webp 720w,https://ckbox.cloud/46eb1b2bc4a9019326aa/assets/ws6LoGo-ZMQc/images/782.webp 782w' type='image/webp'>
+            <img alt="Logo website Nyanyian Liturgi" height="150" src="https://ckbox.cloud/46eb1b2bc4a9019326aa/assets/ws6LoGo-ZMQc/images/782.png" width="782" /> 
+        </source>
+        </picture>
+      </figure>
+    </a>]]></b:widget-setting>
+                      </b:widget-settings>
+                      <b:includable id='main'>
+  <b:include name='widget-title'/>
+  <div class='widget-content'>
+    <data:content/>
+  </div>
+</b:includable>
+                    </b:widget>
                   </b:section>
                 </div>
 
@@ -3309,7 +3724,7 @@ display:none
                       <b:include data='{ iconClass: &quot;touch-icon search-expand-icon&quot; }' name='searchIcon'/>
                     </button>
                     <b:section id='search_top' name='Search (Top)' showaddelement='false'>
-                      <b:widget id='BlogSearch1' locked='true' title='Cari Judul Lagu' type='BlogSearch' visible='true'>
+                      <b:widget id='BlogSearch1' locked='true' title='Cari Judul Lagu' type='BlogSearch' version='2' visible='true'>
                         <b:includable id='main'>
   <b:include name='widget-title'/>
   <b:include name='content'/>
@@ -3320,12 +3735,25 @@ display:none
   </div>
 </b:includable>
                         <b:includable id='searchForm'>
-  <form expr:action='data:blog.searchUrl'>
+  <form expr:action='data:blog.searchUrl' method='get'>
     <b:attr cond='not data:view.isPreview' name='target' value='_top'/>
     <b:include name='urlParamsAsFormInput'/>
+    
+    <!--   fitur pencarian blog
     <div class='search-input'>
-      <input autocomplete='off' expr:aria-label='data:messages.searchThisBlog' expr:placeholder='data:messages.searchThisBlog' expr:value='data:view.isSearch ? data:view.search.query.escaped : &quot;&quot;' name='q'/>
+      <input 
+        autocomplete='off' 
+        expr:aria-label='data:messages.searchThisBlog' 
+        expr:placeholder='data:messages.searchThisBlog' 
+        expr:value='data:view.isSearch ? data:view.search.query.escaped : &quot;&quot;' 
+        name='q'/>
     </div>
+    -->
+    
+    <div class='search-input'>
+      <input aria-label='Cari nyanyian liturgi' autocomplete='off' expr:value='data:view.isSearch ? data:view.search.query.escaped : &quot;&quot;' name='q' placeholder='Cari nyanyian liturgi'/>
+    </div>
+    
     <b:include name='searchSubmit'/>
   </form>
 </b:includable>
@@ -3349,7 +3777,7 @@ display:none
                     <b:section id='page_list_top' name='Page List (Top)' showaddelement='false'>
                       <b:widget id='PageList1' locked='true' title='' type='PageList' visible='true'>
                         <b:widget-settings>
-                          <b:widget-setting name='pageListJson'><![CDATA[{"3058201191965992640":{"href":"https://www.nyanyianliturgi.com/p/tentang-nyanyian-liturgi.html","position":0,"title":"Tentang"}}]]></b:widget-setting>
+                          <b:widget-setting name='pageListJson'>{}</b:widget-setting>
                           <b:widget-setting name='homeTitle'>Beranda</b:widget-setting>
                         </b:widget-settings>
                         <b:includable id='main'>
@@ -3755,6 +4183,7 @@ display:none
                       <b:widget-setting name='style.linkcolor'>#ffffff</b:widget-setting>
                       <b:widget-setting name='style.unittype'>TextAndImage</b:widget-setting>
                       <b:widget-setting name='style.bgcolor'>#ffffff</b:widget-setting>
+                      <b:widget-setting name='timestampLabel'/>
                       <b:widget-setting name='reactionsLabel'/>
                       <b:widget-setting name='showAuthorProfile'>false</b:widget-setting>
                       <b:widget-setting name='style.layout'>1x1</b:widget-setting>
@@ -4155,6 +4584,7 @@ display:none
           <b:comment>We don&#39;t show &#39;read more&#39; links in Emporio.</b:comment>
         </b:includable>
                     <b:includable id='postLabels'>
+
           <b:if cond='data:view.isMultipleItems'>
            <div class='labels-outer-container'>
               <div class='labels-container overflowable-container overflowable-no-popup'>
@@ -4172,6 +4602,32 @@ display:none
             </div>
           <b:else/>
             <b:include name='super.postLabels'/>
+            
+<!--  ini adalah pembuka komentar disqus -->
+<div id='disqus_thread'/>
+<script>
+    var disqus_config = function () {
+        this.page.url = &quot;<data:post.url/>&quot;;
+        this.page.identifier = &quot;post-<data:post.id/>&quot;;
+    };
+    
+    (function() {
+        var d = document, s = d.createElement(&#39;script&#39;);
+        s.src = &#39;https://malaikat-darat.disqus.com/embed.js&#39;;
+        s.setAttribute(&#39;data-timestamp&#39;, +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href='https://disqus.com/?ref_noscript'>comments powered by Disqus.</a></noscript>
+<!-- ini adalah penutup komentar disqus -->
+<!-- coba pakai Commento
+            <script defer='defer' src='https://cdn.commento.io/js/commento.js'/>
+<div id='commento'/>
+             kode commento sampai sini saja -->
+            <!-- coba pakai Cusdis
+            <div data-app-id='8bc04d74-aead-41a7-ab12-f2672e6051a7' data-host='https://cusdis.com' data-page-id='data:post.id' data-page-title='data:post.title' data-page-url='data:post.url' id='cusdis_thread'/>
+<script async='async' defer='defer' src='https://cusdis.com/js/cusdis.es.js'/>
+             kode cusdis sampai sini -->
           </b:if>
         </b:includable>
                     <b:includable id='postLocation'>
@@ -4346,8 +4802,7 @@ display:none
       <div id='comment-holder'>
          <data:post.commentHtml/>
       </div>
-    </div>
-
+     
     <p class='comment-footer'>
       <b:if cond='data:post.allowNewComments'>
         <b:include data='post' name='threadedCommentForm'/>
@@ -4364,7 +4819,7 @@ display:none
         <iframe allowtransparency='allowtransparency' frameborder='0' id='comment-actions' name='comment-actions' scrolling='no'>
         </iframe>
       </div>
-    </b:if>
+      </b:if></div>
   </section>
 </b:includable>
                   </b:widget>
