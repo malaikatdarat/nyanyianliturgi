@@ -1,0 +1,656 @@
+<head>
+<!-- style untuk isi postingan -->
+<style>
+	
+  /* sembunyikan gambar thumbnail */
+  .gambarthumbnail {
+      display: none;
+}
+  
+  /* hiddentxt untuk deskripsi */
+		.hiddentxt {
+		display: none;
+  	}
+  
+    /* Gaya untuk overlay gambar */
+    .image-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .image-overlay img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+
+/* Style ini dipakai pada tab1 */
+.tab__content:nth-of-type(1) figure {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+}
+.tab__content:nth-of-type(1) figure img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Style ini dipakai pada tab2 */
+    p {
+        margin-bottom: 1em; /* Jarak antar paragraf */
+    }
+    li {
+        margin-bottom: 1.5em; /* Jarak antar item daftar */
+    }
+	
+  @media (max-width: 768px) {
+    .baris1, .baris2 {
+        display: block;
+    }
+}
+  
+/* Style ini dipakai pada tab3 */
+  
+.judulvideo {
+  text-align: center;
+}
+  
+  .video-wrapper {
+        position: relative;
+        width: 100%;
+        height: 0;
+        padding-bottom: 56.25%;
+        margin-bottom: 20px; /* Menambahkan spasi di bawah video */
+    }
+  
+  .videoiframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+  /* Style ini dipakai pada tab4 */
+  
+  /* Hak Cipta */
+  .hakcipta {
+  font-style: italic;
+  font-size: 12px;
+  text-align: center;
+  margin-top: 15px;
+}
+  
+/* Style ini dipakai pada tab5 */
+  
+  .pengantarpostingan {
+  text-align: justify;
+  }
+  
+/* Style CSS untuk Infobox */
+    .infobox-container {
+        justify-content: center;
+        margin: 20px auto;
+        width: 100%;
+    }
+    .infobox {
+        border: 1px solid #a2a9b1;
+        border-collapse: collapse;
+        width: 100%;
+        max-width: 600px; /* Diperbesar dari 400px menjadi 600px */
+        font-size: 14px;
+        margin: 0 auto;
+    }
+    .infobox th {
+        background-color: #f8f9fa;
+        font-weight: bold;
+        text-align: left;
+        padding: 8px;
+        border: 1px solid #a2a9b1;
+        width: 35%; /* Sedikit disesuaikan */
+    }
+    .infobox td {
+        padding: 8px;
+        border: 1px solid #a2a9b1;
+        width: 65%; /* Disesuaikan */
+    }
+    .category {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    text-align: center !important; /* Pastikan ini ada */
+    padding: 8px;
+    border: 1px solid #a2a9b1;
+    grid-column: 1 / -1;
+}
+    @media (max-width: 768px) {
+        .infobox {
+            max-width: 95%; /* Lebih responsif di layar kecil */
+            font-size: 13px;
+        }
+        .infobox th, .infobox td {
+            padding: 6px;
+        }
+    }
+
+/* Semua di bawah ini ada CSS untuk Tab */
+  .tab-wrap {
+  -webkit-transition: 0.3s box-shadow ease;
+  transition: 0.3s box-shadow ease;
+  border-radius: 6px;
+  max-width: 100%;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-wrap: wrap;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+    z-index: 0;
+  position: relative;
+  list-style: none;
+  background-color: #fff;
+  margin: 40px 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+.tab-wrap:hover { box-shadow: 0 10px 10px rgba(0, 0, 0, 0.23), 0 5px 5px rgba(0, 0, 0, 0.19); }
+
+.tab { display: none; }
+
+.tab__content {
+  padding: 10px 25px;
+  background-color: transparent;
+  position: relative;
+  width: 100%;
+  /* z-index: -1; */
+  display: none;
+  left: 0;
+  -webkit-transform: translateY(-3px);
+  transform: translateY(-3px);
+  border-radius: 6px;
+}
+  
+  .tab:checked ~ .tab__content {
+  display: none; /* Sembunyikan semua tab content terlebih dahulu */
+}
+  
+  .tab:checked:nth-of-type(1) ~ .tab__content:nth-of-type(1),
+.tab:checked:nth-of-type(2) ~ .tab__content:nth-of-type(2),
+.tab:checked:nth-of-type(3) ~ .tab__content:nth-of-type(3),
+.tab:checked:nth-of-type(4) ~ .tab__content:nth-of-type(4),
+.tab:checked:nth-of-type(5) ~ .tab__content:nth-of-type(5) {
+  display: block; /* Tampilkan hanya tab content yang sesuai */
+  opacity: 1;
+  -webkit-transition: 0.5s opacity ease-in, 0.2s transform ease;
+  transition: 0.5s opacity ease-in, 0.2s transform ease;
+  position: relative;
+  top: 0;
+  z-index: 100;
+  transform: translateY(0px);
+  text-shadow: 0 0 0;
+}
+  
+
+.tab:first-of-type:not(:last-of-type) + label {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.tab:not(:first-of-type):not(:last-of-type) + label { border-radius: 0; }
+
+.tab:last-of-type:not(:first-of-type) + label {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.tab:checked + label {
+  background-color: #fff;
+  box-shadow: 0 -1px 0 #fff inset;
+  cursor: default;
+}
+
+.tab:checked + label:hover {
+  box-shadow: 0 -1px 0 #fff inset;
+  background-color: #fff;
+}
+
+.tab + label {
+  width: 100%;
+  box-shadow: 0 -1px 0 #eee inset;
+  border-radius: 6px 6px 0 0;
+  cursor: pointer;
+  display: block;
+  text-decoration: none;
+  color: #333;
+  -webkit-box-flex: 3;
+  -webkit-flex-grow: 3;
+  -ms-flex-positive: 3;
+  flex-grow: 3;
+  text-align: center;
+  background-color: #f2f2f2;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  text-align: center;
+  -webkit-transition: 0.3s background-color ease, 0.3s box-shadow ease;
+  transition: 0.3s background-color ease, 0.3s box-shadow ease;
+  height: 50px;
+  box-sizing: border-box;
+  padding: 15px;
+}
+@media (min-width:768px) {
+
+.tab + label { width: auto; }
+}
+
+.tab + label:hover {
+  background-color: #f9f9f9;
+  box-shadow: 0 1px 0 #f4f4f4 inset;
+}
+  
+  /* Tambahkan kode baru di sini */
+  .tab-wrap {
+    flex-direction: row; /* Tetap horizontal */
+  }
+
+  /* Responsif - Hanya berlaku di layar kecil */
+  @media (max-width: 768px) {
+    .tab-wrap {
+      margin: 0; /* Menghilangkan margin pada layar kecil */
+      padding: 0; /* Opsional, jika ingin menghilangkan padding juga */
+      flex-direction: row; /* Pastikan tetap horizontal pada layar kecil */
+      border-radius: 0;    /* Baru: hilangkan lengkungan */
+      box-shadow: none;    /* Baru: hilangkan bayangan */
+    }
+    .tab-wrap:hover {
+    box-shadow: none;
+}
+    .tab + label {
+        width: auto;
+        font-size: 13px;
+  		padding: 10px;
+  		height: auto;
+   		white-space: normal;
+    	word-wrap: break-word;
+  		border-radius: 0;   /* Baru: hilangkan lengkungan label */
+    	box-shadow: none;   /* Baru: hilangkan bayangan label */
+  }
+  
+}
+  /* -----------------------------
+   Tambahan Style Kebutuhan Tab1
+   ----------------------------- */
+  .tab-wrap {
+  margin: 0px 0;
+}
+  
+.tab__content:nth-of-type(1) {
+    text-align: center;
+    padding: 0px 0px;
+	overflow: hidden;
+	display: flex; /* mungkin tidak perlu */
+    flex-direction: column;
+    align-items: center;
+}
+.tab__content:nth-of-type(1) figure img {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 768px) {
+.tab__content:nth-of-type(1) figure {
+    width: 100%;
+    margin: 0 auto;
+  }
+
+.tab__content:nth-of-type(1) figure img {
+    box-shadow: none;
+  }
+}
+
+  /* Endnote */
+  .endnote {
+  font-style: italic;
+  font-size: 12px;
+  text-align: center;
+  margin-top: 15px;
+}
+  
+    /* Styling untuk form komentar */
+  #disqus_thread {
+    margin-top: 30px;
+  }
+
+  .disqus-comment-body {
+    font-size: 100px;
+  }
+  
+  /* Styling untuk Commento */
+  .commento {
+  font-size: 1px;
+  }
+  
+    /* -----------------------------
+              Custom Header
+   ----------------------------- */
+.customheader {
+  width: 100%;
+  height: 100%;
+  max-width: 200px;
+  margin: 0;
+  background-color: transparent;
+}
+
+.customheader img {
+  width: auto;
+  height: 80%;
+}
+  
+</style>
+<script>
+    // Fungsi untuk menampilkan gambar penuh
+    function showFullImage(src) {
+        const overlay = document.createElement(&#39;div&#39;);
+        overlay.classList.add(&#39;image-overlay&#39;);
+        
+        const img = document.createElement(&#39;img&#39;);
+        img.src = src;
+        
+        overlay.appendChild(img);
+        document.body.appendChild(overlay);
+        
+        // Tambahkan event listener untuk menutup overlay
+        overlay.addEventListener(&#39;click&#39;, function() {
+            document.body.removeChild(overlay);
+        });
+        
+        overlay.style.display = &#39;flex&#39;;
+    }
+  
+/*
+  // Fungsi menuliskan hakcipta
+        document.addEventListener(&quot;DOMContentLoaded&quot;, () =&gt; {
+            const endnoteDiv = document.getElementById(&quot;hakcipta&quot;);
+            endnoteDiv.textContent = &quot;Hak Cipta.&quot;;
+            endnoteDiv.classList.add(&quot;endnote&quot;);
+        });
+*/
+  
+/*
+  // Fungsi menuliskan endnote
+        document.addEventListener(&quot;DOMContentLoaded&quot;, () =&gt; {
+            const endnoteDiv = document.getElementById(&quot;endnote&quot;);
+            endnoteDiv.textContent = &quot;Ini adalah contoh.&quot;;
+            endnoteDiv.classList.add(&quot;endnote&quot;);
+        });
+*/
+
+</script>
+</head>
+<body>
+<!-- Gambar untuk Thumbnail -->
+<figure class="gambarthumbnail" 
+        data-ckbox-resource-id="oxfRoa9OMC1A">
+    <picture> <source srcset="https://ckbox.cloud/f54cb74e01091326e247/assets/NyW3w5ZLhq84/images/120.webp 120w,https://ckbox.cloud/f54cb74e01091326e247/assets/NyW3w5ZLhq84/images/240.webp 240w,https://ckbox.cloud/f54cb74e01091326e247/assets/NyW3w5ZLhq84/images/360.webp 360w,https://ckbox.cloud/f54cb74e01091326e247/assets/NyW3w5ZLhq84/images/480.webp 480w,https://ckbox.cloud/f54cb74e01091326e247/assets/NyW3w5ZLhq84/images/600.webp 600w,https://ckbox.cloud/f54cb74e01091326e247/assets/NyW3w5ZLhq84/images/720.webp 720w,https://ckbox.cloud/f54cb74e01091326e247/assets/NyW3w5ZLhq84/images/840.webp 840w,https://ckbox.cloud/f54cb74e01091326e247/assets/NyW3w5ZLhq84/images/960.webp 960w,https://ckbox.cloud/f54cb74e01091326e247/assets/NyW3w5ZLhq84/images/1080.webp 1080w,https://ckbox.cloud/f54cb74e01091326e247/assets/NyW3w5ZLhq84/images/1200.webp 1200w" sizes="(max-width: 1200px) 100vw, 1200px" type="image/webp"><img alt="Logo Yubileum 2025" class="image_resized" height="1200" src="https://ckbox.cloud/f54cb74e01091326e247/assets/NyW3w5ZLhq84/images/1200.jpeg" width="1200"> </picture>
+</figure>
+
+<!-- Teks untuk Deskripsi -->
+<p class="hiddentxt">Unduh partitur dan pelajari lagu:<br>Peziarah Harapan (Himne Yubileum 2025).</p>
+
+<!-- Tab Wrap -->
+<div id="mantab"></div>
+  
+<!-- Tab 1: Partitur -->
+<template id="tab1-content">
+<p><strong>Partitur - Unisono</strong></p>
+<figure class="image" data-ckbox-resource-id="ckouDXgI0_9n">
+    <picture> <source sizes="(max-width: 2481px) 100vw, 2481px" srcset="https://ckbox.cloud/1d5144246dbdd027b532/assets/ckouDXgI0_9n/images/249.webp 249w,https://ckbox.cloud/1d5144246dbdd027b532/assets/ckouDXgI0_9n/images/498.webp 498w,https://ckbox.cloud/1d5144246dbdd027b532/assets/ckouDXgI0_9n/images/747.webp 747w,https://ckbox.cloud/1d5144246dbdd027b532/assets/ckouDXgI0_9n/images/996.webp 996w,https://ckbox.cloud/1d5144246dbdd027b532/assets/ckouDXgI0_9n/images/1245.webp 1245w,https://ckbox.cloud/1d5144246dbdd027b532/assets/ckouDXgI0_9n/images/1494.webp 1494w,https://ckbox.cloud/1d5144246dbdd027b532/assets/ckouDXgI0_9n/images/1743.webp 1743w,https://ckbox.cloud/1d5144246dbdd027b532/assets/ckouDXgI0_9n/images/1992.webp 1992w,https://ckbox.cloud/1d5144246dbdd027b532/assets/ckouDXgI0_9n/images/2241.webp 2241w,https://ckbox.cloud/1d5144246dbdd027b532/assets/ckouDXgI0_9n/images/2481.webp 2481w" type="image/webp"><img height="3508" src="https://ckbox.cloud/1d5144246dbdd027b532/assets/ckouDXgI0_9n/images/2481.jpeg" alt="Partitur not angka lagu Peziarah Harapan dalam bentuk Unisono" width="2481" onclick="showFullImage(this.src)"> </picture>
+</figure>
+<p><strong>Partitur - SATB</strong></p>
+<figure class="image" data-ckbox-resource-id="tdK_6tql5XIP">
+    <picture>
+        <source sizes="(max-width: 2481px) 100vw, 2481px" srcset="https://ckbox.cloud/1d5144246dbdd027b532/assets/tdK_6tql5XIP/images/249.webp 249w,https://ckbox.cloud/1d5144246dbdd027b532/assets/tdK_6tql5XIP/images/498.webp 498w,https://ckbox.cloud/1d5144246dbdd027b532/assets/tdK_6tql5XIP/images/747.webp 747w,https://ckbox.cloud/1d5144246dbdd027b532/assets/tdK_6tql5XIP/images/996.webp 996w,https://ckbox.cloud/1d5144246dbdd027b532/assets/tdK_6tql5XIP/images/1245.webp 1245w,https://ckbox.cloud/1d5144246dbdd027b532/assets/tdK_6tql5XIP/images/1494.webp 1494w,https://ckbox.cloud/1d5144246dbdd027b532/assets/tdK_6tql5XIP/images/1743.webp 1743w,https://ckbox.cloud/1d5144246dbdd027b532/assets/tdK_6tql5XIP/images/1992.webp 1992w,https://ckbox.cloud/1d5144246dbdd027b532/assets/tdK_6tql5XIP/images/2241.webp 2241w,https://ckbox.cloud/1d5144246dbdd027b532/assets/tdK_6tql5XIP/images/2481.webp 2481w" type="image/webp"><img height="3508" src="https://ckbox.cloud/1d5144246dbdd027b532/assets/tdK_6tql5XIP/images/2481.jpeg" alt="Halaman 1 partitur not angka lagu Peziarah Harapan dalam bentuk aransemen empat suara SATB" width="2481" onclick="showFullImage(this.src)">
+    </picture>
+</figure>
+<figure class="image" data-ckbox-resource-id="ry30l1GVwn9b">
+    <picture>
+        <source sizes="(max-width: 2481px) 100vw, 2481px" srcset="https://ckbox.cloud/1d5144246dbdd027b532/assets/ry30l1GVwn9b/images/249.webp 249w,https://ckbox.cloud/1d5144246dbdd027b532/assets/ry30l1GVwn9b/images/498.webp 498w,https://ckbox.cloud/1d5144246dbdd027b532/assets/ry30l1GVwn9b/images/747.webp 747w,https://ckbox.cloud/1d5144246dbdd027b532/assets/ry30l1GVwn9b/images/996.webp 996w,https://ckbox.cloud/1d5144246dbdd027b532/assets/ry30l1GVwn9b/images/1245.webp 1245w,https://ckbox.cloud/1d5144246dbdd027b532/assets/ry30l1GVwn9b/images/1494.webp 1494w,https://ckbox.cloud/1d5144246dbdd027b532/assets/ry30l1GVwn9b/images/1743.webp 1743w,https://ckbox.cloud/1d5144246dbdd027b532/assets/ry30l1GVwn9b/images/1992.webp 1992w,https://ckbox.cloud/1d5144246dbdd027b532/assets/ry30l1GVwn9b/images/2241.webp 2241w,https://ckbox.cloud/1d5144246dbdd027b532/assets/ry30l1GVwn9b/images/2481.webp 2481w" type="image/webp"><img height="3508" src="https://ckbox.cloud/1d5144246dbdd027b532/assets/ry30l1GVwn9b/images/2481.jpeg" alt="Halaman 2 partitur not angka lagu Peziarah Harapan dalam bentuk aransemen empat suara SATB" width="2481" onclick="showFullImage(this.src)">
+    </picture>
+</figure>
+<figure class="image" data-ckbox-resource-id="rBoj72QG6pe_">
+    <picture>
+        <source sizes="(max-width: 2481px) 100vw, 2481px" srcset="https://ckbox.cloud/1d5144246dbdd027b532/assets/rBoj72QG6pe_/images/249.webp 249w,https://ckbox.cloud/1d5144246dbdd027b532/assets/rBoj72QG6pe_/images/498.webp 498w,https://ckbox.cloud/1d5144246dbdd027b532/assets/rBoj72QG6pe_/images/747.webp 747w,https://ckbox.cloud/1d5144246dbdd027b532/assets/rBoj72QG6pe_/images/996.webp 996w,https://ckbox.cloud/1d5144246dbdd027b532/assets/rBoj72QG6pe_/images/1245.webp 1245w,https://ckbox.cloud/1d5144246dbdd027b532/assets/rBoj72QG6pe_/images/1494.webp 1494w,https://ckbox.cloud/1d5144246dbdd027b532/assets/rBoj72QG6pe_/images/1743.webp 1743w,https://ckbox.cloud/1d5144246dbdd027b532/assets/rBoj72QG6pe_/images/1992.webp 1992w,https://ckbox.cloud/1d5144246dbdd027b532/assets/rBoj72QG6pe_/images/2241.webp 2241w,https://ckbox.cloud/1d5144246dbdd027b532/assets/rBoj72QG6pe_/images/2481.webp 2481w" type="image/webp"><img height="3508" src="https://ckbox.cloud/1d5144246dbdd027b532/assets/rBoj72QG6pe_/images/2481.jpeg" alt="Halaman 3 partitur not angka lagu Peziarah Harapan dalam bentuk aransemen empat suara SATB" width="2481" onclick="showFullImage(this.src)">
+    </picture>
+</figure>
+  </template>
+
+<!-- Tab 2: Syair -->
+<template id="tab2-content">
+    <div>
+        <p><strong>Refrain:</strong></p>
+        <p><span class="baris1">Fiamma viva della mia speranza/</span> <span class="baris2">Nyala hidup dari harapanku,</span><br>
+        <span class="baris1">questo canto giunga fino a Te!/</span> <span class="baris2">kidungku kan sampai pada-Mu!</span><br>
+        <span class="baris1">Grembo eterno d’infinita vita/</span> <span class="baris2">Sang rahim sumber hidup abadi</span><br>
+        <span class="baris1">nel cammino io confido in Te./</span> <span class="baris2">di jalan ku, ku percaya Kau.</span></p>
+
+        <p><strong>Bait:</strong></p>
+        <ol>
+            <li>
+                <p><span class="baris1">Ogni lingua, popolo e nazione/</span> <span class="baris2">Setiap bangsa, suku, dan bahasa</span><br>
+                <span class="baris1">trova luce nella tua Parola./</span> <span class="baris2">jumpa terang di dalam Sabda-Mu.</span><br>
+                <span class="baris1">Figli e figlie fragili e dispersi/</span> <span class="baris2">Putra-putri rapuh dan terpencar</span><br>
+                <span class="baris1">sono accolti nel tuo Figlio amato./</span> <span class="baris2">t’lah disambut di dalam Putra-Mu.</span></p>
+            </li>
+            <li>
+                <p><span class="baris1">Dio ci guarda, tenero e paziente:/</span> <span class="baris2">Tuhan pandang kita penuh kasih:</span><br>
+                <span class="baris1">nasce l’alba di un futuro nuovo./</span> <span class="baris2">lahir fajar masa depan baru.</span><br>
+                <span class="baris1">Nuovi Cieli Terra fatta nuova:/</span> <span class="baris2">Langit dan bumi diperbarui:</span><br>
+                <span class="baris1">passa i muri Spirito di vita./</span> <span class="baris2">Roh Hidup-Nya tembusi segala.</span></p>
+            </li>
+            <li>
+                <p><span class="baris1">Alza gli occhi, muoviti col vento,/</span> <span class="baris2">Angkat mata, ikut hembusan-Nya,</span><br>
+                <span class="baris1">serra il passo: viene Dio, nel tempo./</span> <span class="baris2">bergegaslah: Tuhan tengah tiba.</span><br>
+                <span class="baris1">Guarda il Figlio che s’è fatto Uomo:/</span> <span class="baris2">Lihatlah Sang Putra jadi Insan:</span><br>
+                <span class="baris1">mille e mille trovano la via./</span> <span class="baris2">tak terhitung yang temukan jalan.</span></p>
+            </li>
+        </ol>
+    </div>
+</template>
+
+<!-- Tab 3: Audio/Video -->
+<template id="tab3-content">
+<!-- Audio, gunakan:🎶; video, gunakan:🎬 -->
+  <!-- Video -->
+<!-- Bagian Judul -->
+<p class="judulvideo">
+  <a target="_blank" rel="noopener noreferrer" href="https://www.youtube.com/watch?v=xQNCSeykhFk" title="Tonton di YouTube">🎬 Inno Ufficiale del Giubileo 2025 - "Pellegrini di Speranza"</a> 
+  <span>|</span> 
+  <a target="_blank" rel="noopener noreferrer" href="https://www.youtube.com/@iubilaeum25" title="Buka kanal YouTube">📺 Iubilaeum25</a>
+</p>
+
+<!-- Video Wrapper -->
+    <div class="video-wrapper">
+        <iframe class="videoiframe"
+            src="https://youtube.com/embed/xQNCSeykhFk?si=goU6Suj-6tUYqMF8" 
+            allowfullscreen>
+        </iframe>
+    </div>
+</template>
+  
+<!-- Tab 4: Unduh -->
+<template id="tab4-content">
+<p><a target="_blank" rel="noopener noreferrer" href="https://drive.google.com/file/d/1NnzKJn_QDXiUKwm9Vpb73PpzYmjyVszM/view?usp=sharing" title="Unduh partitur dalam format .jpg">Peziarah Harapan - Unisono 🖼️</a></p>
+<p><a target="_blank" rel="noopener noreferrer" href="https://drive.google.com/file/d/1DqH9RtiT78CQykztJGWFW4RbsodK6tDc/view?usp=sharing" title="Unduh partitur dalam format .pdf">Peziarah Harapan - Unisono 📄</a></p>
+<p><a target="_blank" rel="noopener noreferrer" href="https://drive.google.com/drive/folders/1zEbB-IuKMYJ9zbC2c5DXHJKKuYBmCL8z?usp=sharing" title="Unduh partitur dalam format .jpg">Peziarah Harapan - SATB 🖼️</a></p>
+<p><a target="_blank" rel="noopener noreferrer" href="https://drive.google.com/file/d/1NIUqPLdKTj2AZp3AUYac66VzM1--7-sf/view?usp=sharing" title="Unduh partitur dalam format .pdf">Peziarah Harapan - SATB 📄</a></p>
+  <div id="hakcipta"></div>
+</template>
+  
+<!-- Tab 5: Detail Lagu -->
+<template id="tab5-content">
+
+<!-- Pengantar Postingan -->
+<p class="pengantarpostingan">"Peziarah Harapan" adalah terjemahan bahasa Indonesia dari himne resmi Tahun Yubileum 2025: "<i>Pellegrini di Speranza</i>" dari bahasa Italia. Yubileum 2025 dirayakan mulai 24 Desember 2024 hingga 6 Januari 2026.</p>
+  
+  <!-- Tabel/Infobox -->
+  <div class="infobox-container">
+<table class="infobox">
+        <tr>
+            <th colspan="2" class="category">INFORMASI DASAR</th>
+        </tr>
+        <tr>
+            <th>Judul Lagu</th>
+            <td>Peziarah Harapan</td>
+        </tr>
+        <tr>
+            <th>Judul Alternatif</th>
+            <td>Himne Yubileum 2025</td>
+        </tr>
+        <tr>
+            <th>Pengarang</th>
+            <td><a href="https://en.wikipedia.org/wiki/Pierangelo_Sequeri" target="_blank">Pierangelo Sequeri</a></td>
+        </tr>
+        <tr>
+            <th>Komposer</th>
+            <td><a href="https://www.iubilaeum2025.va/en/giubileo-2025/inno-giubileo-2025.html" target="_blank">Francesco Meneghello</a></td>
+        </tr>
+        <tr>
+            <th>Tahun Dibuat</th>
+            <td><a href="/search/label/2024" target="_blank">2024</a></td>
+        </tr>
+        <tr>
+            <th>Nihil Obstat</th>
+            <td><a href="" target="_blank">-</a></td>
+        </tr>
+        <tr>
+            <th>Sumber Buku</th>
+            <td><a href="" target="_blank">-</a></td>
+        </tr>
+        <tr>
+            <th>Lagu Terkait</th>
+            <td>-</td>
+        </tr>
+        <tr>
+            <th>Versi Alternatif</th>
+            <td>-</td>
+        </tr>
+        <tr>
+            <th colspan="2" class="category">KARAKTERISTIK MUSIK DAN SYAIR</th>
+        </tr>
+        <tr>
+            <th>Gaya Musik</th>
+            <td><a href="/search/label/Polifoni" target="_blank">Polifoni</a></td>
+        </tr>
+        <tr>
+            <th>Jenis Partitur</th>
+            <td><a href="/search/label/Unisono" target="_blank">Unisono</a>, <a href="/search/label/SATB" target="_blank">SATB</a>, <a href="/search/label/Notasi%20Angka" target="_blank">Notasi Angka</a></td>
+        </tr>
+        <tr>
+            <th>Not Awal</th>
+            <td><a href="/p/not-awal.html" target="_blank">15 4 3 21 23 2 1 .</a></td>
+        </tr>
+        <tr>
+            <th>Referensi Syair</th>
+            <td>-</td>
+        </tr>
+        <tr>
+            <th>Bahasa</th>
+            <td><a href="/search/label/Italia" target="_blank">Italia</a>, <a href="/search/label/Indonesia" target="_blank">Indonesia</a></td>
+        </tr>
+        <tr>
+            <th>Penerjemah</th>
+            <td><a href="/search/label/Angelo%20Seltinus" target="_blank">Angelo Seltinus</a></td>
+        </tr>
+        <tr>
+            <th colspan="2" class="category">LITURGI DAN PENGGUNAAN</th>
+        </tr>
+        <tr>
+            <th>Perayaan Liturgi</th>
+            <td><a href="/search/label/Ekaristi" target="_blank">Ekaristi / Misa</a></td>
+        </tr>
+        <tr>
+            <th>Klasifikasi Liturgi</th>
+            <td><a href="/search/label/Proprium" target="_blank">Proprium</a></td>
+        </tr>
+        <tr>
+            <th>Penggunaan / Fungsi Liturgi</th>
+            <td><a href="/search/label/Pembuka" target="_blank">Pembuka</a>, <a href="/search/label/Syukur" target="_blank">Syukur</a>, <a href="/search/label/Penutup" target="_blank">Penutup</a></td>
+        </tr>
+        <tr>
+            <th>Penggunaan Khusus</th>
+            <td>Tahun Yubileum 2025</td>
+        </tr>
+        <tr>
+            <th>Masa Liturgi</th>
+            <td><a href="/search/label/Biasa" target="_blank">Biasa</a>, <a href="/search/label/Umum" target="_blank">Umum</a></td>
+        </tr>
+        <tr>
+            <th>Tema Lagu / Liturgi</th>
+          <td><a href="/search/label/Syukur" target="_blank">Syukur</a></td>
+        </tr>
+    </table>
+    </div>
+</template>
+</div>
+<div id="endnote"></div>
+<br>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+  console.log("Skrip dimulai...");
+    const tabHtml = `
+        <div class="tab-wrap">
+            <input type="radio" id="tab1" name="tabGroup1" class="tab" checked>
+            <label for="tab1">Partitur 🎼</label>
+            <input type="radio" id="tab2" name="tabGroup1" class="tab">
+            <label for="tab2">Syair 📖</label>
+            <input type="radio" id="tab3" name="tabGroup1" class="tab">
+            <label for="tab3">Audio/Video 🎧</label>
+            <input type="radio" id="tab4" name="tabGroup1" class="tab">
+            <label for="tab4">Unduh 📥</label>
+            <input type="radio" id="tab5" name="tabGroup1" class="tab">
+            <label for="tab5">Detail Lagu ℹ️</label>
+			
+			<div class="tab__content"></div>
+			<div class="tab__content"></div>
+			<div class="tab__content"></div>
+			<div class="tab__content"></div>
+			<div class="tab__content"></div>
+        </div>
+    `;
+	
+    const container = document.getElementById('mantab');
+    container.innerHTML = tabHtml;
+
+    console.log('Tab-wrap berhasil dimuat.');
+
+    const template = document.getElementById('tab1-content');
+    const tab1Content = template.content.cloneNode(true);
+    const tabContents = container.querySelectorAll('.tab__content');
+    tabContents[0].appendChild(tab1Content);
+
+    const template2 = document.getElementById('tab2-content');
+    const tab2Content = template2.content.cloneNode(true);
+    tabContents[1].appendChild(tab2Content);
+	
+	const template3 = document.getElementById('tab3-content');
+    const tab3Content = template3.content.cloneNode(true);
+    tabContents[2].appendChild(tab3Content);
+	
+	const template4 = document.getElementById('tab4-content');
+    const tab4Content = template4.content.cloneNode(true);
+    tabContents[3].appendChild(tab4Content);
+	
+	const template5 = document.getElementById('tab5-content');
+    const tab5Content = template5.content.cloneNode(true);
+    tabContents[4].appendChild(tab5Content);
+});
+</script>
+</body>
