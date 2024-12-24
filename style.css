@@ -124,13 +124,21 @@
 .download-grid {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 20px;
 }
 
 .download-row {
     display: flex;
     justify-content: space-evenly;
     width: 100%;
+}
+
+@media (max-width: 768px) {
+    .download-row {
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+    }
 }
 
   .download-item {
