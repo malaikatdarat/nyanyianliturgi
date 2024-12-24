@@ -212,8 +212,10 @@
   
 /* Style ini dipakai pada tab5 */
   
-  .pengantarpostingan {
-  text-align: justify;
+  .details-intro {
+  	text-align: justify;
+  	margin: 20px auto;
+        width: 100%;
   }
   
 /* Style CSS untuk Infobox */
