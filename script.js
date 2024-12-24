@@ -539,8 +539,9 @@ document.addEventListener('DOMContentLoaded', function () {
     function processPreContent(content) {
         const entries = content.trim().split(/(?=unduh-link:)/);
         let processedHtml = '';
-        let title = '';    
+        let title = '';
 	let itemCount = 0;
+	let currentRow = '';
         
         entries.forEach(entry => {
             if (!entry.trim()) return;
@@ -584,10 +585,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     </p>
                     <div class="download-grid">`;
             }
-		itemCount++;
-		const needsSpacing = itemCount % 2 === 0 ? 'add-spacing' : '';
 
-            processedHtml += `
+	itemCount++;
+        
+        currentRow += `	
                 <a href="${data['unduh-link']}" 
                    target="_blank" 
                    rel="noopener noreferrer" 
@@ -606,7 +607,16 @@ document.addEventListener('DOMContentLoaded', function () {
                     </figure>
                     <span class="download-label">${data.label}</span>
                 </a>`;
-        });
+
+		if (itemCount % 2 === 0) {
+            processedHtml += `<div class="download-row">${currentRow}</div>`;
+            currentRow = '';
+        }
+    });
+
+	if (currentRow !== '') {
+        processedHtml += `<div class="download-row">${currentRow}</div>`;
+    	}
 
         if (processedHtml !== '') {
             processedHtml += `</div></div>`;
