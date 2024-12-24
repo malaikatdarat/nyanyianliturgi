@@ -121,12 +121,17 @@
     color: #666;
   }
 
-  .download-grid {
+.download-grid {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.download-row {
+    display: flex;
     justify-content: center;
     gap: 15px;
-  }
+}
 
   .download-item {
     text-decoration: none;
@@ -140,10 +145,6 @@
     border-radius: 8px;
     margin-bottom: 10px;
   }
-
-.download-item.add-spacing {
-    margin-bottom: 2rem;
-}
 
   .download-label {
     font-size: 0.9em;
