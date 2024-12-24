@@ -581,8 +581,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div id="download-section">
                     <h2>Unduh Partitur</h2>
                     <p class="unduh-description">
-		    <span class="baris1">
-                        Pilih format yang sesuai untuk mengunduh partitur lagu </span><span class="baris2"><strong>${title}</strong></span>.
+		    <span class="baris1">Pilih format yang sesuai </span><span class="baris1">untuk mengunduh partitur lagu </span><span class="baris2"><strong>${title}</strong></span>.
                     </p>
                     <div class="download-grid">`;
             }
