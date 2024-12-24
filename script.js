@@ -539,7 +539,8 @@ document.addEventListener('DOMContentLoaded', function () {
     function processPreContent(content) {
         const entries = content.trim().split(/(?=unduh-link:)/);
         let processedHtml = '';
-        let title = '';
+        let title = '';    
+	let itemCount = 0;
         
         entries.forEach(entry => {
             if (!entry.trim()) return;
@@ -583,6 +584,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     </p>
                     <div class="download-grid">`;
             }
+		itemCount++;
+		const needsSpacing = itemCount % 2 === 0 ? 'add-spacing' : '';
 
             processedHtml += `
                 <a href="${data['unduh-link']}" 
