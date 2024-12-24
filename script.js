@@ -580,7 +580,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 processedHtml = `
                 <div id="download-section">
                     <h2>Unduh Partitur</h2>
-                    <p class="description">
+                    <p class="unduh-description">
                         Pilih format yang sesuai untuk mengunduh partitur lagu <strong>${title}</strong>.
                     </p>
                     <div class="download-grid">`;
