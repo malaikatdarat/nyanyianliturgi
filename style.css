@@ -7,9 +7,9 @@
 }
   
   /* hiddentxt untuk deskripsi */
-		.hiddentxt {
-		display: none;
-  	}
+.hiddentxt {
+	display: none;
+}
   
     /* Gaya untuk overlay gambar */
     .image-overlay {
@@ -114,13 +114,6 @@
     color: #333;
   }
 
-  .description {
-    text-align: center;
-    font-size: 1em;
-    margin-bottom: 20px;
-    color: #666;
-  }
-
 .download-grid {
     display: flex;
     flex-direction: column;
@@ -133,11 +126,24 @@
     width: 100%;
 }
 
+.download-item {
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 200px;
+}
+
 @media (max-width: 768px) {
     .download-row {
         flex-direction: column;
         align-items: center;
         gap: 20px;
+    }
+    
+    .download-item {
+        width: 100%;
+        max-width: 200px;
     }
 }
 
