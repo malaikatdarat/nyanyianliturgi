@@ -105,8 +105,14 @@
     padding: 20px;
     border: 1px solid #ddd;
     border-radius: 8px;
-    background-color: none;
+    background-color: transparent;
   }
+
+@media (max-width: 768px) {
+	#download-section {
+		border: none;
+	}
+}
 
   #download-section h2 {
     text-align: center;
