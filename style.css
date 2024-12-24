@@ -104,15 +104,6 @@
     .tab__content:nth-of-type(3) {
         padding: 0 !important;
     }
-    
-    .video-wrapper, .audio-wrapper {
-        width: 100vw;
-        position: relative;
-        left: 50%;
-        right: 50%;
-        margin-left: -50vw;
-        margin-right: -50vw;
-    }
 }
 
   /* Style ini dipakai pada tab4 */
