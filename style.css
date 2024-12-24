@@ -114,6 +114,10 @@
     color: #333;
   }
 
+.unduh-description {
+	text-align: center;
+}
+
 .download-grid {
     display: flex;
     flex-direction: column;
