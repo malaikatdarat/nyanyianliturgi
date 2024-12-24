@@ -1,1 +1,1 @@
-This repository stores CSS and JS files for the website www.nyanyianliturgi.com.
+Repositori ini menyimpan file CSS dan JS untuk website www.nyanyianliturgi.com
