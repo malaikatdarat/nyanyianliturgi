@@ -620,6 +620,13 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
+document.querySelectorAll('.overflowable-item a[rel="tag"]').forEach(link => {
+  const linkText = link.textContent.trim();
+  if (linkText === 'Pembuka' || linkText === 'Penutup') {
+    link.closest('.overflowable-item').setAttribute('data-label-name', linkText);
+  }
+});
+
 	/*
   // Fungsi menuliskan hakcipta
         document.addEventListener(&quot;DOMContentLoaded&quot;, () =&gt; {
