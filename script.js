@@ -626,14 +626,14 @@ const allowedLabels = ['Pembuka', 'Penutup', 'Persembahan', 'Komuni'];
 document.querySelectorAll('.overflowable-item a[rel="tag"]').forEach(link => {
   const linkText = link.textContent.trim();
   if (allowedLabels.includes(linkText)) {
-    link.closest('.overflowable-item').setAttribute('data-label-name', linkText);
+    link.closest('.overflowable-item').setAttribute('allowed-labels', linkText);
   }
 });
 
-document.querySelectorAll('.post-footer .post-labels a[rel="tag"]').forEach(link => {
+document.querySelectorAll('.byline a[rel="tag"]').forEach(link => {
   const linkText = link.textContent.trim();
   if (allowedLabels.includes(linkText)) {
-    link.setAttribute('data-label-name', linkText);
+    link.setAttribute('allowed-labels', linkText);
   }
 });
 
