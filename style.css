@@ -489,8 +489,7 @@
   display: none;
 }
 
-.overflowable-item[data-label-name="Pembuka"],
-.overflowable-item[data-label-name="Penutup"] {
+.overflowable-item[allowed-labels] {
   display: inline-block !important;
 }
 
@@ -498,7 +497,6 @@
 	display: none;
 }
 
-.byline a [data-label-name="Pembuka"],
-.byline a [data-label-name="Penutup"] {
+.byline a[allowed-labels] {
 	display: inline-block !important;
 }
