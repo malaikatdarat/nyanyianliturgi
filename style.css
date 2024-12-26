@@ -493,11 +493,17 @@
   display: inline-block !important;
 }
 
-.byline a {
-  display: none;
+/* Sembunyikan semua label terlebih dahulu */
+.byline.post-labels a[rel="tag"] {
+    display: none;
 }
 
-.byline a[allowed-labels] {
-  display: inline-block !important;
+/* Tampilkan hanya label yang memiliki atribut allowed-labels */
+.byline.post-labels a[rel="tag"][allowed-labels] {
+    display: inline-block;
 }
 
+/* Sembunyikan label indicator */
+.byline-label {
+    display: none;
+}
