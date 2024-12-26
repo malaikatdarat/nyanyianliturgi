@@ -620,10 +620,19 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
+// Hanya tampilkan label yang relevan
+
 document.querySelectorAll('.overflowable-item a[rel="tag"]').forEach(link => {
   const linkText = link.textContent.trim();
   if (linkText === 'Pembuka' || linkText === 'Penutup') {
     link.closest('.overflowable-item').setAttribute('data-label-name', linkText);
+  }
+});
+
+document.querySelectorAll('.post-footer .post-labels a[rel="tag"]').forEach(link => {
+  const linkText = link.textContent.trim();
+  if (linkText === 'Pembuka' || linkText === 'Penutup') {
+    link.setAttribute('data-label-name', linkText);
   }
 });
 
