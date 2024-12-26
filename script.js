@@ -431,13 +431,10 @@ document.addEventListener('DOMContentLoaded', function() {
     try {
         const pre = document.getElementById('imageData');
         if (!pre) {
-            throw new Error('imageData element not found');
-        }
         const content = pre.textContent;
         const html = processPreContent(content);
         pre.outerHTML = html;
     } catch (error) {
-        console.error('Error:', error);
     }
 });
 
@@ -507,13 +504,10 @@ document.addEventListener('DOMContentLoaded', function() {
     try {
         const pre = document.getElementById('imageThumb');
         if (!pre) {
-            throw new Error('imageThumb element not found');
-        }
         const content = pre.textContent;
         const html = processPreContent(content);
         pre.outerHTML = html;
     } catch (error) {
-        console.error('Error:', error);
     }
 });
 
@@ -625,13 +619,10 @@ document.addEventListener('DOMContentLoaded', function () {
     try {
         const pre = document.getElementById('download-tab');
         if (!pre) {
-            throw new Error('download-tab element not found');
-        }
         const content = pre.textContent;
         const html = processPreContent(content);
         pre.outerHTML = html;
     } catch (error) {
-        console.error('Error:', error);
     }
 });
 
