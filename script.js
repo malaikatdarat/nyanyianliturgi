@@ -501,13 +501,11 @@ document.addEventListener('DOMContentLoaded', function() {
         return processedHtml;
     }
 
-    try {
         const pre = document.getElementById('imageThumb');
-        if (!pre) {
+        if (pre) {
         const content = pre.textContent;
         const html = processPreContent(content);
         pre.outerHTML = html;
-    } catch (error) {
     }
 });
 
