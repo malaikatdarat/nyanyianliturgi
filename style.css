@@ -494,5 +494,10 @@
 }
 
 .byline a {
-	display: none;
+  display: none;
 }
+
+.byline a[allowed-labels] {
+  display: inline-block !important;
+}
+
