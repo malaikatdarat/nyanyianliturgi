@@ -624,14 +624,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
 document.querySelectorAll('.overflowable-item a[rel="tag"]').forEach(link => {
   const linkText = link.textContent.trim();
-  if (linkText === 'Pembuka' || linkText === 'Penutup') {
+  if (allowedLabels.includes(linkText)) {
     link.closest('.overflowable-item').setAttribute('data-label-name', linkText);
   }
 });
 
+const allowedLabels = ['Pembuka', 'Penutup', 'Persembahan', 'Komuni'];
+
 document.querySelectorAll('.post-footer .post-labels a[rel="tag"]').forEach(link => {
   const linkText = link.textContent.trim();
-  if (linkText === 'Pembuka' || linkText === 'Penutup') {
+  if (allowedLabels.includes(linkText)) {
     link.setAttribute('data-label-name', linkText);
   }
 });
