@@ -493,3 +493,12 @@
 .overflowable-item[data-label-name="Penutup"] {
   display: inline-block !important;
 }
+
+.byline-label {
+	display: none;
+}
+
+.byline-label[data-label-name="Pembuka"],
+.byline-label[data-label-name="Penutup"] {
+	display: inline-block !important;
+}
