@@ -486,10 +486,10 @@
 }
 
 .overflowable-item {
-  display: none; /* Sembunyikan semua label */
+  display: none;
 }
 
 .overflowable-item[data-label-name="Pembuka"],
 .overflowable-item[data-label-name="Penutup"] {
-  display: inline-block; /* Tampilkan label tertentu */
+  display: inline-block !important;
 }
