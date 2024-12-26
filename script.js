@@ -621,6 +621,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 // Hanya tampilkan label yang relevan
+const allowedLabels = ['Pembuka', 'Penutup', 'Persembahan', 'Komuni'];
 
 document.querySelectorAll('.overflowable-item a[rel="tag"]').forEach(link => {
   const linkText = link.textContent.trim();
@@ -628,8 +629,6 @@ document.querySelectorAll('.overflowable-item a[rel="tag"]').forEach(link => {
     link.closest('.overflowable-item').setAttribute('data-label-name', linkText);
   }
 });
-
-const allowedLabels = ['Pembuka', 'Penutup', 'Persembahan', 'Komuni'];
 
 document.querySelectorAll('.post-footer .post-labels a[rel="tag"]').forEach(link => {
   const linkText = link.textContent.trim();
