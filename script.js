@@ -621,21 +621,28 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 // Hanya tampilkan label yang relevan
-const allowedLabels = ['Pembuka', 'Penutup', 'Persembahan', 'Komuni'];
+document.addEventListener('DOMContentLoaded', () => {
+  const allowedLabels = ['Pembuka', 'Penutup', 'Persembahan', 'Komuni'];
 
-document.querySelectorAll('.overflowable-item a[rel="tag"]').forEach(link => {
-  const linkText = link.textContent.trim();
-  if (allowedLabels.includes(linkText)) {
-    link.closest('.overflowable-item').setAttribute('allowed-labels', linkText);
-  }
+  // Menambahkan atribut allowed-labels pada .overflowable-item
+  document.querySelectorAll('.overflowable-item a[rel="tag"]').forEach(link => {
+    const linkText = link.textContent.trim();
+    if (allowedLabels.includes(linkText)) {
+      link.closest('.overflowable-item').setAttribute('allowed-labels', linkText);
+    }
+  });
+
+  // Menambahkan atribut allowed-labels pada .byline a
+  document.querySelectorAll('.byline a[rel="tag"]').forEach(link => {
+    const linkText = link.textContent.trim();
+    console.log('Processing: ', linkText);  // Memastikan teks yang sedang diproses
+    if (allowedLabels.includes(linkText)) {
+      console.log('Label found: ', linkText);  // Pastikan label yang ditemukan
+      link.setAttribute('allowed-labels', linkText);
+    }
+  });
 });
 
-document.querySelectorAll('.byline a[rel="tag"]').forEach(link => {
-  const linkText = link.textContent.trim();
-  if (allowedLabels.includes(linkText)) {
-    link.setAttribute('allowed-labels', linkText);
-  }
-});
 
 	/*
   // Fungsi menuliskan hakcipta
