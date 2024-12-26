@@ -494,11 +494,11 @@
   display: inline-block !important;
 }
 
-.byline-label {
+.byline a {
 	display: none;
 }
 
-.byline-label[data-label-name="Pembuka"],
-.byline-label[data-label-name="Penutup"] {
+.byline a [data-label-name="Pembuka"],
+.byline a [data-label-name="Penutup"] {
 	display: inline-block !important;
 }
