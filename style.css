@@ -484,3 +484,12 @@
   width: auto;
   height: 80%;
 }
+
+.overflowable-item {
+  display: none; /* Sembunyikan semua label */
+}
+
+.overflowable-item[data-label-name="Pembuka"],
+.overflowable-item[data-label-name="Penutup"] {
+  display: inline-block; /* Tampilkan label tertentu */
+}
