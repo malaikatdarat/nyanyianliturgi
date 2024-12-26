@@ -632,12 +632,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Menambahkan atribut allowed-labels pada .byline a
-  document.querySelectorAll('.byline a[rel="tag"]').forEach(link => {
+  // Untuk byline.post-labels - disesuaikan dengan HTML dan CSS
+  document.querySelectorAll('.byline.post-labels a[rel="tag"]').forEach(link => {
     const linkText = link.textContent.trim();
-    console.log('Processing: ', linkText);  // Memastikan teks yang sedang diproses
     if (allowedLabels.includes(linkText)) {
-      console.log('Label found: ', linkText);  // Pastikan label yang ditemukan
       link.setAttribute('allowed-labels', linkText);
     }
   });
