@@ -1,5 +1,4 @@
   document.addEventListener("DOMContentLoaded", () => {
-  console.log("Skrip dimulai...");
     const tabHtml = `
         <div class="tab-wrap">
             <input type="radio" id="tab1" name="tabGroup1" class="tab" checked>
@@ -23,8 +22,6 @@
 	
     const container = document.getElementById('mantab');
     container.innerHTML = tabHtml;
-
-    console.log('Tab-wrap berhasil dimuat.');
 
     const template = document.getElementById('tab1-content');
     const tab1Content = template.content.cloneNode(true);
