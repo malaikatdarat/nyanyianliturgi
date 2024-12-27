@@ -500,7 +500,8 @@ function showFullImage(clickedImageSrc) {
             const tapInterval = currentTapTime - lastTapTime;
             lastTapTime = currentTapTime;
 
-            // [CHANGED] => Hanya double-tap yang toggle zoom, single tap diabaikan
+            // Single tap => tidak melakukan apa-apa.
+            // Double tap => toggle zoom
             if (tapInterval < doubleTapThreshold) {
                 // Double tap => toggle zoom
                 if (isZoomed) {
@@ -508,8 +509,6 @@ function showFullImage(clickedImageSrc) {
                 } else {
                     zoomIn();
                 }
-            } else {
-                // Single tap => tidak melakukan apa-apa
             }
         }
     }
@@ -521,6 +520,7 @@ function showFullImage(clickedImageSrc) {
     let lastMouseY = null;
 
     function handleMouseMove(e) {
+        // Panning hanya jika sedang zoom
         if (!isZoomed) return;
         
         if (lastMouseX === null || lastMouseY === null) {
@@ -535,9 +535,11 @@ function showFullImage(clickedImageSrc) {
         lastMouseX = e.clientX;
         lastMouseY = e.clientY;
 
-        // [CHANGED] => Dibalik dan dikali 2
-        offsetX -= 2 * deltaX;
+        // [CHANGED] => Desktop hanya panning vertikal
+        // => Abaikan perubahan offsetX, hanya terapkan offsetY
         offsetY -= 2 * deltaY;
+        // Pastikan offsetX tetap 0 agar tidak ada panning horizontal
+        offsetX = 0;
 
         applyTransform();
     }
@@ -575,6 +577,7 @@ function showFullImage(clickedImageSrc) {
             touchLastX = currentX;
             touchLastY = currentY;
 
+            // Di mobile, panning tetap bebas (vertikal & horizontal)
             offsetX += deltaX;
             offsetY += deltaY;
 
@@ -669,6 +672,7 @@ function showFullImage(clickedImageSrc) {
 
     showImage(currentIndex);
 }
+
 
 /*
     function showFullImage(src) {
