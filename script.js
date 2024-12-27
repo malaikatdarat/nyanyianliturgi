@@ -347,7 +347,10 @@ function showFullImage(clickedImageSrc) {
 
     const loader = document.createElement('div');
     loader.classList.add('loader');
-    imgContainer.appendChild(loader);
+    
+    // Add loader only after a small delay if image hasn't loaded
+    let loaderTimeout;
+    let isImageLoaded = false;
 
     const counter = document.createElement('div');
     counter.classList.add('image-counter');
@@ -356,13 +359,16 @@ function showFullImage(clickedImageSrc) {
     tooltip.classList.add('tooltip');
 
     const img = document.createElement('img');
-    img.src = clickedImageSrc;
-    
     img.style.display = 'none';
+    
     img.onload = function() {
+        isImageLoaded = true;
+        clearTimeout(loaderTimeout);
         loader.style.display = 'none';
         img.style.display = 'block';
     };
+
+    img.src = clickedImageSrc;
 
     const prevButton = document.createElement('button');
     prevButton.innerHTML = '&#10094;';
@@ -379,8 +385,17 @@ function showFullImage(clickedImageSrc) {
     function showImage(index) {
         if (index >= 0 && index < imageList.length) {
             currentIndex = index;
+            isImageLoaded = false;
             img.style.display = 'none';
-            loader.style.display = 'block';
+            
+            // Show loader after 100ms delay if image hasn't loaded
+            clearTimeout(loaderTimeout);
+            loaderTimeout = setTimeout(() => {
+                if (!isImageLoaded) {
+                    loader.style.display = 'block';
+                }
+            }, 100);
+            
             img.src = imageList[currentIndex];
             
             updateCounter();
@@ -395,33 +410,42 @@ function showFullImage(clickedImageSrc) {
 
     // Zoom functionality
     let isZoomed = false;
-    let zoomScale = 2;
+    let zoomScale = 2.5;
     
-    function calculateZoomPosition(e) {
-        const rect = img.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
+    function calculateBoundedOffset(mouseX, mouseY, rect) {
+        // Calculate the boundaries for the zoomed image
+        const zoomedWidth = rect.width * zoomScale;
+        const zoomedHeight = rect.height * zoomScale;
         
-        // Convert to percentage
-        const percentX = (mouseX / rect.width) * 100;
-        const percentY = (mouseY / rect.height) * 100;
+        // Calculate how much the image can move
+        const maxOffsetX = (zoomedWidth - rect.width) / 2;
+        const maxOffsetY = (zoomedHeight - rect.height) / 2;
         
-        // Calculate offset to keep zoom point under cursor
-        const offsetX = -((percentX - 50) * (zoomScale - 1));
-        const offsetY = -((percentY - 50) * (zoomScale - 1));
+        // Calculate the mouse position relative to the image center (-1 to 1)
+        const relativeX = (mouseX - (rect.left + rect.width / 2)) / (rect.width / 2);
+        const relativeY = (mouseY - (rect.top + rect.height / 2)) / (rect.height / 2);
         
-        return { offsetX, offsetY };
+        // Calculate the offset with boundaries
+        const offsetX = -maxOffsetX * relativeX;
+        const offsetY = -maxOffsetY * relativeY;
+        
+        return {
+            x: Math.max(-maxOffsetX, Math.min(maxOffsetX, offsetX)),
+            y: Math.max(-maxOffsetY, Math.min(maxOffsetY, offsetY))
+        };
     }
 
-    function applyZoomTransform(offsetX, offsetY) {
-        img.style.transform = `scale(${zoomScale}) translate(${offsetX}%, ${offsetY}%)`;
+    function applyZoomTransform(e) {
+        const rect = img.getBoundingClientRect();
+        const { x: offsetX, y: offsetY } = calculateBoundedOffset(e.clientX, e.clientY, rect);
+        img.style.transform = `scale(${zoomScale}) translate(${offsetX / zoomScale}px, ${offsetY / zoomScale}px)`;
     }
 
     function handleMouseMove(e) {
         if (isZoomed) {
-            e.preventDefault();
-            const { offsetX, offsetY } = calculateZoomPosition(e);
-            applyZoomTransform(offsetX, offsetY);
+            requestAnimationFrame(() => {
+                applyZoomTransform(e);
+            });
         }
     }
 
@@ -431,8 +455,7 @@ function showFullImage(clickedImageSrc) {
         if (!isZoomed) {
             isZoomed = true;
             overlay.classList.add('zoomed-mode');
-            const { offsetX, offsetY } = calculateZoomPosition(e);
-            applyZoomTransform(offsetX, offsetY);
+            applyZoomTransform(e);
             imgContainer.addEventListener('mousemove', handleMouseMove);
         } else {
             isZoomed = false;
@@ -443,60 +466,69 @@ function showFullImage(clickedImageSrc) {
     }
 
     // Touch events for mobile
+    let lastTouchX = 0;
+    let lastTouchY = 0;
     let initialTouchDistance = 0;
-    let initialScale = 1;
-
-    function getTouchDistance(e) {
-        const touch1 = e.touches[0];
-        const touch2 = e.touches[1];
-        return Math.hypot(
-            touch2.clientX - touch1.clientX,
-            touch2.clientY - touch1.clientY
-        );
-    }
+    let currentZoomScale = 1;
 
     function handleTouchStart(e) {
         if (e.touches.length === 2) {
             e.preventDefault();
-            initialTouchDistance = getTouchDistance(e);
-            initialScale = zoomScale;
+            initialTouchDistance = Math.hypot(
+                e.touches[1].clientX - e.touches[0].clientX,
+                e.touches[1].clientY - e.touches[0].clientY
+            );
+        } else if (e.touches.length === 1) {
+            lastTouchX = e.touches[0].clientX;
+            lastTouchY = e.touches[0].clientY;
         }
     }
 
     function handleTouchMove(e) {
+        if (!isZoomed) return;
+
+        e.preventDefault();
+        
         if (e.touches.length === 2) {
-            e.preventDefault();
+            // Pinch zoom
+            const distance = Math.hypot(
+                e.touches[1].clientX - e.touches[0].clientX,
+                e.touches[1].clientY - e.touches[0].clientY
+            );
             
-            const currentDistance = getTouchDistance(e);
-            const scaleDiff = currentDistance / initialTouchDistance;
-            zoomScale = Math.min(Math.max(initialScale * scaleDiff, 1), 4);
+            currentZoomScale = (distance / initialTouchDistance) * zoomScale;
+            currentZoomScale = Math.min(Math.max(currentZoomScale, 1), 4);
             
-            if (zoomScale > 1) {
-                isZoomed = true;
-                overlay.classList.add('zoomed-mode');
-                
-                // Calculate center point of pinch
-                const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-                const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-                
-                const { offsetX, offsetY } = calculateZoomPosition({
-                    clientX: centerX,
-                    clientY: centerY
-                });
-                applyZoomTransform(offsetX, offsetY);
-            } else {
-                isZoomed = false;
-                overlay.classList.remove('zoomed-mode');
-                img.style.transform = 'none';
-            }
+            const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+            const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+            
+            const rect = img.getBoundingClientRect();
+            const { x: offsetX, y: offsetY } = calculateBoundedOffset(centerX, centerY, rect);
+            img.style.transform = `scale(${currentZoomScale}) translate(${offsetX / currentZoomScale}px, ${offsetY / currentZoomScale}px)`;
+        } else if (e.touches.length === 1) {
+            // Pan
+            const deltaX = e.touches[0].clientX - lastTouchX;
+            const deltaY = e.touches[0].clientY - lastTouchY;
+            
+            const rect = img.getBoundingClientRect();
+            const { x: offsetX, y: offsetY } = calculateBoundedOffset(
+                e.touches[0].clientX - deltaX,
+                e.touches[0].clientY - deltaY,
+                rect
+            );
+            
+            img.style.transform = `scale(${currentZoomScale}) translate(${offsetX / currentZoomScale}px, ${offsetY / currentZoomScale}px)`;
+            
+            lastTouchX = e.touches[0].clientX;
+            lastTouchY = e.touches[0].clientY;
         }
     }
 
     img.addEventListener('click', handleZoom);
-    img.addEventListener('touchstart', handleTouchStart, { passive: false });
-    img.addEventListener('touchmove', handleTouchMove, { passive: false });
+    imgContainer.addEventListener('touchstart', handleTouchStart, { passive: false });
+    imgContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
 
-    // Navigation
+    // Navigation buttons
     prevButton.addEventListener('click', (e) => {
         if (!isZoomed) {
             e.stopPropagation();
@@ -511,7 +543,9 @@ function showFullImage(clickedImageSrc) {
         }
     });
 
+    // Keyboard navigation
     function cleanup() {
+        clearTimeout(loaderTimeout);
         document.removeEventListener('keydown', handleKeydown);
         imgContainer.removeEventListener('mousemove', handleMouseMove);
         document.body.removeChild(overlay);
@@ -531,6 +565,7 @@ function showFullImage(clickedImageSrc) {
 
     document.addEventListener('keydown', handleKeydown);
 
+    imgContainer.appendChild(loader);
     imgContainer.appendChild(img);
     overlay.appendChild(counter);
     overlay.appendChild(tooltip);
@@ -539,7 +574,6 @@ function showFullImage(clickedImageSrc) {
     overlay.appendChild(nextButton);
     document.body.appendChild(overlay);
     
-    // Close on click outside
     overlay.addEventListener('click', (e) => {
         if (e.target === overlay || e.target === imgContainer) {
             cleanup();
