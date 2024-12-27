@@ -751,10 +751,17 @@ function showFullImage(clickedImageSrc) {
     document.body.appendChild(overlay);
     
     // Klik di luar gambar => tutup
-    overlay.addEventListener('click', (e) => {
-    // Hanya tutup jika click tepat pada overlay (area di luar imgContainer)
-    if (e.target === overlay) {
-        cleanup();
+overlay.addEventListener('click', (e) => {
+    if (isMobile()) {
+        // Mobile: hanya tutup jika tap tepat pada overlay
+        if (e.target === overlay) {
+            cleanup();
+        }
+    } else {
+        // Desktop: tutup jika click pada overlay atau container (perilaku asal)
+        if (e.target === overlay || e.target === imgContainer) {
+            cleanup();
+        }
     }
 });
 
