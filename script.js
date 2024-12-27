@@ -428,6 +428,7 @@ function showFullImage(clickedImageSrc) {
 
     // Untuk mendeteksi double-tap di mobile
     let lastTapTime = 0;
+    let isDoubleTap = false;       // <--- TAMBAHAN: untuk penanda double tap
     const doubleTapThreshold = 300; // ms
 
     // Agar zoom “dari atas” (desktop) atau “ke tengah” (mobile),
@@ -492,9 +493,8 @@ function showFullImage(clickedImageSrc) {
     }
 
     // =====================================================
-    // [SWIPE LOGIC ADDED]
+    // SWIPE LOGIC (Mobile)
     // =====================================================
-    // Variabel global untuk mendeteksi gerakan swipe di mobile
     let startX = 0;
     let startY = 0;
     const swipeThreshold = 50; // px minimal untuk dianggap swipe
@@ -513,14 +513,17 @@ function showFullImage(clickedImageSrc) {
             const tapInterval = currentTapTime - lastTapTime;
             lastTapTime = currentTapTime;
 
-            // Single tap => tidak melakukan apa-apa.
-            // Double tap => toggle zoom
             if (tapInterval < doubleTapThreshold) {
+                // Double tap => toggle zoom
+                isDoubleTap = true;
                 if (isZoomed) {
                     zoomOut();
                 } else {
                     zoomIn();
                 }
+            } else {
+                // Bukan double tap
+                isDoubleTap = false;
             }
         }
     }
@@ -547,7 +550,7 @@ function showFullImage(clickedImageSrc) {
         lastMouseX = e.clientX;
         lastMouseY = e.clientY;
 
-        // [CHANGED] => Desktop hanya panning vertikal
+        // Desktop hanya panning vertikal
         offsetY -= 2.3 * deltaY;
         // Pastikan offsetX tetap 0 agar tidak ada panning horizontal
         offsetX = 0;
@@ -567,7 +570,7 @@ function showFullImage(clickedImageSrc) {
     let touchLastY = null;
 
     function handleTouchMove(e) {
-        // Jika zoomed, kita lakukan panning bebas (horizontal & vertical)
+        // Jika zoomed, lakukan panning bebas (horizontal & vertical)
         if (isZoomed) {
             if (e.touches.length === 1) {
                 e.preventDefault();
@@ -593,8 +596,7 @@ function showFullImage(clickedImageSrc) {
                 applyTransform();
             }
         }
-        // Jika *tidak* zoomed, kita biarkan dulu; logika swipe 
-        // akan dievaluasi di handleTouchEnd (agar “flick” juga terhitung).
+        // Jika *tidak* zoomed, logika swipe dievaluasi di handleTouchEnd.
     }
 
     function handleTouchEnd(e) {
@@ -602,7 +604,6 @@ function showFullImage(clickedImageSrc) {
         touchLastX = null;
         touchLastY = null;
 
-        // [SWIPE LOGIC ADDED]
         // Jika tidak zoomed, deteksi apakah terjadi swipe horizontal
         if (!isZoomed) {
             const endX = e.changedTouches[0].clientX;
@@ -610,8 +611,7 @@ function showFullImage(clickedImageSrc) {
             const diffX = endX - startX;
             const diffY = endY - startY;
 
-            // Hanya jika gerakan horizontalnya lebih besar 
-            // dari gerakan vertikalnya (dan melebihi threshold)
+            // 1) Cek apakah ini gerakan swipe
             if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > swipeThreshold) {
                 // Swipe ke kanan
                 if (diffX > 0) {
@@ -621,6 +621,23 @@ function showFullImage(clickedImageSrc) {
                 else {
                     showImage(currentIndex + 1);
                 }
+            } 
+            // 2) Jika BUKAN swipe dan BUKAN double tap, maka anggap single tap
+            else if (!isDoubleTap && Math.abs(diffX) < swipeThreshold && Math.abs(diffY) < swipeThreshold) {
+                // Cek posisi tap relatif terhadap container
+                const containerRect = imgContainer.getBoundingClientRect();
+                const tapX = endX - containerRect.left;
+                const containerWidth = containerRect.width;
+
+                // Jika tapX < 10% lebar container => pindah ke gambar sebelumnya
+                if (tapX < 0.1 * containerWidth) {
+                    showImage(currentIndex - 1);
+                }
+                // Jika tapX > 90% lebar container => pindah ke gambar berikutnya
+                else if (tapX > 0.9 * containerWidth) {
+                    showImage(currentIndex + 1);
+                }
+                // Jika tap di tengah-tengah (10%-90%), tidak melakukan apa-apa.
             }
         }
     }
@@ -691,7 +708,7 @@ function showFullImage(clickedImageSrc) {
         }
     });
 
-    // EVENT LISTENERS ZOOM/PAN/ SWIPE
+    // EVENT LISTENERS ZOOM/PAN/ SWIPE (sesuai device)
     if (isMobile()) {
         // Mobile
         img.addEventListener('touchstart', handleImageTouchStart, { passive: true });
