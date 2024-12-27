@@ -398,6 +398,8 @@ function showFullImage(clickedImageSrc) {
     let currentOffsetY = 0;
 
     function applyVerticalPan(offsetY) {
+        const maxPanDistance = img.clientHeight * 0.75; // 1.5x gambar
+        offsetY = Math.max(Math.min(offsetY, maxPanDistance), -maxPanDistance);
         img.style.transform = `scale(${zoomScale}) translateY(${offsetY / zoomScale}px)`;
     }
 
@@ -406,7 +408,7 @@ function showFullImage(clickedImageSrc) {
             isZoomed = true;
             overlay.classList.add('zoomed-mode');
             maxOffsetY = Math.max(0, (img.clientHeight * zoomScale - imgContainer.clientHeight) / 2);
-            currentOffsetY = -maxOffsetY;
+            currentOffsetY = 0; // Mulai dari posisi netral
             applyVerticalPan(currentOffsetY);
         } else {
             isZoomed = false;
@@ -427,7 +429,7 @@ function showFullImage(clickedImageSrc) {
         if (isZoomed && e.touches.length === 1) {
             e.preventDefault();
             const deltaY = e.touches[0].clientY - touchStartY;
-            currentOffsetY = Math.min(Math.max(currentOffsetY + deltaY, -maxOffsetY), maxOffsetY);
+            currentOffsetY += deltaY;
             applyVerticalPan(currentOffsetY);
             touchStartY = e.touches[0].clientY;
         }
@@ -446,7 +448,7 @@ function showFullImage(clickedImageSrc) {
     });
 
     overlay.addEventListener('click', (e) => {
-        if (e.target === overlay || e.target === imgContainer) {
+        if (e.target === overlay) {
             document.body.removeChild(overlay);
         }
     });
@@ -462,7 +464,6 @@ function showFullImage(clickedImageSrc) {
 
     showImage(currentIndex);
 }
-
 
 /*
     function showFullImage(src) {
