@@ -420,7 +420,11 @@ function showFullImage(clickedImageSrc) {
     // ZOOM + PAN (Desktop & Mobile)
     // =====================================================
     let isZoomed = false;
-    let zoomScale = 2.5;
+    let zoomScale = isMobile() ? 1.5 : 2.5;  // Default zoom 150% untuk mobile
+    const MOBILE_PAN_MULTIPLIER = 1.5;  // Pengali untuk panning di mobile
+
+    // Untuk pinch zoom
+    let lastPinchDistance = null;
 
     // Posisi pan saat ini (X dan Y)
     let offsetX = 0;
@@ -428,11 +432,9 @@ function showFullImage(clickedImageSrc) {
 
     // Untuk mendeteksi double-tap di mobile
     let lastTapTime = 0;
-    let isDoubleTap = false;       // <--- TAMBAHAN: untuk penanda double tap
+    let isDoubleTap = false;
     const doubleTapThreshold = 300; // ms
 
-    // Agar zoom “dari atas” (desktop) atau “ke tengah” (mobile),
-    // kita set transform-origin secara dinamis saat zoom in.
     function applyTransform() {
         const { clampedX, clampedY } = clampOffsets(offsetX, offsetY);
         offsetX = clampedX;
@@ -441,23 +443,33 @@ function showFullImage(clickedImageSrc) {
         img.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${zoomScale})`;
     }
 
-function getMaxOffsets() {
-    const containerRect = imgContainer.getBoundingClientRect();
-    const zoomedWidth = img.naturalWidth * zoomScale;
-    const zoomedHeight = img.naturalHeight * zoomScale;
+    function getMaxOffsets() {
+        const containerRect = imgContainer.getBoundingClientRect();
+        const zoomedWidth = img.naturalWidth * zoomScale;
+        const zoomedHeight = img.naturalHeight * zoomScale;
 
-    // Batasi maksimal offset ke 2x ukuran gambar asli
-    const maxOffsetX = Math.min(
-        Math.max(0, (zoomedWidth - containerRect.width) / 2),
-        img.naturalWidth * 2
-    );
-    const maxOffsetY = Math.min(
-        Math.max(0, (zoomedHeight - containerRect.height) / 2),
-        img.naturalHeight * 2
-    );
-
-    return { maxOffsetX, maxOffsetY };
-}
+        if (isMobile()) {
+            // Mobile: offset bebas sesuai ukuran zoom
+            const maxOffsetX = Math.min(
+                Math.max(0, (zoomedWidth - containerRect.width) / 2),
+                img.naturalWidth * zoomScale / 2
+            );
+            const maxOffsetY = Math.min(
+                Math.max(0, (zoomedHeight - containerRect.height) / 2),
+                img.naturalHeight * zoomScale / 2
+            );
+            return { maxOffsetX, maxOffsetY };
+        } else {
+            // Desktop: batasi gerakan vertical
+            // Offset X selalu 0 (tidak bisa geser horizontal)
+            // Offset Y: maksimal setengah ke atas, satu kali height ke bawah
+            const maxOffsetY = img.naturalHeight;
+            return { 
+                maxOffsetX: 0,
+                maxOffsetY: maxOffsetY
+            };
+        }
+    }
 
     function clampOffsets(x, y) {
         const { maxOffsetX, maxOffsetY } = getMaxOffsets();
@@ -485,6 +497,37 @@ function getMaxOffsets() {
         isZoomed = false;
         overlay.classList.remove('zoomed-mode');
         img.style.transform = 'none';
+        zoomScale = isMobile() ? 1.5 : 2.5; // Reset zoom scale ke default
+    }
+
+    // --------------------------------------
+    // HANDLE PINCH ZOOM (Mobile)
+    // --------------------------------------
+    function handlePinchZoom(e) {
+        if (!isMobile()) return;
+        
+        if (e.touches.length === 2) {
+            e.preventDefault();
+            
+            const touch1 = e.touches[0];
+            const touch2 = e.touches[1];
+            
+            const currentDistance = Math.hypot(
+                touch2.clientX - touch1.clientX,
+                touch2.clientY - touch1.clientY
+            );
+            
+            if (lastPinchDistance === null) {
+                lastPinchDistance = currentDistance;
+                return;
+            }
+            
+            const scale = currentDistance / lastPinchDistance;
+            zoomScale = Math.min(Math.max(zoomScale * scale, 1), 3); // Batasi zoom 100% - 300%
+            
+            lastPinchDistance = currentDistance;
+            applyTransform();
+        }
     }
 
     // --------------------------------------
@@ -504,24 +547,21 @@ function getMaxOffsets() {
     // =====================================================
     let startX = 0;
     let startY = 0;
-    const swipeThreshold = 50; // px minimal untuk dianggap swipe
+    const swipeThreshold = 50;
 
     // --------------------------------------
     // DETEKSI TAP / DOUBLE TAP (Mobile)
     // --------------------------------------
     function handleImageTouchStart(e) {
         if (e.touches.length === 1) {
-            // Catat posisi awal sentuhan (untuk swipe)
             startX = e.touches[0].clientX;
             startY = e.touches[0].clientY;
 
-            // Cek double-tap
             const currentTapTime = new Date().getTime();
             const tapInterval = currentTapTime - lastTapTime;
             lastTapTime = currentTapTime;
 
             if (tapInterval < doubleTapThreshold) {
-                // Double tap => toggle zoom
                 isDoubleTap = true;
                 if (isZoomed) {
                     zoomOut();
@@ -529,7 +569,6 @@ function getMaxOffsets() {
                     zoomIn();
                 }
             } else {
-                // Bukan double tap
                 isDoubleTap = false;
             }
         }
@@ -542,7 +581,6 @@ function getMaxOffsets() {
     let lastMouseY = null;
 
     function handleMouseMove(e) {
-        // Panning hanya jika sedang zoom
         if (!isZoomed) return;
         
         if (lastMouseX === null || lastMouseY === null) {
@@ -576,7 +614,6 @@ function getMaxOffsets() {
     let touchLastY = null;
 
     function handleTouchMove(e) {
-        // Jika zoomed, lakukan panning bebas (horizontal & vertical)
         if (isZoomed) {
             if (e.touches.length === 1) {
                 e.preventDefault();
@@ -590,8 +627,8 @@ function getMaxOffsets() {
                     return;
                 }
 
-                const deltaX = currentX - touchLastX;
-                const deltaY = currentY - touchLastY;
+                const deltaX = (currentX - touchLastX) * MOBILE_PAN_MULTIPLIER;
+                const deltaY = (currentY - touchLastY) * MOBILE_PAN_MULTIPLIER;
 
                 touchLastX = currentX;
                 touchLastY = currentY;
@@ -602,48 +639,35 @@ function getMaxOffsets() {
                 applyTransform();
             }
         }
-        // Jika *tidak* zoomed, logika swipe dievaluasi di handleTouchEnd.
     }
 
     function handleTouchEnd(e) {
-        // Reset panning
         touchLastX = null;
         touchLastY = null;
+        lastPinchDistance = null;
 
-        // Jika tidak zoomed, deteksi apakah terjadi swipe horizontal
         if (!isZoomed) {
             const endX = e.changedTouches[0].clientX;
             const endY = e.changedTouches[0].clientY;
             const diffX = endX - startX;
             const diffY = endY - startY;
 
-            // 1) Cek apakah ini gerakan swipe
             if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > swipeThreshold) {
-                // Swipe ke kanan
                 if (diffX > 0) {
                     showImage(currentIndex - 1);
-                } 
-                // Swipe ke kiri
-                else {
+                } else {
                     showImage(currentIndex + 1);
                 }
-            } 
-            // 2) Jika BUKAN swipe dan BUKAN double tap, maka anggap single tap
-            else if (!isDoubleTap && Math.abs(diffX) < swipeThreshold && Math.abs(diffY) < swipeThreshold) {
-                // Cek posisi tap relatif terhadap container
+            } else if (!isDoubleTap && Math.abs(diffX) < swipeThreshold && Math.abs(diffY) < swipeThreshold) {
                 const containerRect = imgContainer.getBoundingClientRect();
                 const tapX = endX - containerRect.left;
                 const containerWidth = containerRect.width;
 
-                // Jika tapX < 10% lebar container => pindah ke gambar sebelumnya
                 if (tapX < 0.2 * containerWidth) {
                     showImage(currentIndex - 1);
-                }
-                // Jika tapX > 90% lebar container => pindah ke gambar berikutnya
-                else if (tapX > 0.8 * containerWidth) {
+                } else if (tapX > 0.8 * containerWidth) {
                     showImage(currentIndex + 1);
                 }
-                // Jika tap di tengah-tengah (10%-90%), tidak melakukan apa-apa.
             }
         }
     }
@@ -688,7 +712,6 @@ function getMaxOffsets() {
                 cleanup();
             }
         } else {
-            // Ketika zoomed, Esc juga menutup overlay
             if (e.key === 'Escape') {
                 cleanup();
             }
@@ -714,12 +737,22 @@ function getMaxOffsets() {
         }
     });
 
-    // EVENT LISTENERS ZOOM/PAN/ SWIPE (sesuai device)
+    // EVENT LISTENERS ZOOM/PAN/SWIPE (sesuai device)
     if (isMobile()) {
         // Mobile
         img.addEventListener('touchstart', handleImageTouchStart, { passive: true });
         imgContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
         imgContainer.addEventListener('touchend', handleTouchEnd);
+        
+        // Tambahan untuk pinch zoom
+        imgContainer.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                lastPinchDistance = null;
+            }
+        }, { passive: false });
+        
+        imgContainer.addEventListener('touchmove', handlePinchZoom, { passive: false });
     } else {
         // Desktop
         img.addEventListener('click', handleImageClickDesktop);
