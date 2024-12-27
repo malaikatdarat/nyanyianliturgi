@@ -2,21 +2,21 @@
     const tabHtml = `
         <div class="tab-wrap">
             <input type="radio" id="tab1" name="tabGroup1" class="tab" checked>
-            <label for="tab1">Partitur 🎼</label>
+            <label for="tab1"><span class="tab-text">Partitur</span><span class="tab-emoji">🎼</span></label>
             <input type="radio" id="tab2" name="tabGroup1" class="tab">
-            <label for="tab2">Syair 📖</label>
+            <label for="tab2"><span class="tab-text">Syair</span><span class="tab-emoji">📖</span></label>
             <input type="radio" id="tab3" name="tabGroup1" class="tab">
-            <label for="tab3">Audio/Video 🎧</label>
+            <label for="tab3"><span class="tab-text">Audio/Video</span><span class="tab-emoji">🎧</span></label>
             <input type="radio" id="tab4" name="tabGroup1" class="tab">
-            <label for="tab4">Unduh 📥</label>
+            <label for="tab4"><span class="tab-text">Unduh</span><span class="tab-emoji">📥</span></label>
             <input type="radio" id="tab5" name="tabGroup1" class="tab">
-            <label for="tab5">Detail Lagu ℹ️</label>
-			
-			<div class="tab__content"></div>
-			<div class="tab__content"></div>
-			<div class="tab__content"></div>
-			<div class="tab__content"></div>
-			<div class="tab__content"></div>
+            <label for="tab5"><span class="tab-text">Detail Lagu</span><span class="tab-emoji">ℹ️</span></label>
+            
+            <div class="tab__content"></div>
+            <div class="tab__content"></div>
+            <div class="tab__content"></div>
+            <div class="tab__content"></div>
+            <div class="tab__content"></div>
         </div>
     `;
 	
