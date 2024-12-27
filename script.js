@@ -491,11 +491,24 @@ function showFullImage(clickedImageSrc) {
         }
     }
 
+    // =====================================================
+    // [SWIPE LOGIC ADDED]
+    // =====================================================
+    // Variabel global untuk mendeteksi gerakan swipe di mobile
+    let startX = 0;
+    let startY = 0;
+    const swipeThreshold = 50; // px minimal untuk dianggap swipe
+
     // --------------------------------------
     // DETEKSI TAP / DOUBLE TAP (Mobile)
     // --------------------------------------
     function handleImageTouchStart(e) {
         if (e.touches.length === 1) {
+            // Catat posisi awal sentuhan (untuk swipe)
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+
+            // Cek double-tap
             const currentTapTime = new Date().getTime();
             const tapInterval = currentTapTime - lastTapTime;
             lastTapTime = currentTapTime;
@@ -503,7 +516,6 @@ function showFullImage(clickedImageSrc) {
             // Single tap => tidak melakukan apa-apa.
             // Double tap => toggle zoom
             if (tapInterval < doubleTapThreshold) {
-                // Double tap => toggle zoom
                 if (isZoomed) {
                     zoomOut();
                 } else {
@@ -536,7 +548,6 @@ function showFullImage(clickedImageSrc) {
         lastMouseY = e.clientY;
 
         // [CHANGED] => Desktop hanya panning vertikal
-        // => Abaikan perubahan offsetX, hanya terapkan offsetY
         offsetY -= 2.3 * deltaY;
         // Pastikan offsetX tetap 0 agar tidak ada panning horizontal
         offsetX = 0;
@@ -550,48 +561,72 @@ function showFullImage(clickedImageSrc) {
     }
 
     // --------------------------------------
-    // PAN DENGAN TOUCH (Mobile)
+    // PAN & SWIPE DENGAN TOUCH (Mobile)
     // --------------------------------------
     let touchLastX = null;
     let touchLastY = null;
 
     function handleTouchMove(e) {
-        if (!isZoomed) return;
+        // Jika zoomed, kita lakukan panning bebas (horizontal & vertical)
+        if (isZoomed) {
+            if (e.touches.length === 1) {
+                e.preventDefault();
 
-        // Gunakan satu jari
-        if (e.touches.length === 1) {
-            e.preventDefault();
+                const currentX = e.touches[0].clientX;
+                const currentY = e.touches[0].clientY;
 
-            const currentX = e.touches[0].clientX;
-            const currentY = e.touches[0].clientY;
+                if (touchLastX === null || touchLastY === null) {
+                    touchLastX = currentX;
+                    touchLastY = currentY;
+                    return;
+                }
 
-            if (touchLastX === null || touchLastY === null) {
+                const deltaX = currentX - touchLastX;
+                const deltaY = currentY - touchLastY;
+
                 touchLastX = currentX;
                 touchLastY = currentY;
-                return;
+
+                offsetX += deltaX;
+                offsetY += deltaY;
+
+                applyTransform();
             }
+        }
+        // Jika *tidak* zoomed, kita biarkan dulu; logika swipe 
+        // akan dievaluasi di handleTouchEnd (agar “flick” juga terhitung).
+    }
 
-            const deltaX = currentX - touchLastX;
-            const deltaY = currentY - touchLastY;
+    function handleTouchEnd(e) {
+        // Reset panning
+        touchLastX = null;
+        touchLastY = null;
 
-            touchLastX = currentX;
-            touchLastY = currentY;
+        // [SWIPE LOGIC ADDED]
+        // Jika tidak zoomed, deteksi apakah terjadi swipe horizontal
+        if (!isZoomed) {
+            const endX = e.changedTouches[0].clientX;
+            const endY = e.changedTouches[0].clientY;
+            const diffX = endX - startX;
+            const diffY = endY - startY;
 
-            // Di mobile, panning tetap bebas (vertikal & horizontal)
-            offsetX += deltaX;
-            offsetY += deltaY;
-
-            applyTransform();
+            // Hanya jika gerakan horizontalnya lebih besar 
+            // dari gerakan vertikalnya (dan melebihi threshold)
+            if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > swipeThreshold) {
+                // Swipe ke kanan
+                if (diffX > 0) {
+                    showImage(currentIndex - 1);
+                } 
+                // Swipe ke kiri
+                else {
+                    showImage(currentIndex + 1);
+                }
+            }
         }
     }
 
-    function handleTouchEnd() {
-        touchLastX = null;
-        touchLastY = null;
-    }
-
     // =====================================================
-    // Navigasi Kiri-Kanan
+    // Navigasi Kiri-Kanan (dengan tombol & keyboard)
     // =====================================================
     prevButton.addEventListener('click', (e) => {
         if (!isZoomed) {
@@ -656,23 +691,21 @@ function showFullImage(clickedImageSrc) {
         }
     });
 
-    // EVENT LISTENERS ZOOM/PAN
+    // EVENT LISTENERS ZOOM/PAN/ SWIPE
     if (isMobile()) {
-        // Mobile: double-tap => zoom in/out
+        // Mobile
         img.addEventListener('touchstart', handleImageTouchStart, { passive: true });
         imgContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
         imgContainer.addEventListener('touchend', handleTouchEnd);
     } else {
-        // Desktop: klik => zoom in/out
+        // Desktop
         img.addEventListener('click', handleImageClickDesktop);
-        // Panning dengan mousemove
         document.addEventListener('mousemove', handleMouseMove);
         document.addEventListener('mouseup', resetLastMousePosition);
     }
 
     showImage(currentIndex);
 }
-
 
 /*
     function showFullImage(src) {
