@@ -647,23 +647,6 @@ function showFullImage(clickedImageSrc) {
     showImage(currentIndex);
 }
 
-    // ------------------------------------------
-    // Susun DOM
-    // ------------------------------------------
-    imgContainer.appendChild(loader);
-    imgContainer.appendChild(img);
-
-    overlay.appendChild(counter);
-    overlay.appendChild(tooltip);
-    overlay.appendChild(prevButton);
-    overlay.appendChild(imgContainer);
-    overlay.appendChild(nextButton);
-
-    document.body.appendChild(overlay);
-
-    showImage(currentIndex);
-}
-
 /*
     function showFullImage(src) {
         const overlay = document.createElement('div');
