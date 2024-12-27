@@ -339,11 +339,6 @@ function showFullImage(clickedImageSrc) {
     const imageList = allImages.map(img => img.src);
     let currentIndex = imageList.indexOf(clickedImageSrc);
 
-    if (currentIndex === -1) {
-        console.error('Gambar yang diklik tidak ditemukan dalam daftar.');
-        return;
-    }
-
     const overlay = document.createElement('div');
     overlay.classList.add('image-overlay');
 
@@ -352,6 +347,8 @@ function showFullImage(clickedImageSrc) {
 
     const loader = document.createElement('div');
     loader.classList.add('loader');
+    
+    // Add loader only after a small delay if image hasn't loaded
     let loaderTimeout;
     let isImageLoaded = false;
 
@@ -363,8 +360,8 @@ function showFullImage(clickedImageSrc) {
 
     const img = document.createElement('img');
     img.style.display = 'none';
-
-    img.onload = function () {
+    
+    img.onload = function() {
         isImageLoaded = true;
         clearTimeout(loaderTimeout);
         loader.style.display = 'none';
@@ -376,15 +373,10 @@ function showFullImage(clickedImageSrc) {
     const prevButton = document.createElement('button');
     prevButton.innerHTML = '&#10094;';
     prevButton.classList.add('nav-button', 'prev');
-
+    
     const nextButton = document.createElement('button');
     nextButton.innerHTML = '&#10095;';
     nextButton.classList.add('nav-button', 'next');
-
-    let zoomScale = 2.5;
-    let maxZoomScale = 4;
-    let minZoomScale = 1;
-    let isZoomed = false;
 
     function updateCounter() {
         counter.textContent = `${currentIndex + 1}/${imageList.length}`;
@@ -395,33 +387,51 @@ function showFullImage(clickedImageSrc) {
             currentIndex = index;
             isImageLoaded = false;
             img.style.display = 'none';
+            
+            // Show loader after 100ms delay if image hasn't loaded
             clearTimeout(loaderTimeout);
             loaderTimeout = setTimeout(() => {
                 if (!isImageLoaded) {
                     loader.style.display = 'block';
                 }
             }, 100);
+            
             img.src = imageList[currentIndex];
+            
             updateCounter();
+            
             const currentImg = allImages[currentIndex];
             tooltip.textContent = currentImg.alt;
+            
             prevButton.style.visibility = currentIndex === 0 ? 'hidden' : 'visible';
             nextButton.style.visibility = currentIndex === imageList.length - 1 ? 'hidden' : 'visible';
         }
     }
 
+    // Zoom functionality
+    let isZoomed = false;
+    let zoomScale = 2.5;
+    
     function calculateBoundedOffset(mouseX, mouseY, rect) {
+        // Calculate the boundaries for the zoomed image
         const zoomedWidth = rect.width * zoomScale;
         const zoomedHeight = rect.height * zoomScale;
+        
+        // Calculate how much the image can move
         const maxOffsetX = (zoomedWidth - rect.width) / 2;
         const maxOffsetY = (zoomedHeight - rect.height) / 2;
+        
+        // Calculate the mouse position relative to the image center (-1 to 1)
         const relativeX = (mouseX - (rect.left + rect.width / 2)) / (rect.width / 2);
         const relativeY = (mouseY - (rect.top + rect.height / 2)) / (rect.height / 2);
+        
+        // Calculate the offset with boundaries
         const offsetX = -maxOffsetX * relativeX;
         const offsetY = -maxOffsetY * relativeY;
+        
         return {
             x: Math.max(-maxOffsetX, Math.min(maxOffsetX, offsetX)),
-            y: Math.max(-maxOffsetY, Math.min(maxOffsetY, offsetY)),
+            y: Math.max(-maxOffsetY, Math.min(maxOffsetY, offsetY))
         };
     }
 
@@ -441,6 +451,7 @@ function showFullImage(clickedImageSrc) {
 
     function handleZoom(e) {
         e.stopPropagation();
+        
         if (!isZoomed) {
             isZoomed = true;
             overlay.classList.add('zoomed-mode');
@@ -454,7 +465,105 @@ function showFullImage(clickedImageSrc) {
         }
     }
 
+    // Touch events for mobile
+    let lastTouchX = 0;
+    let lastTouchY = 0;
+    let initialTouchDistance = 0;
+    let currentZoomScale = 1;
+
+    function handleTouchStart(e) {
+        if (e.touches.length === 2) {
+            e.preventDefault();
+            initialTouchDistance = Math.hypot(
+                e.touches[1].clientX - e.touches[0].clientX,
+                e.touches[1].clientY - e.touches[0].clientY
+            );
+        } else if (e.touches.length === 1) {
+            lastTouchX = e.touches[0].clientX;
+            lastTouchY = e.touches[0].clientY;
+        }
+    }
+
+    function handleTouchMove(e) {
+        if (!isZoomed) return;
+
+        e.preventDefault();
+        
+        if (e.touches.length === 2) {
+            // Pinch zoom
+            const distance = Math.hypot(
+                e.touches[1].clientX - e.touches[0].clientX,
+                e.touches[1].clientY - e.touches[0].clientY
+            );
+            
+            currentZoomScale = (distance / initialTouchDistance) * zoomScale;
+            currentZoomScale = Math.min(Math.max(currentZoomScale, 1), 4);
+            
+            const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+            const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+            
+            const rect = img.getBoundingClientRect();
+            const { x: offsetX, y: offsetY } = calculateBoundedOffset(centerX, centerY, rect);
+            img.style.transform = `scale(${currentZoomScale}) translate(${offsetX / currentZoomScale}px, ${offsetY / currentZoomScale}px)`;
+        } else if (e.touches.length === 1) {
+            // Pan
+            const deltaX = e.touches[0].clientX - lastTouchX;
+            const deltaY = e.touches[0].clientY - lastTouchY;
+            
+            const rect = img.getBoundingClientRect();
+            const { x: offsetX, y: offsetY } = calculateBoundedOffset(
+                e.touches[0].clientX - deltaX,
+                e.touches[0].clientY - deltaY,
+                rect
+            );
+            
+            img.style.transform = `scale(${currentZoomScale}) translate(${offsetX / currentZoomScale}px, ${offsetY / currentZoomScale}px)`;
+            
+            lastTouchX = e.touches[0].clientX;
+            lastTouchY = e.touches[0].clientY;
+        }
+    }
+
     img.addEventListener('click', handleZoom);
+    imgContainer.addEventListener('touchstart', handleTouchStart, { passive: false });
+    imgContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
+
+    // Navigation buttons
+    prevButton.addEventListener('click', (e) => {
+        if (!isZoomed) {
+            e.stopPropagation();
+            showImage(currentIndex - 1);
+        }
+    });
+
+    nextButton.addEventListener('click', (e) => {
+        if (!isZoomed) {
+            e.stopPropagation();
+            showImage(currentIndex + 1);
+        }
+    });
+
+    // Keyboard navigation
+    function cleanup() {
+        clearTimeout(loaderTimeout);
+        document.removeEventListener('keydown', handleKeydown);
+        imgContainer.removeEventListener('mousemove', handleMouseMove);
+        document.body.removeChild(overlay);
+    }
+
+    function handleKeydown(e) {
+        if (!isZoomed) {
+            if (e.key === 'ArrowLeft') {
+                showImage(currentIndex - 1);
+            } else if (e.key === 'ArrowRight') {
+                showImage(currentIndex + 1);
+            } else if (e.key === 'Escape') {
+                cleanup();
+            }
+        }
+    }
+
+    document.addEventListener('keydown', handleKeydown);
 
     imgContainer.appendChild(loader);
     imgContainer.appendChild(img);
@@ -464,10 +573,15 @@ function showFullImage(clickedImageSrc) {
     overlay.appendChild(imgContainer);
     overlay.appendChild(nextButton);
     document.body.appendChild(overlay);
-
+    
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay || e.target === imgContainer) {
+            cleanup();
+        }
+    });
+    
     showImage(currentIndex);
 }
-
 /*
     function showFullImage(src) {
         const overlay = document.createElement('div');
