@@ -342,27 +342,22 @@ function showFullImage(clickedImageSrc) {
     const overlay = document.createElement('div');
     overlay.classList.add('image-overlay');
 
-    // Create container for image and loading indicator
     const imgContainer = document.createElement('div');
     imgContainer.classList.add('image-container');
 
-    // Add loading indicator
     const loader = document.createElement('div');
     loader.classList.add('loader');
     imgContainer.appendChild(loader);
 
-    // Create and setup image counter
     const counter = document.createElement('div');
     counter.classList.add('image-counter');
 
-    // Create and setup tooltip container
     const tooltip = document.createElement('div');
     tooltip.classList.add('tooltip');
 
     const img = document.createElement('img');
     img.src = clickedImageSrc;
     
-    // Show loader until image loads
     img.style.display = 'none';
     img.onload = function() {
         loader.style.display = 'none';
@@ -388,10 +383,8 @@ function showFullImage(clickedImageSrc) {
             loader.style.display = 'block';
             img.src = imageList[currentIndex];
             
-            // Update counter
             updateCounter();
             
-            // Update tooltip
             const currentImg = allImages[currentIndex];
             tooltip.textContent = currentImg.alt;
             
@@ -400,28 +393,94 @@ function showFullImage(clickedImageSrc) {
         }
     }
 
-    // Event Listeners
+    // Pan functionality
+    let isDragging = false;
+    let currentX;
+    let currentY;
+    let initialX;
+    let initialY;
+    let xOffset = 0;
+    let yOffset = 0;
+
+    function setTranslate(xPos, yOffset, el) {
+        el.style.transform = `translate(${xPos}px, ${yOffset}px) scale(${isZoomed ? 2 : 1})`;
+    }
+
+    function dragStart(e) {
+        if (isZoomed) {
+            if (e.type === "touchstart") {
+                initialX = e.touches[0].clientX - xOffset;
+                initialY = e.touches[0].clientY - yOffset;
+            } else {
+                initialX = e.clientX - xOffset;
+                initialY = e.clientY - yOffset;
+            }
+            if (e.target === img) {
+                isDragging = true;
+            }
+        }
+    }
+
+    function dragEnd(e) {
+        initialX = currentX;
+        initialY = currentY;
+        isDragging = false;
+    }
+
+    function drag(e) {
+        if (isDragging && isZoomed) {
+            e.preventDefault();
+            if (e.type === "touchmove") {
+                currentX = e.touches[0].clientX - initialX;
+                currentY = e.touches[0].clientY - initialY;
+            } else {
+                currentX = e.clientX - initialX;
+                currentY = e.clientY - initialY;
+            }
+            xOffset = currentX;
+            yOffset = currentY;
+            setTranslate(currentX, currentY, img);
+        }
+    }
+
+    // Mouse and Touch Events for dragging
+    img.addEventListener("touchstart", dragStart, false);
+    img.addEventListener("touchend", dragEnd, false);
+    img.addEventListener("touchmove", drag, false);
+    img.addEventListener("mousedown", dragStart, false);
+    img.addEventListener("mouseup", dragEnd, false);
+    img.addEventListener("mousemove", drag, false);
+
+    // Navigation buttons
     prevButton.addEventListener('click', function(e) {
-        e.stopPropagation();
-        showImage(currentIndex - 1);
+        if (!isZoomed) {
+            e.stopPropagation();
+            showImage(currentIndex - 1);
+        }
     });
 
     nextButton.addEventListener('click', function(e) {
-        e.stopPropagation();
-        showImage(currentIndex + 1);
+        if (!isZoomed) {
+            e.stopPropagation();
+            showImage(currentIndex + 1);
+        }
     });
 
-    // Touch Events
+    // Touch swipe for navigation
     let touchStartX = 0;
     let touchEndX = 0;
 
     overlay.addEventListener('touchstart', function(e) {
-        touchStartX = e.changedTouches[0].screenX;
+        if (!isZoomed) {
+            touchStartX = e.changedTouches[0].screenX;
+        }
     });
 
     overlay.addEventListener('touchend', function(e) {
-        touchEndX = e.changedTouches[0].screenX;
-        handleSwipe();
+        if (!isZoomed) {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }
     });
 
     function handleSwipe() {
@@ -442,12 +501,14 @@ function showFullImage(clickedImageSrc) {
     }
 
     function handleKeydown(e) {
-        if (e.key === 'ArrowLeft') {
-            showImage(currentIndex - 1);
-        } else if (e.key === 'ArrowRight') {
-            showImage(currentIndex + 1);
-        } else if (e.key === 'Escape') {
-            cleanup();
+        if (!isZoomed) {
+            if (e.key === 'ArrowLeft') {
+                showImage(currentIndex - 1);
+            } else if (e.key === 'ArrowRight') {
+                showImage(currentIndex + 1);
+            } else if (e.key === 'Escape') {
+                cleanup();
+            }
         }
     }
 
@@ -455,15 +516,26 @@ function showFullImage(clickedImageSrc) {
 
     // Zoom functionality
     let isZoomed = false;
-    img.addEventListener('click', function(e) {
+    function toggleZoom(e) {
         e.stopPropagation();
         isZoomed = !isZoomed;
+        
         if (isZoomed) {
             img.classList.add('zoomed');
+            overlay.classList.add('zoomed-mode');
+            // Reset position when zooming in
+            xOffset = 0;
+            yOffset = 0;
+            setTranslate(0, 0, img);
         } else {
             img.classList.remove('zoomed');
+            overlay.classList.remove('zoomed-mode');
+            // Reset transform when zooming out
+            setTranslate(0, 0, img);
         }
-    });
+    }
+
+    img.addEventListener('click', toggleZoom);
 
     imgContainer.appendChild(img);
     overlay.appendChild(counter);
@@ -472,7 +544,12 @@ function showFullImage(clickedImageSrc) {
     overlay.appendChild(imgContainer);
     overlay.appendChild(nextButton);
     document.body.appendChild(overlay);
-    overlay.addEventListener('click', cleanup);
+    
+    overlay.addEventListener('click', function(e) {
+        if (!isZoomed) {
+            cleanup();
+        }
+    });
     
     showImage(currentIndex);
 }
