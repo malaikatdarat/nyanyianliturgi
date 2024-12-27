@@ -334,7 +334,117 @@ function generateAudioHTML(title, audioTrackUrl, channelName, channelUrl, audioE
     </div>`;
 }
 
+function showFullImage(clickedImageSrc) {
+    // Mengumpulkan semua gambar yang relevan (tidak termasuk hidden-thumbnail)
+    const allImages = Array.from(document.querySelectorAll('figure.image img'));
+    const imageList = allImages.map(img => img.src);
+    let currentIndex = imageList.indexOf(clickedImageSrc);
+    
+    const overlay = document.createElement('div');
+    overlay.classList.add('image-overlay');
+    
+    const imgContainer = document.createElement('div');
+    imgContainer.classList.add('image-container');
+    
+    const img = document.createElement('img');
+    img.src = clickedImageSrc;
+    
+    // Tambahkan caption
+    const caption = document.createElement('div');
+    caption.classList.add('caption');
+    
+    const prevButton = document.createElement('button');
+    prevButton.innerHTML = '&#10094;';
+    prevButton.classList.add('nav-button', 'prev');
+    
+    const nextButton = document.createElement('button');
+    nextButton.innerHTML = '&#10095;';
+    nextButton.classList.add('nav-button', 'next');
+    
+    function showImage(index) {
+        if (index >= 0 && index < imageList.length) {
+            currentIndex = index;
+            img.src = imageList[currentIndex];
+            
+            // Update caption dengan alt text gambar
+            const currentImg = allImages[currentIndex];
+            caption.textContent = currentImg.alt;
+            
+            // Update tombol navigasi
+            prevButton.style.visibility = currentIndex === 0 ? 'hidden' : 'visible';
+            nextButton.style.visibility = currentIndex === imageList.length - 1 ? 'hidden' : 'visible';
+        }
+    }
+    
+    prevButton.addEventListener('click', function(e) {
+        e.stopPropagation();
+        showImage(currentIndex - 1);
+    });
+    
+    nextButton.addEventListener('click', function(e) {
+        e.stopPropagation();
+        showImage(currentIndex + 1);
+    });
+    
+    let touchStartX = 0;
+    let touchEndX = 0;
+    
+    overlay.addEventListener('touchstart', function(e) {
+        touchStartX = e.changedTouches[0].screenX;
+    });
+    
+    overlay.addEventListener('touchend', function(e) {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    });
+    
+    function handleSwipe() {
+        const swipeThreshold = 50;
+        const swipeLength = touchEndX - touchStartX;
+        
+        if (Math.abs(swipeLength) > swipeThreshold) {
+            if (swipeLength > 0) {
+                showImage(currentIndex - 1);
+            } else {
+                showImage(currentIndex + 1);
+            }
+        }
+    }
+    
+    function cleanup() {
+        document.removeEventListener('keydown', handleKeydown);
+        document.body.removeChild(overlay);
+    }
+    
+    function handleKeydown(e) {
+        if (e.key === 'ArrowLeft') {
+            showImage(currentIndex - 1);
+        } else if (e.key === 'ArrowRight') {
+            showImage(currentIndex + 1);
+        } else if (e.key === 'Escape') {
+            cleanup();
+        }
+    }
+    
+    document.addEventListener('keydown', handleKeydown);
+    
+    imgContainer.appendChild(img);
+    overlay.appendChild(prevButton);
+    overlay.appendChild(imgContainer);
+    overlay.appendChild(nextButton);
+    overlay.appendChild(caption);
+    document.body.appendChild(overlay);
+    
+    overlay.addEventListener('click', cleanup);
+    img.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+    
+    // Set caption dan visibility tombol untuk gambar pertama
+    showImage(currentIndex);
+}
 
+/*
     function showFullImage(src) {
         const overlay = document.createElement('div');
         overlay.classList.add('image-overlay');
@@ -351,6 +461,7 @@ function generateAudioHTML(title, audioTrackUrl, channelName, channelUrl, audioE
         
         overlay.style.display = 'flex';
     }
+    */
 
 document.addEventListener('DOMContentLoaded', function() {
     function generateSrcset(baseUrl, originalWidth) {
