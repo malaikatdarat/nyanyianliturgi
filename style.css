@@ -146,12 +146,11 @@
         transform: translateX(-50%);
     }
 
-    .tooltip {
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        text-align: center;
-    }
+	.tooltip {
+    width: 100%;
+    text-align: center;
+    padding: 5px 0;
+}
     
     .image-overlay img {
         max-width: 100%;
