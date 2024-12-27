@@ -646,6 +646,7 @@ function showFullImage(clickedImageSrc) {
     // Tampilkan gambar pertama
     showImage(currentIndex);
 }
+});
 
 /*
     function showFullImage(src) {
