@@ -130,13 +130,11 @@
    Responsif
 ------------------------------------- */
 @media (max-width: 768px) {
-    /* Tooltip tetap di atas, tapi lebarnya 90% */
     .tooltip {
         top: 10px; 
         left: 50%;
         transform: translateX(-50%);
-        width: auto; 
-        max-width: 90%;
+        width: 90%; 
     }
 
     .nav-button {
