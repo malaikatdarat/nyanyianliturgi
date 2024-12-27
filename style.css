@@ -37,7 +37,7 @@
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;
-    transition: transform 0.15s ease-out;
+    transition: transform 0.25s ease-out;
     cursor: zoom-in;
     user-select: none;
     -webkit-user-drag: none;
@@ -132,12 +132,11 @@
 @media (max-width: 768px) {
     /* Tooltip tetap di atas, tapi lebarnya 90% */
     .tooltip {
-        width: 90%;
-        max-width: none;
-        /* Hapus baris berikut jika ingin tetap di top */
-        /* top: auto; bottom: 20px; */
-        left: 5%;
-        box-sizing: border-box;
+        top: 20px; 
+        left: 50%;
+        transform: translateX(-50%);
+        width: auto; 
+        max-width: 90%;
     }
 
     .nav-button {
