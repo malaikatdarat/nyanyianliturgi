@@ -338,16 +338,37 @@ function showFullImage(clickedImageSrc) {
     const allImages = Array.from(document.querySelectorAll('figure.image img'));
     const imageList = allImages.map(img => img.src);
     let currentIndex = imageList.indexOf(clickedImageSrc);
-    
+
     const overlay = document.createElement('div');
     overlay.classList.add('image-overlay');
-    
+
+    // Create container for image and loading indicator
     const imgContainer = document.createElement('div');
     imgContainer.classList.add('image-container');
-    
+
+    // Add loading indicator
+    const loader = document.createElement('div');
+    loader.classList.add('loader');
+    imgContainer.appendChild(loader);
+
+    // Create and setup image counter
+    const counter = document.createElement('div');
+    counter.classList.add('image-counter');
+
+    // Create and setup tooltip container
+    const tooltip = document.createElement('div');
+    tooltip.classList.add('tooltip');
+
     const img = document.createElement('img');
     img.src = clickedImageSrc;
     
+    // Show loader until image loads
+    img.style.display = 'none';
+    img.onload = function() {
+        loader.style.display = 'none';
+        img.style.display = 'block';
+    };
+
     const prevButton = document.createElement('button');
     prevButton.innerHTML = '&#10094;';
     prevButton.classList.add('nav-button', 'prev');
@@ -355,47 +376,57 @@ function showFullImage(clickedImageSrc) {
     const nextButton = document.createElement('button');
     nextButton.innerHTML = '&#10095;';
     nextButton.classList.add('nav-button', 'next');
-    
+
+    function updateCounter() {
+        counter.textContent = `${currentIndex + 1}/${imageList.length}`;
+    }
+
     function showImage(index) {
         if (index >= 0 && index < imageList.length) {
             currentIndex = index;
+            img.style.display = 'none';
+            loader.style.display = 'block';
             img.src = imageList[currentIndex];
             
-            // Set alt text sebagai title untuk tooltip
+            // Update counter
+            updateCounter();
+            
+            // Update tooltip
             const currentImg = allImages[currentIndex];
-            img.title = currentImg.alt;
+            tooltip.textContent = currentImg.alt;
             
             prevButton.style.visibility = currentIndex === 0 ? 'hidden' : 'visible';
             nextButton.style.visibility = currentIndex === imageList.length - 1 ? 'hidden' : 'visible';
         }
     }
-    
+
+    // Event Listeners
     prevButton.addEventListener('click', function(e) {
         e.stopPropagation();
         showImage(currentIndex - 1);
     });
-    
+
     nextButton.addEventListener('click', function(e) {
         e.stopPropagation();
         showImage(currentIndex + 1);
     });
-    
+
+    // Touch Events
     let touchStartX = 0;
     let touchEndX = 0;
-    
+
     overlay.addEventListener('touchstart', function(e) {
         touchStartX = e.changedTouches[0].screenX;
     });
-    
+
     overlay.addEventListener('touchend', function(e) {
         touchEndX = e.changedTouches[0].screenX;
         handleSwipe();
     });
-    
+
     function handleSwipe() {
         const swipeThreshold = 50;
         const swipeLength = touchEndX - touchStartX;
-        
         if (Math.abs(swipeLength) > swipeThreshold) {
             if (swipeLength > 0) {
                 showImage(currentIndex - 1);
@@ -404,12 +435,12 @@ function showFullImage(clickedImageSrc) {
             }
         }
     }
-    
+
     function cleanup() {
         document.removeEventListener('keydown', handleKeydown);
         document.body.removeChild(overlay);
     }
-    
+
     function handleKeydown(e) {
         if (e.key === 'ArrowLeft') {
             showImage(currentIndex - 1);
@@ -419,19 +450,29 @@ function showFullImage(clickedImageSrc) {
             cleanup();
         }
     }
-    
+
     document.addEventListener('keydown', handleKeydown);
-    
+
+    // Zoom functionality
+    let isZoomed = false;
+    img.addEventListener('click', function(e) {
+        e.stopPropagation();
+        isZoomed = !isZoomed;
+        if (isZoomed) {
+            img.classList.add('zoomed');
+        } else {
+            img.classList.remove('zoomed');
+        }
+    });
+
     imgContainer.appendChild(img);
+    overlay.appendChild(counter);
+    overlay.appendChild(tooltip);
     overlay.appendChild(prevButton);
     overlay.appendChild(imgContainer);
     overlay.appendChild(nextButton);
     document.body.appendChild(overlay);
-    
     overlay.addEventListener('click', cleanup);
-    img.addEventListener('click', function(e) {
-        e.stopPropagation();
-    });
     
     showImage(currentIndex);
 }
