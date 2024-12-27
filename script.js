@@ -408,38 +408,59 @@ function showFullImage(clickedImageSrc) {
         }
     }
 
-    // Zoom functionality
-    let isZoomed = false;
-    let zoomScale = 2.5;
+let zoomScale = 2.5; // Nilai default
+let maxZoomScale = 4; // Nilai maksimal
+let minZoomScale = 1; // Nilai minimal
+
+function handleZoom(e) {
+    e.stopPropagation();
+
+    if (!isZoomed) {
+        isZoomed = true;
+        overlay.classList.add('zoomed-mode');
+        applyZoomTransform(e);
+        imgContainer.addEventListener('mousemove', handleMouseMove);
+    } else {
+        isZoomed = false;
+        overlay.classList.remove('zoomed-mode');
+        img.style.transform = 'none';
+        imgContainer.removeEventListener('mousemove', handleMouseMove);
+    }
+}
+
     
     function calculateBoundedOffset(mouseX, mouseY, rect) {
-        // Calculate the boundaries for the zoomed image
-        const zoomedWidth = rect.width * zoomScale;
-        const zoomedHeight = rect.height * zoomScale;
-        
-        // Calculate how much the image can move
-        const maxOffsetX = (zoomedWidth - rect.width) / 2;
-        const maxOffsetY = (zoomedHeight - rect.height) / 2;
-        
-        // Calculate the mouse position relative to the image center (-1 to 1)
-        const relativeX = (mouseX - (rect.left + rect.width / 2)) / (rect.width / 2);
-        const relativeY = (mouseY - (rect.top + rect.height / 2)) / (rect.height / 2);
-        
-        // Calculate the offset with boundaries
-        const offsetX = -maxOffsetX * relativeX;
-        const offsetY = -maxOffsetY * relativeY;
-        
-        return {
-            x: Math.max(-maxOffsetX, Math.min(maxOffsetX, offsetX)),
-            y: Math.max(-maxOffsetY, Math.min(maxOffsetY, offsetY))
-        };
-    }
+    const zoomedWidth = rect.width * zoomScale;
+    const zoomedHeight = rect.height * zoomScale;
 
-    function applyZoomTransform(e) {
-        const rect = img.getBoundingClientRect();
-        const { x: offsetX, y: offsetY } = calculateBoundedOffset(e.clientX, e.clientY, rect);
-        img.style.transform = `scale(${zoomScale}) translate(${offsetX / zoomScale}px, ${offsetY / zoomScale}px)`;
-    }
+    // Hitung pergeseran maksimal berdasarkan skala zoom
+    const maxOffsetX = (zoomedWidth - rect.width) / 2;
+    const maxOffsetY = (zoomedHeight - rect.height) / 2;
+
+    // Hitung posisi mouse relatif terhadap gambar
+    const relativeX = (mouseX - (rect.left + rect.width / 2)) / (rect.width / 2);
+    const relativeY = (mouseY - (rect.top + rect.height / 2)) / (rect.height / 2);
+
+    // Hitung offset yang terbatas
+    const offsetX = -maxOffsetX * relativeX;
+    const offsetY = -maxOffsetY * relativeY;
+
+    // Batasi offset agar tetap dalam batas maksimal
+    return {
+        x: Math.max(-maxOffsetX, Math.min(maxOffsetX, offsetX)),
+        y: Math.max(-maxOffsetY, Math.min(maxOffsetY, offsetY))
+    };
+}
+
+
+function applyZoomTransform(e) {
+    const rect = img.getBoundingClientRect();
+    const { x: offsetX, y: offsetY } = calculateBoundedOffset(e.clientX, e.clientY, rect);
+
+    // Terapkan transformasi yang terbatas
+    img.style.transform = `scale(${zoomScale}) translate(${offsetX / zoomScale}px, ${offsetY / zoomScale}px)`;
+}
+
 
     function handleMouseMove(e) {
         if (isZoomed) {
@@ -524,6 +545,19 @@ function showFullImage(clickedImageSrc) {
         }
     }
 
+	window.addEventListener('resize', () => {
+    if (isZoomed) {
+        const rect = img.getBoundingClientRect();
+        const { x: offsetX, y: offsetY } = calculateBoundedOffset(
+            window.innerWidth / 2,
+            window.innerHeight / 2,
+            rect
+        );
+        img.style.transform = `scale(${zoomScale}) translate(${offsetX / zoomScale}px, ${offsetY / zoomScale}px)`;
+    }
+});
+
+	
     img.addEventListener('click', handleZoom);
     imgContainer.addEventListener('touchstart', handleTouchStart, { passive: false });
     imgContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
