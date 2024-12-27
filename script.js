@@ -537,7 +537,7 @@ function showFullImage(clickedImageSrc) {
 
         // [CHANGED] => Desktop hanya panning vertikal
         // => Abaikan perubahan offsetX, hanya terapkan offsetY
-        offsetY -= 2 * deltaY;
+        offsetY -= 2.3 * deltaY;
         // Pastikan offsetX tetap 0 agar tidak ada panning horizontal
         offsetX = 0;
 
