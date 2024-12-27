@@ -45,9 +45,8 @@
     -webkit-user-drag: none;
 }
 
-.image-overlay img.zoomed {
-    transform: scale(2);
-    cursor: move;
+.zoomed-mode img {
+    cursor: zoom-out;
 }
 
 .nav-button {
@@ -151,7 +150,6 @@
         text-align: center;
     }
 }
-
 /* Style ini dipakai pada tab1 */
 .tab__content:nth-of-type(1) figure {
     width: 100%;
