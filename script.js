@@ -395,6 +395,7 @@ function showFullImage(clickedImageSrc) {
     let isZoomed = false;
     let zoomScale = 2.5;
     let maxOffsetY = 0;
+    let currentOffsetY = 0;
 
     function applyVerticalPan(offsetY) {
         img.style.transform = `scale(${zoomScale}) translateY(${offsetY / zoomScale}px)`;
@@ -404,8 +405,9 @@ function showFullImage(clickedImageSrc) {
         if (!isZoomed) {
             isZoomed = true;
             overlay.classList.add('zoomed-mode');
-            maxOffsetY = (img.naturalHeight * zoomScale - imgContainer.clientHeight) / 2;
-            applyVerticalPan(-maxOffsetY);
+            maxOffsetY = Math.max(0, (img.clientHeight * zoomScale - imgContainer.clientHeight) / 2);
+            currentOffsetY = -maxOffsetY;
+            applyVerticalPan(currentOffsetY);
         } else {
             isZoomed = false;
             overlay.classList.remove('zoomed-mode');
@@ -414,7 +416,6 @@ function showFullImage(clickedImageSrc) {
     }
 
     let touchStartY = 0;
-    let currentOffsetY = -maxOffsetY;
 
     function handleTouchStart(e) {
         if (e.touches.length === 1) {
@@ -461,6 +462,7 @@ function showFullImage(clickedImageSrc) {
 
     showImage(currentIndex);
 }
+
 
 /*
     function showFullImage(src) {
