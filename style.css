@@ -134,7 +134,8 @@
         top: 10px; 
         left: 50%;
         transform: translateX(-50%);
-        width: 90%; 
+        width: 90%;
+        text-align: center;
     }
 
     .nav-button {
@@ -144,7 +145,7 @@
     }
     .image-counter {
         top: auto;
-        bottom: 20px;
+        bottom: 25px;
         left: 50%;
         transform: translateX(-50%);
     }
