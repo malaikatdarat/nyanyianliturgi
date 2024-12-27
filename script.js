@@ -359,6 +359,12 @@ function showFullImage(clickedImageSrc) {
 
     const img = document.createElement('img');
     img.style.display = 'none';
+
+    let tapStartX = 0;
+    let tapStartY = 0;
+    let tapStartTime = 0;
+    const TAP_THRESHOLD = 10; // pixel threshold untuk membedakan tap vs swipe
+    const TAP_DURATION = 200; // ms threshold untuk membedakan tap vs long press
     
     // --------------------------------------
     // DETEKSI PERANGKAT MOBILE vs DESKTOP
@@ -553,26 +559,31 @@ function showFullImage(clickedImageSrc) {
     // DETEKSI TAP / DOUBLE TAP (Mobile)
     // --------------------------------------
     function handleImageTouchStart(e) {
-        if (e.touches.length === 1) {
-            startX = e.touches[0].clientX;
-            startY = e.touches[0].clientY;
+    if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        tapStartX = touch.clientX;
+        tapStartY = touch.clientY;
+        tapStartTime = new Date().getTime();
 
-            const currentTapTime = new Date().getTime();
-            const tapInterval = currentTapTime - lastTapTime;
-            lastTapTime = currentTapTime;
+        startX = touch.clientX;
+        startY = touch.clientY;
 
-            if (tapInterval < doubleTapThreshold) {
-                isDoubleTap = true;
-                if (isZoomed) {
-                    zoomOut();
-                } else {
-                    zoomIn();
-                }
+        const currentTapTime = new Date().getTime();
+        const tapInterval = currentTapTime - lastTapTime;
+        lastTapTime = currentTapTime;
+
+        if (tapInterval < doubleTapThreshold) {
+            isDoubleTap = true;
+            if (isZoomed) {
+                zoomOut();
             } else {
-                isDoubleTap = false;
+                zoomIn();
             }
+        } else {
+            isDoubleTap = false;
         }
     }
+}
 
     // --------------------------------------
     // PAN DENGAN MOUSE (Desktop)
@@ -642,35 +653,44 @@ function showFullImage(clickedImageSrc) {
     }
 
     function handleTouchEnd(e) {
-        touchLastX = null;
-        touchLastY = null;
-        lastPinchDistance = null;
+    touchLastX = null;
+    touchLastY = null;
+    lastPinchDistance = null;
 
-        if (!isZoomed) {
-            const endX = e.changedTouches[0].clientX;
-            const endY = e.changedTouches[0].clientY;
-            const diffX = endX - startX;
-            const diffY = endY - startY;
+    if (!isZoomed) {
+        const touch = e.changedTouches[0];
+        const endX = touch.clientX;
+        const endY = touch.clientY;
+        const diffX = endX - tapStartX;
+        const diffY = endY - tapStartY;
+        const tapDuration = new Date().getTime() - tapStartTime;
 
-            if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > swipeThreshold) {
-                if (diffX > 0) {
-                    showImage(currentIndex - 1);
-                } else {
-                    showImage(currentIndex + 1);
-                }
-            } else if (!isDoubleTap && Math.abs(diffX) < swipeThreshold && Math.abs(diffY) < swipeThreshold) {
-                const containerRect = imgContainer.getBoundingClientRect();
-                const tapX = endX - containerRect.left;
-                const containerWidth = containerRect.width;
+        // Hanya proses sebagai tap jika gerakan minimal dan durasi singkat
+        const isTap = Math.abs(diffX) < TAP_THRESHOLD && 
+                     Math.abs(diffY) < TAP_THRESHOLD && 
+                     tapDuration < TAP_DURATION;
 
-                if (tapX < 0.2 * containerWidth) {
-                    showImage(currentIndex - 1);
-                } else if (tapX > 0.8 * containerWidth) {
-                    showImage(currentIndex + 1);
-                }
+        if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > swipeThreshold) {
+            // Handle swipe horizontal
+            if (diffX > 0) {
+                showImage(currentIndex - 1);
+            } else {
+                showImage(currentIndex + 1);
+            }
+        } else if (!isDoubleTap && isTap) {
+            // Handle single tap untuk navigasi
+            const containerRect = imgContainer.getBoundingClientRect();
+            const tapX = endX - containerRect.left;
+            const containerWidth = containerRect.width;
+
+            if (tapX < 0.2 * containerWidth) {
+                showImage(currentIndex - 1);
+            } else if (tapX > 0.8 * containerWidth) {
+                showImage(currentIndex + 1);
             }
         }
     }
+}
 
     // =====================================================
     // Navigasi Kiri-Kanan (dengan tombol & keyboard)
@@ -732,10 +752,11 @@ function showFullImage(clickedImageSrc) {
     
     // Klik di luar gambar => tutup
     overlay.addEventListener('click', (e) => {
-        if (e.target === overlay || e.target === imgContainer) {
-            cleanup();
-        }
-    });
+    // Hanya tutup jika click tepat pada overlay (area di luar imgContainer)
+    if (e.target === overlay) {
+        cleanup();
+    }
+});
 
     // EVENT LISTENERS ZOOM/PAN/SWIPE (sesuai device)
     if (isMobile()) {
