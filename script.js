@@ -335,7 +335,6 @@ function generateAudioHTML(title, audioTrackUrl, channelName, channelUrl, audioE
 }
 
 function showFullImage(clickedImageSrc) {
-    // Mengumpulkan semua gambar yang relevan (tidak termasuk hidden-thumbnail)
     const allImages = Array.from(document.querySelectorAll('figure.image img'));
     const imageList = allImages.map(img => img.src);
     let currentIndex = imageList.indexOf(clickedImageSrc);
@@ -348,10 +347,6 @@ function showFullImage(clickedImageSrc) {
     
     const img = document.createElement('img');
     img.src = clickedImageSrc;
-    
-    // Tambahkan caption
-    const caption = document.createElement('div');
-    caption.classList.add('caption');
     
     const prevButton = document.createElement('button');
     prevButton.innerHTML = '&#10094;';
@@ -366,11 +361,10 @@ function showFullImage(clickedImageSrc) {
             currentIndex = index;
             img.src = imageList[currentIndex];
             
-            // Update caption dengan alt text gambar
+            // Set alt text sebagai title untuk tooltip
             const currentImg = allImages[currentIndex];
-            caption.textContent = currentImg.alt;
+            img.title = currentImg.alt;
             
-            // Update tombol navigasi
             prevButton.style.visibility = currentIndex === 0 ? 'hidden' : 'visible';
             nextButton.style.visibility = currentIndex === imageList.length - 1 ? 'hidden' : 'visible';
         }
@@ -432,7 +426,6 @@ function showFullImage(clickedImageSrc) {
     overlay.appendChild(prevButton);
     overlay.appendChild(imgContainer);
     overlay.appendChild(nextButton);
-    overlay.appendChild(caption);
     document.body.appendChild(overlay);
     
     overlay.addEventListener('click', cleanup);
@@ -440,7 +433,6 @@ function showFullImage(clickedImageSrc) {
         e.stopPropagation();
     });
     
-    // Set caption dan visibility tombol untuk gambar pertama
     showImage(currentIndex);
 }
 
