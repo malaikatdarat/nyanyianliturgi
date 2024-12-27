@@ -504,6 +504,12 @@
   box-sizing: border-box;
   padding: 15px;
 }
+
+	  .tab-emoji {
+		  display: inline-block;
+		  margin-left: 5px;
+	  }
+
 @media (min-width:768px) {
 
 .tab + label { width: auto; }
@@ -546,6 +552,7 @@
 	  }
 	  .tab-emoji {
 		  display: inline-block;
+		  margin-left: 0;
 	  }
   
 }
