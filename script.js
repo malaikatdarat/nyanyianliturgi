@@ -348,7 +348,6 @@ function showFullImage(clickedImageSrc) {
     const loader = document.createElement('div');
     loader.classList.add('loader');
     
-    // Add loader only after a small delay if image hasn't loaded
     let loaderTimeout;
     let isImageLoaded = false;
 
@@ -388,7 +387,6 @@ function showFullImage(clickedImageSrc) {
             isImageLoaded = false;
             img.style.display = 'none';
             
-            // Show loader after 100ms delay if image hasn't loaded
             clearTimeout(loaderTimeout);
             loaderTimeout = setTimeout(() => {
                 if (!isImageLoaded) {
@@ -408,127 +406,129 @@ function showFullImage(clickedImageSrc) {
         }
     }
 
-    // Zoom functionality
+    // =====================================================
+    // ZOOM + PAN VERTIKAL
+    // =====================================================
     let isZoomed = false;
     let zoomScale = 2.5;
-    
-    function calculateBoundedOffset(mouseX, mouseY, rect) {
-        // Calculate the boundaries for the zoomed image
-        const zoomedWidth = rect.width * zoomScale;
-        const zoomedHeight = rect.height * zoomScale;
-        
-        // Calculate how much the image can move
-        const maxOffsetX = (zoomedWidth - rect.width) / 2;
-        const maxOffsetY = (zoomedHeight - rect.height) / 2;
-        
-        // Calculate the mouse position relative to the image center (-1 to 1)
-        const relativeX = (mouseX - (rect.left + rect.width / 2)) / (rect.width / 2);
-        const relativeY = (mouseY - (rect.top + rect.height / 2)) / (rect.height / 2);
-        
-        // Calculate the offset with boundaries
-        const offsetX = -maxOffsetX * relativeX;
-        const offsetY = -maxOffsetY * relativeY;
-        
-        return {
-            x: Math.max(-maxOffsetX, Math.min(maxOffsetX, offsetX)),
-            y: Math.max(-maxOffsetY, Math.min(maxOffsetY, offsetY))
-        };
-    }
 
-    function applyZoomTransform(e) {
+    // Posisi pan vertikal saat ini
+    let currentOffsetY = 0;
+
+    /**
+     * Mengembalikan nilai maksimum offset vertikal
+     * (Jarak maksimum gambar bisa digeser ke atas / ke bawah)
+     */
+    function getMaxOffsetY() {
         const rect = img.getBoundingClientRect();
-        const { x: offsetX, y: offsetY } = calculateBoundedOffset(e.clientX, e.clientY, rect);
-        img.style.transform = `scale(${zoomScale}) translate(${offsetX / zoomScale}px, ${offsetY / zoomScale}px)`;
+        const zoomedHeight = rect.height * zoomScale;
+        return (zoomedHeight - rect.height) / 2;
     }
 
-    function handleMouseMove(e) {
-        if (isZoomed) {
-            requestAnimationFrame(() => {
-                applyZoomTransform(e);
-            });
+    /**
+     * Menerapkan transformasi scale + translate hanya di sumbu Y.
+     * currentOffsetY dijepit di antara -maxOffsetY dan +maxOffsetY
+     */
+    function applyVerticalTransform() {
+        const maxOffsetY = getMaxOffsetY();
+        if (currentOffsetY > maxOffsetY) {
+            currentOffsetY = maxOffsetY;
+        } else if (currentOffsetY < -maxOffsetY) {
+            currentOffsetY = -maxOffsetY;
         }
+        img.style.transform = `scale(${zoomScale}) translate(0, ${currentOffsetY / zoomScale}px)`;
     }
 
+    /**
+     * Aktifkan / Nonaktifkan zoom.
+     * Saat pertama kali zoom, kita set posisi gambar di top (offsetY = -maxOffsetY)
+     */
     function handleZoom(e) {
         e.stopPropagation();
         
         if (!isZoomed) {
             isZoomed = true;
             overlay.classList.add('zoomed-mode');
-            applyZoomTransform(e);
+            
+            // Batas atas => offset = -maxOffsetY
+            currentOffsetY = -getMaxOffsetY();
+            applyVerticalTransform();
+
+            // Mouse move event
             imgContainer.addEventListener('mousemove', handleMouseMove);
         } else {
             isZoomed = false;
             overlay.classList.remove('zoomed-mode');
+            
+            // Kembalikan transformasi normal
+            currentOffsetY = 0;
             img.style.transform = 'none';
             imgContainer.removeEventListener('mousemove', handleMouseMove);
         }
     }
 
-    // Touch events for mobile
-    let lastTouchX = 0;
-    let lastTouchY = 0;
-    let initialTouchDistance = 0;
-    let currentZoomScale = 1;
+    /**
+     * Untuk panning vertikal pakai mouse (desktop)
+     * Kita ambil deltaY, tambahkan ke currentOffsetY
+     */
+    let lastMouseY = 0;
+    let isMouseDown = false;
+    function handleMouseDown(e) {
+        if (!isZoomed) return; // Jika tidak zoom, abaikan
+        isMouseDown = true;
+        lastMouseY = e.clientY;
+    }
 
+    function handleMouseUp() {
+        isMouseDown = false;
+    }
+
+    function handleMouseMove(e) {
+        if (!isZoomed || !isMouseDown) return;
+        const deltaY = e.clientY - lastMouseY;
+        currentOffsetY += deltaY;
+        lastMouseY = e.clientY;
+        applyVerticalTransform();
+    }
+
+    // =====================================================
+    // TOUCH EVENTS (MOBILE) - Vertical Pan
+    // =====================================================
+    let lastTouchY = 0;
     function handleTouchStart(e) {
-        if (e.touches.length === 2) {
-            e.preventDefault();
-            initialTouchDistance = Math.hypot(
-                e.touches[1].clientX - e.touches[0].clientX,
-                e.touches[1].clientY - e.touches[0].clientY
-            );
-        } else if (e.touches.length === 1) {
-            lastTouchX = e.touches[0].clientX;
+        // Jika user pakai pinch-zoom pun, boleh diabaikan, 
+        // kita hanya fokus vertical pan saat isZoomed = true.
+        if (e.touches.length === 1) {
             lastTouchY = e.touches[0].clientY;
         }
     }
 
     function handleTouchMove(e) {
         if (!isZoomed) return;
+        e.preventDefault(); // mencegah scrolling bawaan
 
-        e.preventDefault();
-        
-        if (e.touches.length === 2) {
-            // Pinch zoom
-            const distance = Math.hypot(
-                e.touches[1].clientX - e.touches[0].clientX,
-                e.touches[1].clientY - e.touches[0].clientY
-            );
-            
-            currentZoomScale = (distance / initialTouchDistance) * zoomScale;
-            currentZoomScale = Math.min(Math.max(currentZoomScale, 1), 4);
-            
-            const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-            const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-            
-            const rect = img.getBoundingClientRect();
-            const { x: offsetX, y: offsetY } = calculateBoundedOffset(centerX, centerY, rect);
-            img.style.transform = `scale(${currentZoomScale}) translate(${offsetX / currentZoomScale}px, ${offsetY / currentZoomScale}px)`;
-        } else if (e.touches.length === 1) {
-            // Pan
-            const deltaX = e.touches[0].clientX - lastTouchX;
-            const deltaY = e.touches[0].clientY - lastTouchY;
-            
-            const rect = img.getBoundingClientRect();
-            const { x: offsetX, y: offsetY } = calculateBoundedOffset(
-                e.touches[0].clientX - deltaX,
-                e.touches[0].clientY - deltaY,
-                rect
-            );
-            
-            img.style.transform = `scale(${currentZoomScale}) translate(${offsetX / currentZoomScale}px, ${offsetY / currentZoomScale}px)`;
-            
-            lastTouchX = e.touches[0].clientX;
-            lastTouchY = e.touches[0].clientY;
+        // Pastikan single touch
+        if (e.touches.length === 1) {
+            const currentY = e.touches[0].clientY;
+            const deltaY = currentY - lastTouchY;
+            lastTouchY = currentY;
+            currentOffsetY += deltaY;
+            applyVerticalTransform();
         }
     }
 
+    // Event listeners
     img.addEventListener('click', handleZoom);
+    // Mouse
+    imgContainer.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mouseup', handleMouseUp);
+    // Touch
     imgContainer.addEventListener('touchstart', handleTouchStart, { passive: false });
     imgContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
 
-    // Navigation buttons
+    // =====================================================
+    // Navigasi Kiri-Kanan
+    // =====================================================
     prevButton.addEventListener('click', (e) => {
         if (!isZoomed) {
             e.stopPropagation();
@@ -543,7 +543,6 @@ function showFullImage(clickedImageSrc) {
         }
     });
 
-    // Keyboard navigation
     function cleanup() {
         clearTimeout(loaderTimeout);
         document.removeEventListener('keydown', handleKeydown);
@@ -582,6 +581,7 @@ function showFullImage(clickedImageSrc) {
     
     showImage(currentIndex);
 }
+
 /*
     function showFullImage(src) {
         const overlay = document.createElement('div');
