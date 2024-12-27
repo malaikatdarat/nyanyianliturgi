@@ -482,7 +482,9 @@
   box-shadow: 0 -1px 0 #eee inset;
   border-radius: 6px 6px 0 0;
   cursor: pointer;
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-decoration: none;
   color: #333;
   -webkit-box-flex: 3;
@@ -532,13 +534,19 @@
     .tab + label {
         width: auto;
         font-size: 13px;
-  		padding: 10px;
-  		height: auto;
-   		white-space: normal;
+  	padding: 8px 5px;
+  	height: auto;
+   	white-space: normal;
     	word-wrap: break-word;
-  		border-radius: 0;   /* Baru: hilangkan lengkungan label */
+  	border-radius: 0;   /* Baru: hilangkan lengkungan label */
     	box-shadow: none;   /* Baru: hilangkan bayangan label */
   }
+	  .tab-text {
+		  display: none;
+	  }
+	  .tab-emoji {
+		  display: inline-block;
+	  }
   
 }
   /* -----------------------------
