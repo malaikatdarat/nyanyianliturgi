@@ -334,6 +334,369 @@ function generateAudioHTML(title, audioTrackUrl, channelName, channelUrl, audioE
     </div>`;
 }
 
+function showFullImage(clickedImageSrc) {
+    const allImages = Array.from(document.querySelectorAll('figure.image img'));
+    const imageList = allImages.map(img => img.src);
+    let currentIndex = imageList.indexOf(clickedImageSrc);
+
+    const overlay = document.createElement('div');
+    overlay.classList.add('image-overlay');
+
+    const imgContainer = document.createElement('div');
+    imgContainer.classList.add('image-container');
+
+    const loader = document.createElement('div');
+    loader.classList.add('loader');
+    
+    let loaderTimeout;
+    let isImageLoaded = false;
+
+    const counter = document.createElement('div');
+    counter.classList.add('image-counter');
+
+    const tooltip = document.createElement('div');
+    tooltip.classList.add('tooltip');
+
+    const img = document.createElement('img');
+    img.style.display = 'none';
+    
+    // --------------------------------------
+    // DETEKSI PERANGKAT MOBILE vs DESKTOP
+    // --------------------------------------
+    function isMobile() {
+        return window.matchMedia('(max-width: 768px)').matches;
+    }
+
+    // --------------------------------------
+    // LOAD LOGIC
+    // --------------------------------------
+    img.onload = function() {
+        isImageLoaded = true;
+        clearTimeout(loaderTimeout);
+        loader.style.display = 'none';
+        img.style.display = 'block';
+    };
+
+    img.src = clickedImageSrc;
+
+    const prevButton = document.createElement('button');
+    prevButton.innerHTML = '&#10094;';
+    prevButton.classList.add('nav-button', 'prev');
+    
+    const nextButton = document.createElement('button');
+    nextButton.innerHTML = '&#10095;';
+    nextButton.classList.add('nav-button', 'next');
+
+    function updateCounter() {
+        counter.textContent = `${currentIndex + 1}/${imageList.length}`;
+    }
+
+    function showImage(index) {
+        if (index >= 0 && index < imageList.length) {
+            currentIndex = index;
+            isImageLoaded = false;
+            img.style.display = 'none';
+            
+            clearTimeout(loaderTimeout);
+            loaderTimeout = setTimeout(() => {
+                if (!isImageLoaded) {
+                    loader.style.display = 'block';
+                }
+            }, 100);
+            
+            img.src = imageList[currentIndex];
+            
+            updateCounter();
+            
+            const currentImg = allImages[currentIndex];
+            tooltip.textContent = currentImg.alt;
+            
+            prevButton.style.visibility = currentIndex === 0 ? 'hidden' : 'visible';
+            nextButton.style.visibility = currentIndex === imageList.length - 1 ? 'hidden' : 'visible';
+        }
+    }
+
+    // =====================================================
+    // ZOOM + PAN (Desktop & Mobile)
+    // =====================================================
+    let isZoomed = false;
+    let zoomScale = 2.5;
+
+    // Posisi pan saat ini (X dan Y)
+    let offsetX = 0;
+    let offsetY = 0;
+
+    // Untuk mendeteksi double-tap di mobile
+    let lastTapTime = 0;
+    const doubleTapThreshold = 300; // ms
+
+    // Agar zoom “dari atas” (desktop) atau “ke tengah” (mobile),
+    // kita set transform-origin secara dinamis saat zoom in.
+    function applyTransform() {
+        // Batasi offset agar gambar tidak “keluar” layar
+        const { clampedX, clampedY } = clampOffsets(offsetX, offsetY);
+        offsetX = clampedX;
+        offsetY = clampedY;
+
+        img.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${zoomScale})`;
+    }
+
+    function getMaxOffsets() {
+        // Hitung ukuran container (overlay) dan ukuran asli gambar
+        // (posisi + boundingClientRect mungkin berubah saat zoom)
+        const containerRect = imgContainer.getBoundingClientRect();
+        // Karena gambar sudah di-scale via CSS transform,
+        // kita ambil ukuran natural image (img.naturalWidth / img.naturalHeight).
+        // Lalu kalikan dengan zoomScale untuk menghitung total dimensi zoomed image.
+        const zoomedWidth = img.naturalWidth * zoomScale;
+        const zoomedHeight = img.naturalHeight * zoomScale;
+
+        // Offset maksimal agar gambar tidak keluar dari container
+        // (kita bagi 2 selisihnya, karena `transform-origin` diatur di tengah / atas)
+        const maxOffsetX = Math.max(0, (zoomedWidth - containerRect.width) / 2);
+        const maxOffsetY = Math.max(0, (zoomedHeight - containerRect.height) / 2);
+
+        return { maxOffsetX, maxOffsetY };
+    }
+
+    function clampOffsets(x, y) {
+        const { maxOffsetX, maxOffsetY } = getMaxOffsets();
+        // Pastikan offset X dan Y tidak melebihi batas
+        const clampedX = Math.max(-maxOffsetX, Math.min(maxOffsetX, x));
+        const clampedY = Math.max(-maxOffsetY, Math.min(maxOffsetY, y));
+        return { clampedX, clampedY };
+    }
+
+    function zoomIn() {
+        isZoomed = true;
+        overlay.classList.add('zoomed-mode');
+
+        // Set transform-origin
+        if (isMobile()) {
+            // Zoom ke tengah
+            img.style.transformOrigin = 'center center';
+        } else {
+            // Zoom dari sisi atas
+            img.style.transformOrigin = '50% 0%';
+        }
+
+        // Reset offset agar posisinya sesuai keinginan
+        if (isMobile()) {
+            // Mulai dari tengah (0,0)
+            offsetX = 0;
+            offsetY = 0;
+        } else {
+            // Agar bagian atas gambar muncul di atas container,
+            // kita set offsetY = 0 (karena transform-origin = top)
+            offsetX = 0;
+            offsetY = 0;
+        }
+        applyTransform();
+    }
+
+    function zoomOut() {
+        isZoomed = false;
+        overlay.classList.remove('zoomed-mode');
+        img.style.transform = 'none';
+    }
+
+    // --------------------------------------
+    // EVENT HANDLER ZOOM
+    // --------------------------------------
+    function handleImageClickDesktop(e) {
+        e.stopPropagation();
+        if (!isZoomed) {
+            // Zoom in
+            zoomIn();
+        } else {
+            // Zoom out
+            zoomOut();
+        }
+    }
+
+    // --------------------------------------
+    // DETEKSI TAP / DOUBLE TAP (Mobile)
+    // --------------------------------------
+    function handleImageTouchStart(e) {
+        if (e.touches.length === 1) {
+            const currentTapTime = new Date().getTime();
+            const tapInterval = currentTapTime - lastTapTime;
+            lastTapTime = currentTapTime;
+
+            if (tapInterval < doubleTapThreshold) {
+                // Double tap => zoom out
+                if (isZoomed) {
+                    zoomOut();
+                }
+            } else {
+                // Single tap => zoom in jika belum zoom, sebaliknya tidak aksi
+                if (!isZoomed) {
+                    zoomIn();
+                }
+            }
+        }
+    }
+
+    // --------------------------------------
+    // PAN DENGAN MOUSE (Desktop)
+    // --------------------------------------
+    // “panning mengikuti gerak mouse, langsung/tanpa klik”
+    let lastMouseX = null;
+    let lastMouseY = null;
+
+    function handleMouseMove(e) {
+        if (!isZoomed) return;
+        
+        // Jika pertama kali gerak, simpan posisi dulu agar tidak “loncat”
+        if (lastMouseX === null || lastMouseY === null) {
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+            return;
+        }
+
+        // Hitung selisih gerakan
+        const deltaX = e.clientX - lastMouseX;
+        const deltaY = e.clientY - lastMouseY;
+
+        // Update last position
+        lastMouseX = e.clientX;
+        lastMouseY = e.clientY;
+
+        // Tambah offset
+        offsetX += deltaX;
+        offsetY += deltaY;
+
+        applyTransform();
+    }
+
+    function resetLastMousePosition() {
+        lastMouseX = null;
+        lastMouseY = null;
+    }
+
+    // --------------------------------------
+    // PAN DENGAN TOUCH (Mobile)
+    // --------------------------------------
+    let touchLastX = null;
+    let touchLastY = null;
+
+    function handleTouchMove(e) {
+        if (!isZoomed) return;
+
+        // Hanya satu jari
+        if (e.touches.length === 1) {
+            e.preventDefault(); // Mencegah scrolling browser
+
+            const currentX = e.touches[0].clientX;
+            const currentY = e.touches[0].clientY;
+
+            if (touchLastX === null || touchLastY === null) {
+                touchLastX = currentX;
+                touchLastY = currentY;
+                return;
+            }
+
+            const deltaX = currentX - touchLastX;
+            const deltaY = currentY - touchLastY;
+
+            touchLastX = currentX;
+            touchLastY = currentY;
+
+            offsetX += deltaX;
+            offsetY += deltaY;
+
+            applyTransform();
+        }
+    }
+
+    function handleTouchEnd() {
+        touchLastX = null;
+        touchLastY = null;
+    }
+
+    // =====================================================
+    // Navigasi Kiri-Kanan
+    // =====================================================
+    prevButton.addEventListener('click', (e) => {
+        if (!isZoomed) {
+            e.stopPropagation();
+            showImage(currentIndex - 1);
+        }
+    });
+
+    nextButton.addEventListener('click', (e) => {
+        if (!isZoomed) {
+            e.stopPropagation();
+            showImage(currentIndex + 1);
+        }
+    });
+
+    // -----------------------------------------------------
+    // Bersihkan (close) overlay
+    // -----------------------------------------------------
+    function cleanup() {
+        clearTimeout(loaderTimeout);
+        document.removeEventListener('keydown', handleKeydown);
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', resetLastMousePosition);
+        imgContainer.removeEventListener('touchmove', handleTouchMove, { passive: false });
+        imgContainer.removeEventListener('touchend', handleTouchEnd);
+        document.body.removeChild(overlay);
+    }
+
+    function handleKeydown(e) {
+        if (!isZoomed) {
+            if (e.key === 'ArrowLeft') {
+                showImage(currentIndex - 1);
+            } else if (e.key === 'ArrowRight') {
+                showImage(currentIndex + 1);
+            } else if (e.key === 'Escape') {
+                cleanup();
+            }
+        } else {
+            // Ketika zoomed, Esc juga menutup overlay
+            if (e.key === 'Escape') {
+                cleanup();
+            }
+        }
+    }
+
+    document.addEventListener('keydown', handleKeydown);
+
+    // Masukkan elemen-elemen ke DOM
+    imgContainer.appendChild(loader);
+    imgContainer.appendChild(img);
+    overlay.appendChild(counter);
+    overlay.appendChild(tooltip);
+    overlay.appendChild(prevButton);
+    overlay.appendChild(imgContainer);
+    overlay.appendChild(nextButton);
+    document.body.appendChild(overlay);
+    
+    // Klik di luar gambar => tutup
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay || e.target === imgContainer) {
+            cleanup();
+        }
+    });
+
+    // EVENT LISTENERS ZOOM/PAN
+    if (isMobile()) {
+        // Mobile: single/double tap => handleImageTouchStart
+        img.addEventListener('touchstart', handleImageTouchStart, { passive: true });
+        imgContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
+        imgContainer.addEventListener('touchend', handleTouchEnd);
+    } else {
+        // Desktop: klik => zoom in/out
+        img.addEventListener('click', handleImageClickDesktop);
+        // Panning dengan mousemove
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', resetLastMousePosition);
+    }
+
+    showImage(currentIndex);
+}
+
 /*
     function showFullImage(src) {
         const overlay = document.createElement('div');
