@@ -395,120 +395,116 @@ function showFullImage(clickedImageSrc) {
 
     // Zoom functionality
     let isZoomed = false;
-    let zoomFactor = 2;
-    let lastZoomPoint = { x: 0, y: 0 };
-
-    function getRelativePoint(e, element) {
-        const rect = element.getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width) * 100;
-        const y = ((e.clientY - rect.top) / rect.height) * 100;
-        return { x, y };
+    let zoomScale = 2;
+    
+    function calculateZoomPosition(e) {
+        const rect = img.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        
+        // Convert to percentage
+        const percentX = (mouseX / rect.width) * 100;
+        const percentY = (mouseY / rect.height) * 100;
+        
+        // Calculate offset to keep zoom point under cursor
+        const offsetX = -((percentX - 50) * (zoomScale - 1));
+        const offsetY = -((percentY - 50) * (zoomScale - 1));
+        
+        return { offsetX, offsetY };
     }
 
-    function updateZoomPosition(point) {
-        if (!isZoomed) return;
-        
-        // Calculate the transform origin based on click/mouse position
-        const translateX = (50 - point.x) * (zoomFactor - 1);
-        const translateY = (50 - point.y) * (zoomFactor - 1);
-        
-        img.style.transformOrigin = `${point.x}% ${point.y}%`;
-        img.style.transform = `scale(${zoomFactor}) translate(${translateX}%, ${translateY}%)`;
+    function applyZoomTransform(offsetX, offsetY) {
+        img.style.transform = `scale(${zoomScale}) translate(${offsetX}%, ${offsetY}%)`;
     }
 
     function handleMouseMove(e) {
         if (isZoomed) {
-            const point = getRelativePoint(e, img);
-            lastZoomPoint = point;
-            updateZoomPosition(point);
-        }
-    }
-
-    function handleWheel(e) {
-        if (isZoomed) {
             e.preventDefault();
-            // Adjust zoom factor with mouse wheel
-            const delta = e.deltaY * -0.01;
-            zoomFactor = Math.max(1, Math.min(4, zoomFactor + delta));
-            updateZoomPosition(lastZoomPoint);
+            const { offsetX, offsetY } = calculateZoomPosition(e);
+            applyZoomTransform(offsetX, offsetY);
         }
     }
 
-    function toggleZoom(e) {
+    function handleZoom(e) {
         e.stopPropagation();
         
         if (!isZoomed) {
             isZoomed = true;
             overlay.classList.add('zoomed-mode');
-            
-            // Set initial zoom position based on click location
-            lastZoomPoint = getRelativePoint(e, img);
-            updateZoomPosition(lastZoomPoint);
-            
-            // Add mousemove and wheel listeners
-            img.addEventListener('mousemove', handleMouseMove);
-            img.addEventListener('wheel', handleWheel);
+            const { offsetX, offsetY } = calculateZoomPosition(e);
+            applyZoomTransform(offsetX, offsetY);
+            imgContainer.addEventListener('mousemove', handleMouseMove);
         } else {
             isZoomed = false;
             overlay.classList.remove('zoomed-mode');
-            zoomFactor = 2; // Reset zoom factor
-            
-            // Reset transform
             img.style.transform = 'none';
-            
-            // Remove mousemove and wheel listeners
-            img.removeEventListener('mousemove', handleMouseMove);
-            img.removeEventListener('wheel', handleWheel);
+            imgContainer.removeEventListener('mousemove', handleMouseMove);
         }
     }
 
     // Touch events for mobile
-    let lastTouchDistance = 0;
+    let initialTouchDistance = 0;
+    let initialScale = 1;
+
+    function getTouchDistance(e) {
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        return Math.hypot(
+            touch2.clientX - touch1.clientX,
+            touch2.clientY - touch1.clientY
+        );
+    }
+
+    function handleTouchStart(e) {
+        if (e.touches.length === 2) {
+            e.preventDefault();
+            initialTouchDistance = getTouchDistance(e);
+            initialScale = zoomScale;
+        }
+    }
 
     function handleTouchMove(e) {
         if (e.touches.length === 2) {
             e.preventDefault();
             
-            // Calculate pinch distance
-            const touch1 = e.touches[0];
-            const touch2 = e.touches[1];
-            const distance = Math.hypot(
-                touch2.clientX - touch1.clientX,
-                touch2.clientY - touch1.clientY
-            );
-
-            if (lastTouchDistance > 0) {
-                const delta = distance - lastTouchDistance;
-                zoomFactor = Math.max(1, Math.min(4, zoomFactor + delta * 0.01));
+            const currentDistance = getTouchDistance(e);
+            const scaleDiff = currentDistance / initialTouchDistance;
+            zoomScale = Math.min(Math.max(initialScale * scaleDiff, 1), 4);
+            
+            if (zoomScale > 1) {
+                isZoomed = true;
+                overlay.classList.add('zoomed-mode');
                 
-                // Calculate midpoint of pinch
-                const midX = (touch1.clientX + touch2.clientX) / 2;
-                const midY = (touch1.clientY + touch2.clientY) / 2;
-                lastZoomPoint = getRelativePoint({ clientX: midX, clientY: midY }, img);
-                updateZoomPosition(lastZoomPoint);
+                // Calculate center point of pinch
+                const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                
+                const { offsetX, offsetY } = calculateZoomPosition({
+                    clientX: centerX,
+                    clientY: centerY
+                });
+                applyZoomTransform(offsetX, offsetY);
+            } else {
+                isZoomed = false;
+                overlay.classList.remove('zoomed-mode');
+                img.style.transform = 'none';
             }
-
-            lastTouchDistance = distance;
         }
     }
 
-    function handleTouchEnd() {
-        lastTouchDistance = 0;
-    }
-
+    img.addEventListener('click', handleZoom);
+    img.addEventListener('touchstart', handleTouchStart, { passive: false });
     img.addEventListener('touchmove', handleTouchMove, { passive: false });
-    img.addEventListener('touchend', handleTouchEnd);
-    img.addEventListener('click', toggleZoom);
 
     // Navigation
-    prevButton.addEventListener('click', function(e) {
+    prevButton.addEventListener('click', (e) => {
         if (!isZoomed) {
             e.stopPropagation();
             showImage(currentIndex - 1);
         }
     });
 
-    nextButton.addEventListener('click', function(e) {
+    nextButton.addEventListener('click', (e) => {
         if (!isZoomed) {
             e.stopPropagation();
             showImage(currentIndex + 1);
@@ -517,6 +513,7 @@ function showFullImage(clickedImageSrc) {
 
     function cleanup() {
         document.removeEventListener('keydown', handleKeydown);
+        imgContainer.removeEventListener('mousemove', handleMouseMove);
         document.body.removeChild(overlay);
     }
 
@@ -542,16 +539,15 @@ function showFullImage(clickedImageSrc) {
     overlay.appendChild(nextButton);
     document.body.appendChild(overlay);
     
-    // Close on click outside image
-    overlay.addEventListener('click', function(e) {
-        if (e.target === overlay) {
+    // Close on click outside
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay || e.target === imgContainer) {
             cleanup();
         }
     });
     
     showImage(currentIndex);
 }
-
 /*
     function showFullImage(src) {
         const overlay = document.createElement('div');
