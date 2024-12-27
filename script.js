@@ -441,16 +441,23 @@ function showFullImage(clickedImageSrc) {
         img.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${zoomScale})`;
     }
 
-    function getMaxOffsets() {
-        const containerRect = imgContainer.getBoundingClientRect();
-        const zoomedWidth = img.naturalWidth * zoomScale;
-        const zoomedHeight = img.naturalHeight * zoomScale;
+function getMaxOffsets() {
+    const containerRect = imgContainer.getBoundingClientRect();
+    const zoomedWidth = img.naturalWidth * zoomScale;
+    const zoomedHeight = img.naturalHeight * zoomScale;
 
-        const maxOffsetX = Math.max(0, (zoomedWidth - containerRect.width) / 2);
-        const maxOffsetY = Math.max(0, (zoomedHeight - containerRect.height) / 2);
+    // Batasi maksimal offset ke 2x ukuran gambar asli
+    const maxOffsetX = Math.min(
+        Math.max(0, (zoomedWidth - containerRect.width) / 2),
+        img.naturalWidth * 2
+    );
+    const maxOffsetY = Math.min(
+        Math.max(0, (zoomedHeight - containerRect.height) / 2),
+        img.naturalHeight * 2
+    );
 
-        return { maxOffsetX, maxOffsetY };
-    }
+    return { maxOffsetX, maxOffsetY };
+}
 
     function clampOffsets(x, y) {
         const { maxOffsetX, maxOffsetY } = getMaxOffsets();
