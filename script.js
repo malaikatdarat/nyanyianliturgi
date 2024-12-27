@@ -433,7 +433,6 @@ function showFullImage(clickedImageSrc) {
     // Agar zoom “dari atas” (desktop) atau “ke tengah” (mobile),
     // kita set transform-origin secara dinamis saat zoom in.
     function applyTransform() {
-        // Batasi offset agar gambar tidak “keluar” layar
         const { clampedX, clampedY } = clampOffsets(offsetX, offsetY);
         offsetX = clampedX;
         offsetY = clampedY;
@@ -442,17 +441,10 @@ function showFullImage(clickedImageSrc) {
     }
 
     function getMaxOffsets() {
-        // Hitung ukuran container (overlay) dan ukuran asli gambar
-        // (posisi + boundingClientRect mungkin berubah saat zoom)
         const containerRect = imgContainer.getBoundingClientRect();
-        // Karena gambar sudah di-scale via CSS transform,
-        // kita ambil ukuran natural image (img.naturalWidth / img.naturalHeight).
-        // Lalu kalikan dengan zoomScale untuk menghitung total dimensi zoomed image.
         const zoomedWidth = img.naturalWidth * zoomScale;
         const zoomedHeight = img.naturalHeight * zoomScale;
 
-        // Offset maksimal agar gambar tidak keluar dari container
-        // (kita bagi 2 selisihnya, karena `transform-origin` diatur di tengah / atas)
         const maxOffsetX = Math.max(0, (zoomedWidth - containerRect.width) / 2);
         const maxOffsetY = Math.max(0, (zoomedHeight - containerRect.height) / 2);
 
@@ -461,7 +453,6 @@ function showFullImage(clickedImageSrc) {
 
     function clampOffsets(x, y) {
         const { maxOffsetX, maxOffsetY } = getMaxOffsets();
-        // Pastikan offset X dan Y tidak melebihi batas
         const clampedX = Math.max(-maxOffsetX, Math.min(maxOffsetX, x));
         const clampedY = Math.max(-maxOffsetY, Math.min(maxOffsetY, y));
         return { clampedX, clampedY };
@@ -471,26 +462,14 @@ function showFullImage(clickedImageSrc) {
         isZoomed = true;
         overlay.classList.add('zoomed-mode');
 
-        // Set transform-origin
         if (isMobile()) {
-            // Zoom ke tengah
             img.style.transformOrigin = 'center center';
         } else {
-            // Zoom dari sisi atas
             img.style.transformOrigin = '50% 0%';
         }
 
-        // Reset offset agar posisinya sesuai keinginan
-        if (isMobile()) {
-            // Mulai dari tengah (0,0)
-            offsetX = 0;
-            offsetY = 0;
-        } else {
-            // Agar bagian atas gambar muncul di atas container,
-            // kita set offsetY = 0 (karena transform-origin = top)
-            offsetX = 0;
-            offsetY = 0;
-        }
+        offsetX = 0;
+        offsetY = 0;
         applyTransform();
     }
 
@@ -506,10 +485,8 @@ function showFullImage(clickedImageSrc) {
     function handleImageClickDesktop(e) {
         e.stopPropagation();
         if (!isZoomed) {
-            // Zoom in
             zoomIn();
         } else {
-            // Zoom out
             zoomOut();
         }
     }
@@ -523,16 +500,16 @@ function showFullImage(clickedImageSrc) {
             const tapInterval = currentTapTime - lastTapTime;
             lastTapTime = currentTapTime;
 
+            // [CHANGED] => Hanya double-tap yang toggle zoom, single tap diabaikan
             if (tapInterval < doubleTapThreshold) {
-                // Double tap => zoom out
+                // Double tap => toggle zoom
                 if (isZoomed) {
                     zoomOut();
-                }
-            } else {
-                // Single tap => zoom in jika belum zoom, sebaliknya tidak aksi
-                if (!isZoomed) {
+                } else {
                     zoomIn();
                 }
+            } else {
+                // Single tap => tidak melakukan apa-apa
             }
         }
     }
@@ -540,31 +517,27 @@ function showFullImage(clickedImageSrc) {
     // --------------------------------------
     // PAN DENGAN MOUSE (Desktop)
     // --------------------------------------
-    // “panning mengikuti gerak mouse, langsung/tanpa klik”
     let lastMouseX = null;
     let lastMouseY = null;
 
     function handleMouseMove(e) {
         if (!isZoomed) return;
         
-        // Jika pertama kali gerak, simpan posisi dulu agar tidak “loncat”
         if (lastMouseX === null || lastMouseY === null) {
             lastMouseX = e.clientX;
             lastMouseY = e.clientY;
             return;
         }
 
-        // Hitung selisih gerakan
         const deltaX = e.clientX - lastMouseX;
         const deltaY = e.clientY - lastMouseY;
 
-        // Update last position
         lastMouseX = e.clientX;
         lastMouseY = e.clientY;
 
-        // Tambah offset
-        offsetX += deltaX;
-        offsetY += deltaY;
+        // [CHANGED] => Dibalik dan dikali 2
+        offsetX -= 2 * deltaX;
+        offsetY -= 2 * deltaY;
 
         applyTransform();
     }
@@ -583,9 +556,9 @@ function showFullImage(clickedImageSrc) {
     function handleTouchMove(e) {
         if (!isZoomed) return;
 
-        // Hanya satu jari
+        // Gunakan satu jari
         if (e.touches.length === 1) {
-            e.preventDefault(); // Mencegah scrolling browser
+            e.preventDefault();
 
             const currentX = e.touches[0].clientX;
             const currentY = e.touches[0].clientY;
@@ -682,7 +655,7 @@ function showFullImage(clickedImageSrc) {
 
     // EVENT LISTENERS ZOOM/PAN
     if (isMobile()) {
-        // Mobile: single/double tap => handleImageTouchStart
+        // Mobile: double-tap => zoom in/out
         img.addEventListener('touchstart', handleImageTouchStart, { passive: true });
         imgContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
         imgContainer.addEventListener('touchend', handleTouchEnd);
