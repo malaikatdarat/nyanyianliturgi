@@ -485,6 +485,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  line-height: 1;
   text-decoration: none;
   color: #333;
   -webkit-box-flex: 3;
@@ -528,11 +529,11 @@
   /* Responsif - Hanya berlaku di layar kecil */
   @media (max-width: 768px) {
     .tab-wrap {
-      margin: 0; /* Menghilangkan margin pada layar kecil */
-      padding: 0; /* Opsional, jika ingin menghilangkan padding juga */
-      flex-direction: row; /* Pastikan tetap horizontal pada layar kecil */
-      border-radius: 0;    /* Baru: hilangkan lengkungan */
-      box-shadow: none;    /* Baru: hilangkan bayangan */
+      margin: 0;
+      padding: 0;
+      flex-direction: row;
+      border-radius: 0;
+      box-shadow: none;
     }
     .tab-wrap:hover {
     box-shadow: none;
@@ -540,19 +541,23 @@
     .tab + label {
         width: auto;
         font-size: 13px;
-  	padding: 8px 5px;
+  	padding: 5px;
   	height: auto;
    	white-space: normal;
     	word-wrap: break-word;
-  	border-radius: 0;   /* Baru: hilangkan lengkungan label */
-    	box-shadow: none;   /* Baru: hilangkan bayangan label */
+  	border-radius: 0;
+    	box-shadow: none;
+	flex-direction: column;
   }
 	  .tab-text {
-		  display: none;
+		  display: block;
+		  font-size: 10px;
+		  margin-top: 2px;
 	  }
 	  .tab-emoji {
-		  display: inline-block;
+		  display: block;
 		  margin-left: 0;
+		  font-size: 16px;
 	  }
   
 }
