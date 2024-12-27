@@ -551,8 +551,7 @@ function showFullImage(clickedImageSrc) {
         lastMouseY = e.clientY;
 
         // Desktop hanya panning vertikal
-        offsetY -= 2.3 * deltaY;
-        // Pastikan offsetX tetap 0 agar tidak ada panning horizontal
+        offsetY -= 2 * deltaY;
         offsetX = 0;
 
         applyTransform();
@@ -630,11 +629,11 @@ function showFullImage(clickedImageSrc) {
                 const containerWidth = containerRect.width;
 
                 // Jika tapX < 10% lebar container => pindah ke gambar sebelumnya
-                if (tapX < 0.1 * containerWidth) {
+                if (tapX < 0.2 * containerWidth) {
                     showImage(currentIndex - 1);
                 }
                 // Jika tapX > 90% lebar container => pindah ke gambar berikutnya
-                else if (tapX > 0.9 * containerWidth) {
+                else if (tapX > 0.8 * containerWidth) {
                     showImage(currentIndex + 1);
                 }
                 // Jika tap di tengah-tengah (10%-90%), tidak melakukan apa-apa.
