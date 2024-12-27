@@ -2858,7 +2858,7 @@ display:none
       }
       ]]>
     </b:template-skin>
-
+    
     <b:if cond='data:skin.vars.body_background.image.isResizable'>
       <b:include cond='not data:view.isPreview' data='{                          image: data:skin.vars.body_background.image,                          selector: &quot;body&quot;                        }' name='responsiveImageStyle'/>
     </b:if>
