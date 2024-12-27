@@ -547,12 +547,14 @@
     	word-wrap: break-word;
   	border-radius: 0;
     	box-shadow: none;
-	flex-direction: column;
+	display: flex;
+	flex-direction: column-reverse;
+	align-items: center;
   }
 	  .tab-text {
 		  display: block;
 		  font-size: 10px;
-		  margin-top: 2px;
+		  margin-top: 5px;
 	  }
 	  .tab-emoji {
 		  display: block;
