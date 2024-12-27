@@ -509,6 +509,7 @@
 	  .tab-emoji {
 		  display: inline-block;
 		  margin-left: 5px;
+		  vertical-align: middle;
 	  }
 
 @media (min-width:768px) {
