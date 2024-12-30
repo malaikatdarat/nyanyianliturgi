@@ -11,9 +11,7 @@
 	display: none;
 }
 
-/* -------------------------------------
-   Overlay, Container, Gambar
-------------------------------------- */
+/* Layar Penuh */
 .image-overlay {
     position: fixed;
     top: 0; left: 0;
@@ -46,12 +44,9 @@
 }
 .zoomed-mode img {
     cursor: zoom-out;
-    transition: none; /* agar gerakan panning lebih lancar */
+    transition: none;
 }
 
-/* -------------------------------------
-   Navigasi
-------------------------------------- */
 .nav-button {
     position: absolute;
     top: 50%;
@@ -94,7 +89,6 @@
     background: rgba(0, 0, 0, 0.7);
 }
 
-/* Hilangkan tombol & info saat zoom */
 .zoomed-mode .nav-button,
 .zoomed-mode .image-counter,
 .zoomed-mode .tooltip,
@@ -102,9 +96,6 @@
     display: none;
 }
 
-/* -------------------------------------
-   Counter & Tooltip
-------------------------------------- */
 .image-counter {
     position: absolute;
     top: 20px; 
@@ -130,9 +121,6 @@
     z-index: 1001;
 }
 
-/* -------------------------------------
-   Loader
-------------------------------------- */
 .loader {
     width: 48px;
     height: 48px;
@@ -144,14 +132,12 @@
     animation: rotation 1s linear infinite;
     position: absolute;
 }
+
 @keyframes rotation {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
 
-/* -------------------------------------
-   Responsif
-------------------------------------- */
 @media (max-width: 768px) {
     .tooltip {
 	top: 15px;
