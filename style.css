@@ -730,3 +730,13 @@ ol {
 .byline-label {
     display: none;
 }
+
+/* Lebarkan */
+@media (max-width: 768px) {
+.feed-view .post-wrapper .centered {
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: 0;
+    margin-right: 0;
+    float: none;
+}
