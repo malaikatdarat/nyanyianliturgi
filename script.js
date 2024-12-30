@@ -473,8 +473,7 @@ function showFullImage(clickedImageSrc) {
     
     // Klik di luar gambar => tutup
 overlay.addEventListener('click', (e) => {
-    // Bebas device apa pun: jika klik/tap di overlay atau container => cleanup
-    if (e.target === overlay || e.target === imgContainer) {
+    if (!isMobile() && (e.target === overlay || e.target === imgContainer)) {
         cleanup();
     }
 });
