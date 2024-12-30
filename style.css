@@ -1,14 +1,15 @@
-  /* sembunyikan gambar thumbnail */
-  #imageThumb {
+/* sembunyikan gambar thumbnail */
+#imageThumb {
     display: none;
 }
-  .hidden-thumbnail {
-      display: none;
+
+.hidden-thumbnail {
+    display: none;
 }
   
-  /* hiddentxt untuk deskripsi */
+/* hiddentxt untuk deskripsi */
 .hiddentxt {
-	display: none;
+    display: none;
 }
 
 /* Layar Penuh */
