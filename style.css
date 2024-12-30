@@ -390,7 +390,8 @@ ol {
     
     .download-item,
     .unduh-preview {
-        width: 150px;
+        width: 40%;
+	height: auto;
     }
 }
 
