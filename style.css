@@ -409,11 +409,12 @@ ol {
     }
     
     .download-row {
+        width: 40%;
         gap: 10px;
     }
     
     .unduh-preview {
-        width: 40%;
+        width: 100%;
 	height: auto;
     }
 }
