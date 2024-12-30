@@ -393,7 +393,7 @@ ol {
   
 @media (max-width: 768px) {
     .unduh-preview {
-        width: 10px;
+        width: 200px;
     }
 }
 
@@ -508,7 +508,7 @@ ol {
 }
   
   .tab:checked ~ .tab__content {
-  display: none; /* Sembunyikan semua tab content terlebih dahulu */
+  display: none;
 }
   
 .tab:checked:nth-of-type(1) ~ .tab__content:nth-of-type(1),
@@ -516,7 +516,7 @@ ol {
 .tab:checked:nth-of-type(3) ~ .tab__content:nth-of-type(3),
 .tab:checked:nth-of-type(4) ~ .tab__content:nth-of-type(4),
 .tab:checked:nth-of-type(5) ~ .tab__content:nth-of-type(5) {
-  display: block; /* Tampilkan hanya tab content yang sesuai */
+  display: block;
   opacity: 1;
   -webkit-transition: 0.5s opacity ease-in, 0.2s transform ease;
   transition: 0.5s opacity ease-in, 0.2s transform ease;
@@ -595,49 +595,51 @@ ol {
   background-color: #f9f9f9;
   box-shadow: 0 1px 0 #f4f4f4 inset;
 }
-  
-  /* Tambahkan kode baru di sini */
-  .tab-wrap {
-    flex-direction: row; /* Tetap horizontal */
-  }
+  
+.tab-wrap {
+    flex-direction: row;
+}
 
-  /* Responsif - Hanya berlaku di layar kecil */
-  @media (max-width: 768px) {
+@media (max-width: 768px) {
     .tab-wrap {
-      margin: 0;
-      padding: 0;
-      flex-direction: row;
-      border-radius: 0;
-      box-shadow: none;
+          margin: 0;
+          padding: 0;
+          flex-direction: row;
+          border-radius: 0;
+          box-shadow: none;
     }
+
     .tab-wrap:hover {
     box-shadow: none;
-}
+    }
+
     .tab + label {
         width: auto;
         font-size: 13px;
-  	padding: 5px;
-  	height: auto;
-   	white-space: normal;
-    	word-wrap: break-word;
-  	border-radius: 0;
-    	box-shadow: none;
-	display: flex;
-	flex-direction: column-reverse;
-	align-items: center;
-  }
-	  .tab-text {
-		  display: block;
-		  font-size: 10px;
-		  margin-top: 5px;
-	  }
-	  .tab-emoji {
-		  display: block;
-		  margin-left: 0;
-		  font-size: 16px;
-	  }
-  
+        	padding: 5px;
+        	height: auto;
+        	white-space: normal;
+        	word-wrap: break-word;
+        	border-radius: 0;
+        	box-shadow: none;
+        	display: flex;
+        	flex-direction: column-reverse;
+        	align-items: center;
+     }
+
+	    .tab-text {
+		       display: block;
+	      	  font-size: 10px;
+	      	  margin-top: 5px;
+	    }
+
+	    .tab-emoji {
+	      	  display: block;
+	      	  margin-left: 0;
+	      	  font-size: 16px;
+   	  } 
 }
+
   /* -----------------------------
    Tambahan Style Kebutuhan Tab1
    ----------------------------- */
