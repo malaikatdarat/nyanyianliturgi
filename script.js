@@ -1022,14 +1022,12 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('DOMContentLoaded', () => {
   const allowedLabels = ['Pembuka', 'Kyrie', 'Gloria', 'Mazmur Tanggapan', 'Persembahan', 'Credo', 'Sanctus', 'Pater Noster', 'Agnus Dei', 'Komuni', 'Syukur', 'Penutup'];
 
-  // Fungsi untuk mengurutkan elemen berdasarkan index di allowedLabels
   const sortByAllowedLabels = (a, b) => {
     const labelA = a.getAttribute('allowed-labels');
     const labelB = b.getAttribute('allowed-labels');
     return allowedLabels.indexOf(labelA) - allowedLabels.indexOf(labelB);
   };
 
-  // Untuk overflowable-item
   const overflowContainer = document.querySelector('.overflowable-contents');
   if (overflowContainer) {
     const items = Array.from(overflowContainer.querySelectorAll('.overflowable-item'));
@@ -1044,18 +1042,15 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Filter hanya item dengan allowed-labels dan urutkan
     const sortedItems = items
       .filter(item => item.hasAttribute('allowed-labels'))
       .sort(sortByAllowedLabels);
     
-    // Tambahkan kembali ke container sesuai urutan
     sortedItems.forEach(item => {
       overflowContainer.appendChild(item);
     });
   }
 
-  // Untuk byline post-labels
   const labelContainer = document.querySelector('.byline.post-labels');
   if (labelContainer) {
     const links = Array.from(labelContainer.querySelectorAll('a[rel="tag"]'));
@@ -1067,21 +1062,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Filter hanya link dengan allowed-labels dan urutkan
     const sortedLinks = links
       .filter(link => link.hasAttribute('allowed-labels'))
       .sort(sortByAllowedLabels);
     
-    // Hapus semua link yang ada
     links.forEach(link => link.remove());
     
-    // Tambahkan kembali link sesuai urutan
     sortedLinks.forEach((link, index) => {
       labelContainer.appendChild(link);
-      // Tambahkan koma kecuali untuk link terakhir
-      if (index < sortedLinks.length - 1) {
-        labelContainer.appendChild(document.createTextNode(', '));
-      }
     });
   }
 });
