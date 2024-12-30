@@ -200,10 +200,10 @@
 	
     .baris1, baris2 {
         display: block;
-	line-height: 1em;
     }
 	
     .baris1 {
+	line-height: 1em;
         margin: 0;
     }
 	
