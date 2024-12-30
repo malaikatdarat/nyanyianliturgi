@@ -183,6 +183,7 @@
 p {
     margin-bottom: 1em;
 }
+
 li {
     margin-bottom: 1.5em;
 }
@@ -193,7 +194,7 @@ li {
 
 @media (max-width: 768px) {
     .post-body {
-	line-height: 1.5;
+	       line-height: 1.5em;
     }
     
     p {
