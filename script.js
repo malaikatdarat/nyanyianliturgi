@@ -318,7 +318,7 @@ function showFullImage(clickedImageSrc) {
         lastMouseY = e.clientY;
 
         // Desktop hanya panning vertikal
-        offsetY -= 2 * deltaY;
+        offsetY -= 3 * deltaY;
         offsetX = 0;
 
         applyTransform();
