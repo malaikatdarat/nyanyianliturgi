@@ -174,7 +174,10 @@
         margin-bottom: 1.5em; /* Jarak antar item daftar */
     }
 	
-  @media (max-width: 768px) {
+@media (max-width: 768px) {
+    p, li {
+        font-size: 12px;
+    }
     .baris1, .baris2 {
         display: block;
     }
