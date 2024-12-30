@@ -195,18 +195,18 @@ li {
     p {
         font-size: 12px;
         margin-bottom: 0.25em;
-	line-heigt: 1em;
+	line-height: 1em;
     }
     
     li {
         font-size: 12px;
         margin-bottom: 0.5em;
-	line-heigt: 1em;
+	line-height: 1em;
     }
     
     .baris1, .baris2 {
         display: block;
-	line-heigt: 1em;
+	line-height: 1em;
     }
     
     .baris1 {
