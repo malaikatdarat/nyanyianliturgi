@@ -67,15 +67,15 @@
     z-index: 1001;
 }
 .nav-button:hover {
-    background: rgba(255,255,255,0.4);
+    background: rgba(0, 0, 0, 0.7);
 }
 .prev { left: 20px; }
 .next { right: 20px; }
 
 .close-button {
     position: fixed;
-    top: 15px;
-    right: 15px;
+    top: 20px; 
+    right: 20px;
     background: rgba(255,255,255,0.2);
     color: white;
     border: none;
@@ -92,11 +92,6 @@
 
 .close-button:hover {
     background: rgba(0, 0, 0, 0.7);
-}
-
-@media (max-width: 768px) {
-    .close-button {
-    }
 }
 
 /* Hilangkan tombol & info saat zoom */
@@ -160,7 +155,7 @@
 @media (max-width: 768px) {
     .tooltip {
 	top: 15px;
-        left: 15px;
+        left: 10px;
         width: 90%;
         text-align: left;
     }
@@ -170,6 +165,11 @@
         bottom: 20px;
         transform: none;
     }
+    .close-button {
+	top: 15px;
+        right: 10px;  
+    }
+	
     .image-counter {
         top: auto;
         bottom: 25px;
