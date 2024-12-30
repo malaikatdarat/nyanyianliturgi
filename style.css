@@ -188,37 +188,39 @@ li {
 }
 
 .syair-line {
-    margin-bottom: 0.5em; /* Menambahkan jarak antar baris syair */
+    margin-bottom: 0.5em;
 }
 
 @media (max-width: 768px) {
     p {
         font-size: 12px;
         margin-bottom: 0.25em;
+	line-heigt: 1em;
     }
     
     li {
         font-size: 12px;
         margin-bottom: 0.5em;
+	line-heigt: 1em;
     }
     
     .baris1, .baris2 {
         display: block;
+	line-heigt: 1em;
     }
     
     .baris1 {
-        margin-bottom: 0.25em; /* Spasi kecil setelah baris1 */
+        margin-bottom: 0.25em;
     }
     
     .baris2 {
-        margin-bottom: 1em; /* Spasi seperti akhir paragraf setelah baris2 */
+        margin-bottom: 1em;
     }
     
     .batas {
         display: none;
     }
     
-    /* Tidak perlu lagi menyembunyikan <br> karena sudah dihapus */
 }
   
 /* Style ini dipakai pada tab3 */
