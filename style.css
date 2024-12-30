@@ -192,15 +192,21 @@
         font-size: 12px;
         margin-bottom: 0.25em;
     }
+	
     li {
         font-size: 12px;
         margin-bottom: 0.5em;
     }
+	
     .baris1, baris2 {
         display: block;
-        margin: 0;
 	line-height: 1em;
     }
+	
+    .baris1 {
+        margin: 0;
+    }
+	
     .batas {
       display: none;
     }
