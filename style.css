@@ -192,21 +192,22 @@ li {
 }
 
 @media (max-width: 768px) {
+    page-body {
+	line-height: 1.2;
+    }
+    
     p {
         font-size: 12px;
         margin-bottom: 0.25em;
-	line-height: 1em;
     }
     
     li {
         font-size: 12px;
         margin-bottom: 0.5em;
-	line-height: 1em;
     }
     
     .baris1, .baris2 {
         display: block;
-	line-height: 1em;
     }
     
     .baris1 {
