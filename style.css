@@ -180,36 +180,45 @@
 }
 
 /* Style ini dipakai pada tab2 */
-    p {
-        margin-bottom: 1em;
-    }
-    li {
-        margin-bottom: 1.5em;
-    }
-	
+p {
+    margin-bottom: 1em;
+}
+li {
+    margin-bottom: 1.5em;
+}
+
+.syair-line {
+    margin-bottom: 0.5em; /* Menambahkan jarak antar baris syair */
+}
+
 @media (max-width: 768px) {
     p {
         font-size: 12px;
         margin-bottom: 0.25em;
     }
-	
+    
     li {
         font-size: 12px;
         margin-bottom: 0.5em;
     }
-	
+    
     .baris1, .baris2 {
         display: block;
     }
-	
+    
     .baris1 {
+        margin-bottom: 0.25em; /* Spasi kecil setelah baris1 */
     }
+    
     .baris2 {
+        margin-bottom: 1em; /* Spasi seperti akhir paragraf setelah baris2 */
     }
-	
+    
     .batas {
-      display: none;
+        display: none;
     }
+    
+    /* Tidak perlu lagi menyembunyikan <br> karena sudah dihapus */
 }
   
 /* Style ini dipakai pada tab3 */
