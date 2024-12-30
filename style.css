@@ -168,15 +168,20 @@
 
 /* Style ini dipakai pada tab2 */
     p {
-        margin-bottom: 1em; /* Jarak antar paragraf */
+        margin-bottom: 1em;
     }
     li {
-        margin-bottom: 1.5em; /* Jarak antar item daftar */
+        margin-bottom: 1.5em;
     }
 	
 @media (max-width: 768px) {
-    p, li {
+    p {
         font-size: 12px;
+        margin-bottom: 0.5em;
+    }
+    li {
+        font-size: 12px;
+        margin-bottom: 0.75em;
     }
     .baris1, .baris2 {
         display: block;
