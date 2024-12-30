@@ -289,28 +289,22 @@ ol {
 }
 
   /* Style ini dipakai pada tab4 */
-  
-  #download-section {
+
+#download-section {
     padding: 20px;
     border: 1px solid #ddd;
     border-radius: 8px;
     background-color: transparent;
-  }
-
-@media (max-width: 768px) {
-	#download-section {
-		border: none;
-	}
 }
 
-  #download-section h2 {
+#download-section h2 {
     text-align: center;
     font-size: 1.5em;
     color: #333;
-  }
+}
 
 .unduh-description {
-	text-align: center;
+    text-align: center;
 }
 
 .download-grid {
@@ -322,6 +316,7 @@ ol {
 .download-row {
     display: flex;
     justify-content: space-evenly;
+    flex-wrap: wrap;
     width: 100%;
 }
 
@@ -333,67 +328,50 @@ ol {
     width: 200px;
 }
 
-@media (max-width: 768px) {
-    .download-row {
-        flex-direction: column;
-        align-items: center;
-        gap: 20px;
-    }
-    
-    .download-item {
-        width: 100%;
-        max-width: 200px;
-    }
-}
-
-  .download-item {
-    text-decoration: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 200px;
-  }
-
-  .download-item img {
+.download-item img {
     border-radius: 8px;
     margin-bottom: 10px;
-  }
+}
 
-  .download-label {
+.download-label {
     font-size: 0.9em;
-	font-weight: bold;
+    font-weight: bold;
     color: #333;
-  }
+}
 
 .unduh-preview {
-  width: 200px;
-  height: auto;
-  overflow: hidden;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 200px;
+    height: auto;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .unduh-preview picture,
 .unduh-preview img {
-  width: 100%;
-  height: auto;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  display: block;
-  transition: transform 0.3s ease;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    display: block;
+    transition: transform 0.3s ease;
 }
 
 .unduh-preview:hover {
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
-  .unduh-preview picture {
-    max-width: 100%;
-    display: block;
-  }
-  
 @media (max-width: 768px) {
+    #download-section {
+        border: none;
+    }
+    
+    .download-row {
+        gap: 10px;
+    }
+    
+    .download-item,
     .unduh-preview {
-        width: 200px;
+        width: 150px;
     }
 }
 
@@ -595,10 +573,12 @@ ol {
   background-color: #f9f9f9;
   box-shadow: 0 1px 0 #f4f4f4 inset;
 }
-  
+  
+
 .tab-wrap {
     flex-direction: row;
-}
+}
+
 
 @media (max-width: 768px) {
     .tab-wrap {
@@ -637,7 +617,8 @@ ol {
 	      	  display: block;
 	      	  margin-left: 0;
 	      	  font-size: 16px;
-   	  } 
+   	  }
+ 
 }
 
   /* -----------------------------
