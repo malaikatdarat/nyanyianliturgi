@@ -368,6 +368,10 @@ ol {
 }
 
 @media (max-width: 768px) {
+    .tab__content {
+    padding: 0;
+    }
+	
     #download-section {
         border: none;
 	padding: 10px;
