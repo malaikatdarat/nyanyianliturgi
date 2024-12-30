@@ -196,13 +196,10 @@
         font-size: 12px;
         margin-bottom: 0.5em;
     }
-    .baris1 {
+    .baris1, baris2 {
         display: block;
-        margin-bottom: 0em;
-    }
-    .baris2 {
-        display: block;
-        margin-bottom: 0.5em;
+        margin: 0;
+	line-height: 1em;
     }
     .batas {
       display: none;
