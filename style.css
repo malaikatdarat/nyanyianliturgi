@@ -318,6 +318,7 @@ ol {
     justify-content: space-evenly;
     flex-wrap: wrap;
     width: 100%;
+    gap: 20px;
 }
 
 .download-item {
@@ -331,6 +332,8 @@ ol {
 .download-item img {
     border-radius: 8px;
     margin-bottom: 10px;
+    max-width: 100%;
+    height: auto;
 }
 
 .download-label {
@@ -360,26 +363,29 @@ ol {
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
 @media (max-width: 768px) {
     #download-section {
         border: none;
+	padding: 10px;
     }
 	
     #download-section h2 {
-        font-size: 1em;
+        font-size: 1.2em;
     }
 
     .download-label {
-        font-size: 1em;
+        font-size: 0.95em;
     }
     
     .download-row {
         flex-direction: row;
         flex-wrap: wrap;
-        justify-content: center;
+        justify-content: space-evenly;
         gap: 10px;
-        display: grid;
-        grid-template-columns: repeat(auto-fit, 150px);
     }
     
     .download-item,
