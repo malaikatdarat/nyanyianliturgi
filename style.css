@@ -415,6 +415,7 @@ ol {
         margin: 20px auto;
         width: 100%;
     }
+
     .infobox {
         border: 1px solid #a2a9b1;
         border-collapse: collapse;
@@ -423,6 +424,7 @@ ol {
         font-size: 14px;
         margin: 0 auto;
     }
+
     .infobox th {
         background-color: #f8f9fa;
         font-weight: bold;
@@ -431,11 +433,13 @@ ol {
         border: 1px solid #a2a9b1;
         width: 35%;
     }
+
     .infobox td {
         padding: 8px;
         border: 1px solid #a2a9b1;
         width: 65%;
     }
+
     .category {
     background-color: #f2f2f2;
     font-weight: bold;
@@ -443,15 +447,18 @@ ol {
     padding: 8px;
     border: 1px solid #a2a9b1;
     grid-column: 1 / -1;
-}
+    }
+
     @media (max-width: 768px) {
-       .infobox-container {
-            max-width: 90%;
+        .infobox-intro {
+	           max-width: 95%
         }
+
         .infobox {
             max-width: 95%;
             font-size: 13px;
         }
+
         .infobox th, .infobox td {
             padding: 6px;
         }
