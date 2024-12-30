@@ -368,6 +368,10 @@ ol {
     #download-section h2 {
         font-size: 1em;
     }
+
+    .download-label {
+        font-size: 0.4em;
+    }
     
     .download-row {
         flex-direction: row;
