@@ -386,10 +386,6 @@ ol {
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
-*, *::before, *::after {
-    box-sizing: border-box;
-}
-
 @media (max-width: 768px) {
   .tab__content:nth-of-type(4) {
     padding: 0;
