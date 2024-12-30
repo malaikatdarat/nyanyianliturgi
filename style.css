@@ -190,11 +190,11 @@
 @media (max-width: 768px) {
     p {
         font-size: 12px;
-        margin-bottom: 0.5em;
+        margin-bottom: 0.25em;
     }
     li {
         font-size: 12px;
-        margin-bottom: 0.75em;
+        margin-bottom: 0.5em;
     }
     .baris1, .baris2 {
         display: block;
