@@ -74,19 +74,13 @@ function showFullImage(clickedImageSrc) {
     let tapStartX = 0;
     let tapStartY = 0;
     let tapStartTime = 0;
-    const TAP_THRESHOLD = 10; // pixel threshold untuk membedakan tap vs swipe
-    const TAP_DURATION = 200; // ms threshold untuk membedakan tap vs long press
+    const TAP_THRESHOLD = 10;
+    const TAP_DURATION = 200;
     
-    // --------------------------------------
-    // DETEKSI PERANGKAT MOBILE vs DESKTOP
-    // --------------------------------------
     function isMobile() {
         return window.matchMedia('(max-width: 768px)').matches;
     }
 
-    // --------------------------------------
-    // LOAD LOGIC
-    // --------------------------------------
     img.onload = function() {
         isImageLoaded = true;
         clearTimeout(loaderTimeout);
@@ -137,21 +131,15 @@ function showFullImage(clickedImageSrc) {
         }
     }
 
-    // =====================================================
-    // ZOOM + PAN (Desktop & Mobile)
-    // =====================================================
     let isZoomed = false;
     let zoomScale = isMobile() ? 1.5 : 2.5;  // Default zoom 150% untuk mobile
     const MOBILE_PAN_MULTIPLIER = 1.5;  // Pengali untuk panning di mobile
 
-    // Untuk pinch zoom
     let lastPinchDistance = null;
 
-    // Posisi pan saat ini (X dan Y)
     let offsetX = 0;
     let offsetY = 0;
 
-    // Untuk mendeteksi double-tap di mobile
     let lastTapTime = 0;
     let isDoubleTap = false;
     const doubleTapThreshold = 300; // ms
@@ -170,7 +158,6 @@ function showFullImage(clickedImageSrc) {
         const zoomedHeight = img.naturalHeight * zoomScale;
 
         if (isMobile()) {
-            // Mobile: offset bebas sesuai ukuran zoom
             const maxOffsetX = Math.min(
                 Math.max(0, (zoomedWidth - containerRect.width) / 2),
                 img.naturalWidth * zoomScale / 2
@@ -181,9 +168,6 @@ function showFullImage(clickedImageSrc) {
             );
             return { maxOffsetX, maxOffsetY };
         } else {
-            // Desktop: batasi gerakan vertical
-            // Offset X selalu 0 (tidak bisa geser horizontal)
-            // Offset Y: maksimal setengah ke atas, satu kali height ke bawah
             const maxOffsetY = img.naturalHeight;
             return { 
                 maxOffsetX: 0,
@@ -218,12 +202,9 @@ function showFullImage(clickedImageSrc) {
         isZoomed = false;
         overlay.classList.remove('zoomed-mode');
         img.style.transform = 'none';
-        zoomScale = isMobile() ? 1.5 : 2.5; // Reset zoom scale ke default
+        zoomScale = isMobile() ? 1.5 : 2.5;
     }
 
-    // --------------------------------------
-    // HANDLE PINCH ZOOM (Mobile)
-    // --------------------------------------
     function handlePinchZoom(e) {
         if (!isMobile()) return;
         
@@ -251,9 +232,6 @@ function showFullImage(clickedImageSrc) {
         }
     }
 
-    // --------------------------------------
-    // EVENT HANDLER ZOOM
-    // --------------------------------------
     function handleImageClickDesktop(e) {
         e.stopPropagation();
         if (!isZoomed) {
@@ -263,16 +241,10 @@ function showFullImage(clickedImageSrc) {
         }
     }
 
-    // =====================================================
-    // SWIPE LOGIC (Mobile)
-    // =====================================================
     let startX = 0;
     let startY = 0;
     const swipeThreshold = 50;
 
-    // --------------------------------------
-    // DETEKSI TAP / DOUBLE TAP (Mobile)
-    // --------------------------------------
     function handleImageTouchStart(e) {
     if (e.touches.length === 1) {
         const touch = e.touches[0];
@@ -300,9 +272,6 @@ function showFullImage(clickedImageSrc) {
     }
 }
 
-    // --------------------------------------
-    // PAN DENGAN MOUSE (Desktop)
-    // --------------------------------------
     let lastMouseX = null;
     let lastMouseY = null;
 
@@ -321,7 +290,6 @@ function showFullImage(clickedImageSrc) {
         lastMouseX = e.clientX;
         lastMouseY = e.clientY;
 
-        // Desktop hanya panning vertikal
         offsetY -= 3 * deltaY;
         offsetX = 0;
 
@@ -333,9 +301,6 @@ function showFullImage(clickedImageSrc) {
         lastMouseY = null;
     }
 
-    // --------------------------------------
-    // PAN & SWIPE DENGAN TOUCH (Mobile)
-    // --------------------------------------
     let touchLastX = null;
     let touchLastY = null;
 
@@ -380,20 +345,17 @@ function showFullImage(clickedImageSrc) {
         const diffY = endY - tapStartY;
         const tapDuration = new Date().getTime() - tapStartTime;
 
-        // Hanya proses sebagai tap jika gerakan minimal dan durasi singkat
         const isTap = Math.abs(diffX) < TAP_THRESHOLD && 
                      Math.abs(diffY) < TAP_THRESHOLD && 
                      tapDuration < TAP_DURATION;
 
         if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > swipeThreshold) {
-            // Handle swipe horizontal
             if (diffX > 0) {
                 showImage(currentIndex - 1);
             } else {
                 showImage(currentIndex + 1);
             }
         } else if (!isDoubleTap && isTap) {
-            // Handle single tap untuk navigasi
             const containerRect = imgContainer.getBoundingClientRect();
             const tapX = endX - containerRect.left;
             const containerWidth = containerRect.width;
@@ -407,9 +369,6 @@ function showFullImage(clickedImageSrc) {
     }
 }
 
-    // =====================================================
-    // Navigasi Kiri-Kanan (dengan tombol & keyboard)
-    // =====================================================
     prevButton.addEventListener('click', (e) => {
         if (!isZoomed) {
             e.stopPropagation();
@@ -429,9 +388,6 @@ function showFullImage(clickedImageSrc) {
         cleanup();
     });
 
-    // -----------------------------------------------------
-    // Bersihkan (close) overlay
-    // -----------------------------------------------------
     function cleanup() {
         clearTimeout(loaderTimeout);
         document.removeEventListener('keydown', handleKeydown);
@@ -460,7 +416,6 @@ function showFullImage(clickedImageSrc) {
 
     document.addEventListener('keydown', handleKeydown);
 
-    // Masukkan elemen-elemen ke DOM
     imgContainer.appendChild(loader);
     imgContainer.appendChild(img);
     overlay.appendChild(counter);
@@ -470,22 +425,18 @@ function showFullImage(clickedImageSrc) {
     overlay.appendChild(nextButton);
     overlay.appendChild(closeButton);
     document.body.appendChild(overlay);
-    
-    // Klik di luar gambar => tutup
+
 overlay.addEventListener('click', (e) => {
     if (!isMobile() && (e.target === overlay || e.target === imgContainer)) {
         cleanup();
     }
 });
 
-    // EVENT LISTENERS ZOOM/PAN/SWIPE (sesuai device)
     if (isMobile()) {
-        // Mobile
         img.addEventListener('touchstart', handleImageTouchStart, { passive: true });
         imgContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
         imgContainer.addEventListener('touchend', handleTouchEnd);
         
-        // Tambahan untuk pinch zoom
         imgContainer.addEventListener('touchstart', (e) => {
             if (e.touches.length === 2) {
                 e.preventDefault();
@@ -495,7 +446,6 @@ overlay.addEventListener('click', (e) => {
         
         imgContainer.addEventListener('touchmove', handlePinchZoom, { passive: false });
     } else {
-        // Desktop
         img.addEventListener('click', handleImageClickDesktop);
         document.addEventListener('mousemove', handleMouseMove);
         document.addEventListener('mouseup', resetLastMousePosition);
@@ -857,7 +807,9 @@ function generateVideoHTML(title, videoUrl, embedUrl, channelName, channelUrl) {
     <div class="video-wrapper">
         <iframe class="videoiframe"
             src="${embedUrl}"
-            allowfullscreen>
+	    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" 
+            playsinline
+	    allowfullscreen>
         </iframe>
     </div>`;
 }
