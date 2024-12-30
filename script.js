@@ -850,9 +850,9 @@ document.addEventListener('DOMContentLoaded', function() {
 function generateVideoHTML(title, videoUrl, embedUrl, channelName, channelUrl) {
     return `
     <p class="judulvideo">
-        <a target="_blank" rel="noopener noreferrer" href="${videoUrl}" title="Tonton di YouTube">🎬 ${title}</a>
+        <span class="baris1"><a target="_blank" rel="noopener noreferrer" href="${videoUrl}" title="Tonton di YouTube">🎬 ${title}</a></span>
         <span>|</span>
-        <a target="_blank" rel="noopener noreferrer" href="${channelUrl}" title="Buka kanal YouTube">📺 ${channelName}</a>
+        <span class="baris2"><a target="_blank" rel="noopener noreferrer" href="${channelUrl}" title="Buka kanal YouTube">📺 ${channelName}</a></span>
     </p>
     <div class="video-wrapper">
         <iframe class="videoiframe"
@@ -865,9 +865,9 @@ function generateVideoHTML(title, videoUrl, embedUrl, channelName, channelUrl) {
 function generateAudioHTML(title, audioTrackUrl, channelName, channelUrl, audioEmbedUrl) {
     return `
     <p class="judulaudio">
-        <a target="_blank" rel="noopener noreferrer" href="${audioTrackUrl}" title="Dengarkan di SoundCloud">🎶 ${title}</a>
+        <span class="baris1"><a target="_blank" rel="noopener noreferrer" href="${audioTrackUrl}" title="Dengarkan di SoundCloud">🎶 ${title}</a></span>
         <span>|</span>
-        <a target="_blank" rel="noopener noreferrer" href="${channelUrl}" title="Buka kanal SoundCloud">📻 ${channelName}</a>
+        <span class="baris2"><a target="_blank" rel="noopener noreferrer" href="${channelUrl}" title="Buka kanal SoundCloud">📻 ${channelName}</a></span>
     </p>
     <div class="audio-wrapper">
         <iframe class="audioiframe"
