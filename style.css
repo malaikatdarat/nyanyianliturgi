@@ -311,11 +311,10 @@ ol {
     }
 }
 
-  /* Style ini dipakai pada tab4 */
-
+/* Style ini dipakai pada tab4 */
 #download-section {
-    padding: 20px 50px 20px 50px;
-    margin: 20px 20px 20px 20px;
+    padding: 20px 50px;
+    margin: 20px;
     border: 1px solid #ddd;
     border-radius: 8px;
     background-color: transparent;
@@ -333,15 +332,15 @@ ol {
 
 .download-grid {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 20px;
+    align-items: stretch;
 }
 
 .download-row {
     display: flex;
-    justify-content: space-evenly;
-    flex-wrap: wrap;
-    width: 100%;
+    flex-direction: column;
+    width: 60%;
     gap: 20px;
 }
 
@@ -350,7 +349,9 @@ ol {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 200px;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
 }
 
 .download-item img {
@@ -358,19 +359,24 @@ ol {
     margin-bottom: 10px;
     max-width: 100%;
     height: auto;
+    object-fit: cover;
 }
 
 .download-label {
     font-size: 0.9em;
     font-weight: bold;
     color: #333;
+    text-align: center;
 }
 
 .unduh-preview {
-    width: 200px;
+    width: 40%;
     height: auto;
     overflow: hidden;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .unduh-preview picture,
@@ -392,15 +398,16 @@ ol {
 }
 
 @media (max-width: 768px) {
-  .tab__content:nth-of-type(4) {
-    padding: 0;
-  }
-	
+    .download-grid {
+        flex-direction: column;
+        align-items: center;
+    }
+
     #download-section {
         border: none;
-	padding: 0;
+        padding: 0;
     }
-	
+
     #download-section h2 {
         font-size: 1.2em;
     }
@@ -408,18 +415,23 @@ ol {
     .download-label {
         font-size: 0.95em;
     }
-    
-    .download-row {
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: space-evenly;
-        gap: 10px;
-    }
-    
-    .download-item,
+
     .unduh-preview {
         width: 40%;
-	height: auto;
+        margin-bottom: 20px;
+    }
+
+    .download-row {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .download-item {
+        width: 45%;
+        height: auto;
     }
 }
 
