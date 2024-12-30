@@ -429,24 +429,27 @@ ol {
         text-align: left;
         padding: 8px;
         border: 1px solid #a2a9b1;
-        width: 35%; /* Sedikit disesuaikan */
+        width: 35%;
     }
     .infobox td {
         padding: 8px;
         border: 1px solid #a2a9b1;
-        width: 65%; /* Disesuaikan */
+        width: 65%;
     }
     .category {
     background-color: #f2f2f2;
     font-weight: bold;
-    text-align: center !important; /* Pastikan ini ada */
+    text-align: center !important;
     padding: 8px;
     border: 1px solid #a2a9b1;
     grid-column: 1 / -1;
 }
     @media (max-width: 768px) {
+       .infobox-container {
+            max-width: 90%;
+        }
         .infobox {
-            max-width: 95%; /* Lebih responsif di layar kecil */
+            max-width: 95%;
             font-size: 13px;
         }
         .infobox th, .infobox td {
