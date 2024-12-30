@@ -104,6 +104,10 @@ function showFullImage(clickedImageSrc) {
     nextButton.innerHTML = '&#10095;';
     nextButton.classList.add('nav-button', 'next');
 
+    const closeButton = document.createElement('button');
+    closeButton.innerHTML = '&#10005;';
+    closeButton.classList.add('close-button');
+
     function updateCounter() {
         counter.textContent = `${currentIndex + 1}/${imageList.length}`;
     }
@@ -420,6 +424,11 @@ function showFullImage(clickedImageSrc) {
         }
     });
 
+    closeButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        cleanup();
+    });
+
     // -----------------------------------------------------
     // Bersihkan (close) overlay
     // -----------------------------------------------------
@@ -459,6 +468,7 @@ function showFullImage(clickedImageSrc) {
     overlay.appendChild(prevButton);
     overlay.appendChild(imgContainer);
     overlay.appendChild(nextButton);
+    overlay.appendChild(closeButton);
     document.body.appendChild(overlay);
     
     // Klik di luar gambar => tutup
