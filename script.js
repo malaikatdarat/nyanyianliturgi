@@ -1022,19 +1022,68 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('DOMContentLoaded', () => {
   const allowedLabels = ['Pembuka', 'Kyrie', 'Gloria', 'Mazmur Tanggapan', 'Persembahan', 'Credo', 'Sanctus', 'Pater Noster', 'Agnus Dei', 'Komuni', 'Syukur', 'Penutup'];
 
-  document.querySelectorAll('.overflowable-item a[rel="tag"]').forEach(link => {
-    const linkText = link.textContent.trim();
-    if (allowedLabels.includes(linkText)) {
-      link.closest('.overflowable-item').setAttribute('allowed-labels', linkText);
-    }
-  });
+  // Fungsi untuk mengurutkan elemen berdasarkan index di allowedLabels
+  const sortByAllowedLabels = (a, b) => {
+    const labelA = a.getAttribute('allowed-labels');
+    const labelB = b.getAttribute('allowed-labels');
+    return allowedLabels.indexOf(labelA) - allowedLabels.indexOf(labelB);
+  };
 
-  document.querySelectorAll('.byline.post-labels a[rel="tag"]').forEach(link => {
-    const linkText = link.textContent.trim();
-    if (allowedLabels.includes(linkText)) {
-      link.setAttribute('allowed-labels', linkText);
-    }
-  });
+  // Untuk overflowable-item
+  const overflowContainer = document.querySelector('.overflowable-contents');
+  if (overflowContainer) {
+    const items = Array.from(overflowContainer.querySelectorAll('.overflowable-item'));
+    
+    items.forEach(item => {
+      const link = item.querySelector('a[rel="tag"]');
+      if (link) {
+        const linkText = link.textContent.trim();
+        if (allowedLabels.includes(linkText)) {
+          item.setAttribute('allowed-labels', linkText);
+        }
+      }
+    });
+
+    // Filter hanya item dengan allowed-labels dan urutkan
+    const sortedItems = items
+      .filter(item => item.hasAttribute('allowed-labels'))
+      .sort(sortByAllowedLabels);
+    
+    // Tambahkan kembali ke container sesuai urutan
+    sortedItems.forEach(item => {
+      overflowContainer.appendChild(item);
+    });
+  }
+
+  // Untuk byline post-labels
+  const labelContainer = document.querySelector('.byline.post-labels');
+  if (labelContainer) {
+    const links = Array.from(labelContainer.querySelectorAll('a[rel="tag"]'));
+    
+    links.forEach(link => {
+      const linkText = link.textContent.trim();
+      if (allowedLabels.includes(linkText)) {
+        link.setAttribute('allowed-labels', linkText);
+      }
+    });
+
+    // Filter hanya link dengan allowed-labels dan urutkan
+    const sortedLinks = links
+      .filter(link => link.hasAttribute('allowed-labels'))
+      .sort(sortByAllowedLabels);
+    
+    // Hapus semua link yang ada
+    links.forEach(link => link.remove());
+    
+    // Tambahkan kembali link sesuai urutan
+    sortedLinks.forEach((link, index) => {
+      labelContainer.appendChild(link);
+      // Tambahkan koma kecuali untuk link terakhir
+      if (index < sortedLinks.length - 1) {
+        labelContainer.appendChild(document.createTextNode(', '));
+      }
+    });
+  }
 });
 
 	/*
