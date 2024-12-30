@@ -1020,7 +1020,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Label
 document.addEventListener('DOMContentLoaded', () => {
-  const allowedLabels = ['Pembuka', 'Penutup', 'Persembahan', 'Komuni'];
+  const allowedLabels = ['Pembuka', 'Kyrie', 'Gloria', 'Mazmur Tanggapan', 'Persembahan', 'Credo', 'Sanctus', 'Pater Noster', 'Agnus Dei', 'Komuni', 'Syukur', 'Penutup'];
 
   document.querySelectorAll('.overflowable-item a[rel="tag"]').forEach(link => {
     const linkText = link.textContent.trim();
