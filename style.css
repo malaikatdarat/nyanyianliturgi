@@ -364,6 +364,10 @@ ol {
     #download-section {
         border: none;
     }
+	
+    #download-section h2 {
+        font-size: 1em;
+    }
     
     .download-row {
         flex-direction: row;
@@ -482,7 +486,6 @@ ol {
   background-color: transparent;
   position: relative;
   width: 100%;
-  /* z-index: -1; */
   display: none;
   left: 0;
   -webkit-transform: translateY(-3px);
