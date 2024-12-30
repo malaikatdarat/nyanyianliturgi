@@ -159,8 +159,8 @@
 ------------------------------------- */
 @media (max-width: 768px) {
     .tooltip {
-        top: 10px; 
-        left: 5%;
+	top: 15px;
+        left: 15px;
         width: 90%;
         text-align: left;
     }
