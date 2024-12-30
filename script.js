@@ -446,6 +446,11 @@ overlay.addEventListener('click', (e) => {
         
         imgContainer.addEventListener('touchmove', handlePinchZoom, { passive: false });
     } else {
+
+    	img.addEventListener('touchstart', handleImageTouchStart, { passive: true });
+    	imgContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
+    	imgContainer.addEventListener('touchend', handleTouchEnd);
+	    
         img.addEventListener('click', handleImageClickDesktop);
         document.addEventListener('mousemove', handleMouseMove);
         document.addEventListener('mouseup', resetLastMousePosition);
