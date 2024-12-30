@@ -370,7 +370,7 @@ ol {
     }
 
     .download-label {
-        font-size: 0.4em;
+        font-size: 0.7em;
     }
     
     .download-row {
@@ -379,12 +379,12 @@ ol {
         justify-content: center;
         gap: 10px;
         display: grid;
-        grid-template-columns: repeat(auto-fit, 100px);
+        grid-template-columns: repeat(auto-fit, 150px);
     }
     
     .download-item,
     .unduh-preview {
-        width: 100px;
+        width: 150px;
     }
 }
 
