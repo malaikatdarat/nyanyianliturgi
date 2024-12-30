@@ -800,8 +800,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function generateVideoHTML(title, videoUrl, embedUrl, channelName, channelUrl) {
     return `
     <p class="judulvideo">
-        <span class="baris1"><a target="_blank" rel="noopener noreferrer" href="${videoUrl}" title="Tonton di YouTube">🎬 ${title}</a></span>
-        <span>|</span>
+        <span class="baris1"><a target="_blank" rel="noopener noreferrer" href="${videoUrl}" title="Tonton di YouTube">🎬 ${title} | </a></span>
         <span class="baris2"><a target="_blank" rel="noopener noreferrer" href="${channelUrl}" title="Buka kanal YouTube">📺 ${channelName}</a></span>
     </p>
     <div class="video-wrapper">
@@ -817,8 +816,7 @@ function generateVideoHTML(title, videoUrl, embedUrl, channelName, channelUrl) {
 function generateAudioHTML(title, audioTrackUrl, channelName, channelUrl, audioEmbedUrl) {
     return `
     <p class="judulaudio">
-        <span class="baris1"><a target="_blank" rel="noopener noreferrer" href="${audioTrackUrl}" title="Dengarkan di SoundCloud">🎶 ${title}</a></span>
-        <span>|</span>
+        <span class="baris1"><a target="_blank" rel="noopener noreferrer" href="${audioTrackUrl}" title="Dengarkan di SoundCloud">🎶 ${title} | </a></span>
         <span class="baris2"><a target="_blank" rel="noopener noreferrer" href="${channelUrl}" title="Buka kanal SoundCloud">📻 ${channelName}</a></span>
     </p>
     <div class="audio-wrapper">
