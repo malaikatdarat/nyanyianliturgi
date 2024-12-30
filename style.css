@@ -375,12 +375,12 @@ ol {
         justify-content: center;
         gap: 10px;
         display: grid;
-        grid-template-columns: repeat(auto-fit, 150px);
+        grid-template-columns: repeat(auto-fit, 100px);
     }
     
     .download-item,
     .unduh-preview {
-        width: 150px;
+        width: 100px;
     }
 }
 
@@ -443,12 +443,12 @@ ol {
 
 @media (max-width: 768px) {
     .infobox-intro {
-	      max-width: 100%
+	max-width: 100%
     }
 
     .infobox {
         max-width: 100%;
-        font-size: 13px;
+        font-size: 12px;
     }
 
     .infobox th, .infobox td {
@@ -469,7 +469,7 @@ ol {
   -webkit-flex-wrap: wrap;
   -ms-flex-wrap: wrap;
   flex-wrap: wrap;
-    z-index: 0;
+  z-index: 0;
   position: relative;
   list-style: none;
   background-color: #fff;
@@ -493,7 +493,7 @@ ol {
   border-radius: 6px;
 }
   
-  .tab:checked ~ .tab__content {
+.tab:checked ~ .tab__content {
   display: none;
 }
   
