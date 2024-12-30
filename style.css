@@ -389,11 +389,12 @@ li {
   
 /* Style ini dipakai pada tab5 */
   
-  .infobox-intro {
-  	text-align: justify;
-  	margin: 20px auto;
-        width: 100%;
-	max-width: 700px;
+.infobox-intro {
+    text-align: justify;
+    line-height: 2em;
+    margin: 20px auto;
+    width: 100%;
+	   max-width: 700px;
   }
   
 /* Style CSS untuk Infobox */
