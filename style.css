@@ -199,6 +199,9 @@
     .baris1, .baris2 {
         display: block;
     }
+    .batas {
+      display: none;
+    }
 }
   
 /* Style ini dipakai pada tab3 */
