@@ -658,9 +658,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         if (currentOl && listBuffer.length > 0) {
             const li = document.createElement('li');
-            const p = document.createElement('p');
-            p.innerHTML = listBuffer.join('<br>');
-            li.appendChild(p);
+            li.innerHTML = listBuffer.join(''); // Tidak lagi menggunakan <br>
             currentOl.appendChild(li);
             listBuffer = [];
         }
@@ -676,9 +674,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (!line && currentMode === 'list' && listBuffer.length > 0) {
             const li = document.createElement('li');
-            const p = document.createElement('p');
-            p.innerHTML = listBuffer.join('<br>');
-            li.appendChild(p);
+            li.innerHTML = listBuffer.join('');
             currentOl.appendChild(li);
             listBuffer = [];
             return;
@@ -720,15 +716,10 @@ document.addEventListener('DOMContentLoaded', function() {
             if (currentMode === 'list') {
                 listBuffer.push(convertLine(line));
             } else if (currentMode === 'para') {
-                if (currentP.innerHTML.length > 0) {
-                    currentP.innerHTML += '<br>';
-                }
                 currentP.innerHTML += convertLine(line);
             } else {
                 if (!currentP) {
                     currentP = document.createElement('p');
-                } else if (currentP.innerHTML.length > 0) {
-                    currentP.innerHTML += '<br>';
                 }
                 currentP.innerHTML += convertLine(line);
             }
@@ -740,9 +731,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (slashIndex !== -1) {
             const before = line.substring(0, slashIndex).trim();
             const after = line.substring(slashIndex + 1).trim();
-            return `<span class="baris1">${before}/</span> <span class="baris2">${after}</span>`;
+            return `<div class="syair-line"><span class="baris1">${before}/</span> <span class="baris2">${after}</span></div>`;
         }
-        return `<span class="baris1">${line}</span>`;
+        return `<div class="syair-line"><span class="baris1">${line}</span></div>`;
     }
 
     lines.forEach(processLine);
@@ -750,6 +741,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     rawSyairElement.remove();
 });
+
 
 // Tab3
 document.addEventListener('DOMContentLoaded', function() {
