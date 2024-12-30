@@ -632,18 +632,20 @@ ol {
   /* -----------------------------
    Tambahan Style Kebutuhan Tab1
    ----------------------------- */
-  .tab-wrap {
-  margin: 0px 0;
+.tab-wrap {
+    margin-left: 0;
+    margin-right: 0;
 }
   
 .tab__content:nth-of-type(1) {
     text-align: center;
     padding: 0px 0px;
-	overflow: hidden;
-	display: flex; /* mungkin tidak perlu */
+    overflow: hidden;
+    display: flex;
     flex-direction: column;
     align-items: center;
 }
+
 .tab__content:nth-of-type(1) figure img {
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
@@ -659,31 +661,28 @@ ol {
   }
 }
 
-  /* Endnote */
-  .endnote {
-  font-style: italic;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 15px;
+/* Endnote */
+.endnote {
+    font-style: italic;
+    font-size: 12px;
+    text-align: center;
+    margin-top: 15px;
 }
   
-    /* Styling untuk form komentar */
-  #disqus_thread {
+/* Komentar */
+#disqus_thread {
     margin-top: 30px;
-  }
+}
 
-  .disqus-comment-body {
+.disqus-comment-body {
     font-size: 100px;
-  }
+}
+
+.commento {
+    font-size: 1px;
+}
   
-  /* Styling untuk Commento */
-  .commento {
-  font-size: 1px;
-  }
-  
-    /* -----------------------------
-              Custom Header
-   ----------------------------- */
+/* Custom Header */
 .customheader {
   width: 100%;
   height: 100%;
@@ -697,6 +696,8 @@ ol {
   height: 80%;
 }
 
+/* Labels */
+
 .overflowable-item {
   display: none;
 }
@@ -705,17 +706,14 @@ ol {
   display: inline-block !important;
 }
 
-/* Sembunyikan semua label terlebih dahulu */
 .byline.post-labels a[rel="tag"] {
     display: none;
 }
 
-/* Tampilkan hanya label yang memiliki atribut allowed-labels */
 .byline.post-labels a[rel="tag"][allowed-labels] {
     display: inline-block;
 }
 
-/* Sembunyikan label indicator */
 .byline-label {
     display: none;
 }
