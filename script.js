@@ -132,8 +132,8 @@ function showFullImage(clickedImageSrc) {
     }
 
     let isZoomed = false;
-    let zoomScale = isMobile() ? 1.5 : 2.5;  // Default zoom 150% untuk mobile
-    const MOBILE_PAN_MULTIPLIER = 1.5;  // Pengali untuk panning di mobile
+    let zoomScale = isMobile() ? 1.5 : 2.5;
+    const MOBILE_PAN_MULTIPLIER = 1.5;
 
     let lastPinchDistance = null;
 
@@ -142,7 +142,7 @@ function showFullImage(clickedImageSrc) {
 
     let lastTapTime = 0;
     let isDoubleTap = false;
-    const doubleTapThreshold = 300; // ms
+    const doubleTapThreshold = 300;
 
     function applyTransform() {
         const { clampedX, clampedY } = clampOffsets(offsetX, offsetY);
@@ -225,7 +225,7 @@ function showFullImage(clickedImageSrc) {
             }
             
             const scale = currentDistance / lastPinchDistance;
-            zoomScale = Math.min(Math.max(zoomScale * scale, 1), 3); // Batasi zoom 100% - 300%
+            zoomScale = Math.min(Math.max(zoomScale * scale, 1), 3);
             
             lastPinchDistance = currentDistance;
             applyTransform();
