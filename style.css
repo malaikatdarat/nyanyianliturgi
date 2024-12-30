@@ -418,7 +418,7 @@ ol {
     
     .download-item,
     .unduh-preview {
-        width: 100%;
+        width: 40%;
 	height: auto;
     }
 }
