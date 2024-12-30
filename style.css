@@ -366,7 +366,12 @@ ol {
     }
     
     .download-row {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
         gap: 10px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, 150px);
     }
     
     .download-item,
