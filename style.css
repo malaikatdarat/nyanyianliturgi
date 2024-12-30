@@ -314,7 +314,7 @@ ol {
   /* Style ini dipakai pada tab4 */
 
 #download-section {
-    padding: 20px;
+    padding: 20px 50px 20px 50px;
     border: 1px solid #ddd;
     border-radius: 8px;
     background-color: transparent;
@@ -391,13 +391,13 @@ ol {
 }
 
 @media (max-width: 768px) {
-    .tab__content {
+  .tab__content:nth-of-type(4) {
     padding: 0;
-    }
+  }
 	
     #download-section {
         border: none;
-	padding: 10px;
+	padding: 0;
     }
 	
     #download-section h2 {
