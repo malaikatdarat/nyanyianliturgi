@@ -206,6 +206,9 @@
 	line-height: 1em;
         margin: 0;
     }
+    .baris2 {
+        margin: 0.5em;
+    }
 	
     .batas {
       display: none;
