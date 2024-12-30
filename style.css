@@ -387,31 +387,37 @@ ol {
 }
 
 @media (max-width: 768px) {
-  .tab__content:nth-of-type(4) {
-    padding: 0;
-  }
+    .tab__content:nth-of-type(4) {
+        padding: 0;
+    }
 	
     #download-section {
         border: none;
 	padding: 0;
     }
 	
+    .download-item {
+        width: 150px;
+    }
+
+    .unduh-preview {
+        width: 150px;
+    }
+
     #download-section h2 {
         font-size: 1.2em;
     }
-
+    
     .download-label {
-        font-size: 0.95em;
+        font-size: 0.85em;
+    }
+
+    .download-grid {
+        gap: 15px;
     }
     
     .download-row {
-        width: 40%;
-        gap: 10px;
-    }
-    
-    .unduh-preview {
-        width: 100%;
-	height: auto;
+        gap: 15px;
     }
 }
 
