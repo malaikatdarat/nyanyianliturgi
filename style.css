@@ -195,7 +195,7 @@ li {
 
 @media (max-width: 768px) {
     .post-body {
-	       line-height: 1.5em;
+	       line-height: 1.2;
     }
     
     p {
