@@ -698,19 +698,19 @@ ol {
 /* Custom Header */
 .customheader {
   width: auto;
-  height: 100%;
-  max-height: 48;
-  max-width: 200;
+  height: 48px;
   margin: 0;
   background-color: transparent;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  padding: 0 16px;
 }
 
 .customheader img {
+  height: 32px;
   width: auto;
-  height: 80%;
+  object-fit: contain;
 }
 
 /* Labels */
