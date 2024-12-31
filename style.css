@@ -713,6 +713,18 @@ ol {
   object-fit: contain;
 }
 
+@media (max-width: 768px) {
+.customheader {
+  padding: 0;
+  justify-content: center;
+}
+
+.customheader img {
+  height: 48px;
+}
+}
+  
+
 /* Labels */
 
 .overflowable-item {
