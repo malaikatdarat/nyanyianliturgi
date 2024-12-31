@@ -702,6 +702,9 @@ ol {
   max-width: 200px;
   margin: 0;
   background-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .customheader img {
