@@ -697,9 +697,10 @@ ol {
   
 /* Custom Header */
 .customheader {
-  width: 100%;
+  width: auto;
   height: 100%;
-  max-width: 200px;
+  max-height: 48;
+  max-width: 200;
   margin: 0;
   background-color: transparent;
   display: flex;
