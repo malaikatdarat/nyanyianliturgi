@@ -715,12 +715,12 @@ ol {
 
 @media (max-width: 768px) {
 .customheader {
-  padding: 0;
-  justify-content: center;
+  height: 40px;
+  padding: 0 12px;
 }
 
 .customheader img {
-  height: 48px;
+  height: 28px;
 }
 }
   
