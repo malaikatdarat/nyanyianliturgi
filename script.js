@@ -1074,6 +1074,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+// Menu
+function toggle(el) {
+ event.preventDefault();
+ el.parentElement.querySelector('.submenu').classList.toggle('active');
+}
+
 	/*
   // Fungsi menuliskan hakcipta
         document.addEventListener(&quot;DOMContentLoaded&quot;, () =&gt; {
