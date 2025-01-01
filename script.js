@@ -1125,7 +1125,7 @@ function generateSubmenu(items) {
     html += `
       <li>
         ${item.children.length ? '<div class="menu-title">' : ''}
-        <a href="${item.link}"${item.children.length ? ' onclick="toggle(this)"' : ''}>${item.title}</a>
+        <a href="${item.link}"${item.children.length ? ' onclick="toggle(this, event)"' : ''}>${item.title}</a>
         ${item.children.length ? '<span class="arrow"></span></div>' : ''}
         ${item.children.length ? generateSubmenu(item.children) : ''}
       </li>`;
@@ -1135,7 +1135,7 @@ function generateSubmenu(items) {
   return html;
 }
 
-function toggle(el) {
+function toggle(el, event) {
   event.preventDefault();
   const menuTitle = el.closest('.menu-title');
   const navItem = menuTitle.closest('.nav-item');
