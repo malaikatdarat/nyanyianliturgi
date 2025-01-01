@@ -698,7 +698,7 @@ ol {
 /* Custom Header */
 .customheader {
   width: auto;
-  flex: 1;
+  height: 48px;
   margin: 0;
   background-color: transparent;
   display: flex;
@@ -715,13 +715,18 @@ ol {
 
 @media (max-width: 768px) {
 .customheader {
-  flex: 1;
+  height: 40px;
   padding: 0 12px;
 }
 
 .customheader img {
   height: 28px;
 }
+}
+
+.centered-top {
+    display: flex;
+    align-items: center;
 }
   
 
