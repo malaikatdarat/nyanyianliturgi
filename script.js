@@ -1076,40 +1076,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Menu
 
-    function parseMenu(text) {
-      const lines = text.trim().split('\n');
-      const menu = [];
-      let currentPath = [menu];
+function parseMenu(text) {
+  const lines = text.trim().split('\n');
+  const menu = [];
+  let currentPath = [menu];
 
-      lines.forEach((line, index) => {
-        const trimmedLine = line.trim();
-        const match = trimmedLine.match(/^(-+)\s*([^(]+)(?:\(([^)]+)\))?$/);
+  lines.forEach((line, index) => {
+    const trimmedLine = line.trim();
+    const match = trimmedLine.match(/^(-+)\s*([^(]+)(?:\(([^)]+)\))?$/);
 
-        if (!match) {
-          console.error(`Line ${index + 1} didn't match pattern:`, trimmedLine);
-          return;
-        }
+    if (!match) return;
 
-        const level = match[1].length - 1;
-        const title = match[2].trim();
-        const link = match[3] ? match[3].trim() : '#';
-        const item = { title, link, children: [] };
+    const level = match[1].length - 1;
+    const title = match[2].trim();
+    const link = match[3] ? match[3].trim() : '#';
+    const item = { title, link, children: [] };
 
-        while (currentPath.length > level + 1) {
-          currentPath.pop();
-        }
-
-        if (currentPath[level]) {
-          currentPath[level].push(item);
-        } else {
-          console.error(`Invalid structure at line ${index + 1}:`, line);
-        }
-
-        currentPath.push(item.children);
-      });
-
-      return menu;
+    // Memastikan currentPath memiliki panjang yang tepat
+    while (currentPath.length > level + 1) {
+      currentPath.pop();
     }
+
+    // Menambahkan item ke level yang sesuai
+    currentPath[level].push(item);
+    currentPath[level + 1] = item.children;
+  });
+
+  return menu;
+}
 
     function generateHTML(menu) {
       let html = '<ul class="nav">';
@@ -1176,47 +1170,123 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    function expandSubmenu(navItem) {
-      const submenu = navItem.querySelector(':scope > .submenu');
-      if (!submenu) return;
+function expandSubmenu(navItem) {
+  const submenu = navItem.querySelector(':scope > .submenu');
+  if (!submenu) return;
 
-      navItem.classList.add('expanded');
-      submenu.classList.add('open');
-
-      const totalHeight = getSubmenuFullHeight(submenu);
-      submenu.style.maxHeight = `${totalHeight}px`;
-      submenu.style.opacity = '1';
+  // Tutup semua sibling menu di level yang sama
+  const parent = navItem.parentElement;
+  const siblings = parent.children;
+  Array.from(siblings).forEach(sibling => {
+    if (sibling !== navItem && sibling.classList.contains('nav-item')) {
+      collapseWithChildren(sibling);
     }
+  });
 
-    function collapseWithChildren(navItem) {
-      const allSubmenus = navItem.querySelectorAll('.submenu');
-      allSubmenus.forEach(sub => {
-        sub.style.maxHeight = '0';
-        sub.style.opacity = '0';
-        sub.closest('.nav-item').classList.remove('expanded');
-      });
+  // Tambahkan class expanded dan open
+  navItem.classList.add('expanded');
+  submenu.classList.add('open');
 
-      allSubmenus.forEach(sub => {
-        sub.addEventListener('transitionend', function handler() {
-          sub.classList.remove('open');
-          sub.removeEventListener('transitionend', handler);
-        });
-      });
+  // Buka semua parent submenu
+  let parentEl = navItem.parentElement;
+  while (parentEl) {
+    if (parentEl.classList.contains('submenu')) {
+      parentEl.style.maxHeight = 'none';
+      parentEl.classList.add('open');
+      parentEl.parentElement.classList.add('expanded');
     }
+    parentEl = parentEl.parentElement;
+  }
 
-    function getSubmenuFullHeight(submenu) {
-      const clone = submenu.cloneNode(true);
-      clone.style.maxHeight = 'none';
-      clone.style.opacity = '1';
-      clone.style.position = 'absolute';
-      clone.style.visibility = 'hidden';
-      document.body.appendChild(clone);
+  // Set max height untuk scrolling
+  const windowHeight = window.innerHeight;
+  const submenuTop = submenu.getBoundingClientRect().top;
+  const maxAvailableHeight = windowHeight - submenuTop - 20; // 20px margin bottom
+  
+  // Hitung total height termasuk nested submenu
+  const totalHeight = getSubmenuFullHeight(submenu);
+  // Gunakan nilai yang lebih kecil antara maxAvailableHeight dan totalHeight
+  const finalHeight = Math.min(maxAvailableHeight, totalHeight);
+  
+  submenu.style.maxHeight = `${finalHeight}px`;
+  submenu.style.opacity = '1';
 
-      const height = clone.scrollHeight;
-      document.body.removeChild(clone);
-
-      return height;
+  // Update parent submenu heights
+  parentEl = navItem.parentElement;
+  while (parentEl) {
+    if (parentEl.classList.contains('submenu')) {
+      const parentTotalHeight = getSubmenuFullHeight(parentEl);
+      const parentTop = parentEl.getBoundingClientRect().top;
+      const parentMaxHeight = Math.min(windowHeight - parentTop - 20, parentTotalHeight);
+      parentEl.style.maxHeight = `${parentMaxHeight}px`;
     }
+    parentEl = parentEl.parentElement;
+  }
+}
+function collapseWithChildren(navItem) {
+  // Simpan referensi ke semua submenu dalam navItem
+  const allSubmenus = navItem.querySelectorAll('.submenu');
+  const parentSubmenus = [];
+  
+  // Cari parent submenu yang perlu diupdate heightnya
+  let parent = navItem.parentElement;
+  while (parent) {
+    if (parent.classList.contains('submenu')) {
+      parentSubmenus.push(parent);
+    }
+    parent = parent.parentElement;
+  }
+
+  // Tutup semua submenu dalam navItem
+  allSubmenus.forEach(sub => {
+    sub.style.maxHeight = '0';
+    sub.style.opacity = '0';
+    sub.closest('.nav-item').classList.remove('expanded');
+  });
+
+  // Hapus class open setelah transisi selesai
+  allSubmenus.forEach(sub => {
+    sub.addEventListener('transitionend', function handler(e) {
+      // Hanya proses event untuk maxHeight
+      if (e.propertyName !== 'max-height') return;
+      
+      sub.classList.remove('open');
+      sub.removeEventListener('transitionend', handler);
+    }, { once: true }); // Gunakan once: true agar event handler terhapus otomatis
+  });
+
+  // Update height parent submenu
+  parentSubmenus.forEach(sub => {
+    const newHeight = getSubmenuFullHeight(sub);
+    sub.style.maxHeight = `${newHeight}px`;
+  });
+
+  // Hapus expanded class dari navItem yang diklik
+  navItem.classList.remove('expanded');
+}
+
+function getSubmenuFullHeight(submenu) {
+  const clone = submenu.cloneNode(true);
+  clone.style.maxHeight = 'none';
+  clone.style.opacity = '1';
+  clone.style.position = 'absolute';
+  clone.style.visibility = 'hidden';
+  clone.style.display = 'block'; // Pastikan terlihat
+  
+  // Pastikan semua submenu di dalamnya juga visible
+  const nestedSubmenus = clone.querySelectorAll('.submenu');
+  nestedSubmenus.forEach(sub => {
+    sub.style.maxHeight = 'none';
+    sub.style.opacity = '1';
+    sub.style.display = 'block';
+  });
+  
+  document.body.appendChild(clone);
+  const height = clone.scrollHeight;
+  document.body.removeChild(clone);
+  
+  return height;
+}
 
     document.addEventListener('DOMContentLoaded', () => {
       const menuText = document.getElementById('rawMenuList').textContent;
@@ -1242,6 +1312,7 @@ document.addEventListener('DOMContentLoaded', () => {
         title.addEventListener('click', (event) => toggle(title, event));
       });
     });
+
 
 	/*
   // Fungsi menuliskan hakcipta
