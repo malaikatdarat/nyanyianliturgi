@@ -762,3 +762,18 @@ ol {
     float: none;
 }
 }
+
+/* Menu */
+.nav {
+ list-style: none;
+ padding: 0;
+}
+
+.has-submenu > .submenu {
+ display: none;
+ padding-left: 20px;
+}
+
+.has-submenu:hover > .submenu {
+ display: block;
+}
