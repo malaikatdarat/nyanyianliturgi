@@ -1157,6 +1157,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const menuStructure = parseMenu(menuText);
   const menuHTML = generateHTML(menuStructure);
   document.getElementById('menu-container').innerHTML = menuHTML;
+
+document.getElementById('rawMenuList').remove();
 });
 
 	/*
