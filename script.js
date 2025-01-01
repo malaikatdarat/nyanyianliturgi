@@ -1075,91 +1075,173 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Menu
-function parseMenu(text) {
-  const lines = text.trim().split('\n');
-  const menu = [];
-  let currentLevel = -1;
-  let stack = [menu];
-  
-  lines.forEach(line => {
-    const level = line.match(/^-+/)[0].length - 1;
-    const [title, link] = line.replace(/^-+\s*/, '').split(/\s+\(([^)]+)\)/);
-    
-    while (currentLevel >= level) {
-      stack.pop();
-      currentLevel--;
+
+    function parseMenu(text) {
+      const lines = text.trim().split('\n');
+      const menu = [];
+      let currentPath = [menu];
+
+      lines.forEach((line, index) => {
+        const trimmedLine = line.trim();
+        const match = trimmedLine.match(/^(-+)\s*([^(]+)(?:\(([^)]+)\))?$/);
+
+        if (!match) {
+          console.error(`Line ${index + 1} didn't match pattern:`, trimmedLine);
+          return;
+        }
+
+        const level = match[1].length - 1;
+        const title = match[2].trim();
+        const link = match[3] ? match[3].trim() : '#';
+        const item = { title, link, children: [] };
+
+        while (currentPath.length > level + 1) {
+          currentPath.pop();
+        }
+
+        if (currentPath[level]) {
+          currentPath[level].push(item);
+        } else {
+          console.error(`Invalid structure at line ${index + 1}:`, line);
+        }
+
+        currentPath.push(item.children);
+      });
+
+      return menu;
     }
-    
-    const item = { title, link, children: [] };
-    stack[stack.length - 1].push(item);
-    
-    stack.push(item.children);
-    currentLevel = level;
-  });
-  
-  return menu;
-}
 
-function generateHTML(menu) {
-  let html = '<ul class="nav">';
-  
-  menu.forEach(item => {
-    html += `
-      <li class="nav-item">
-        <div class="menu-title">
-          <a href="${item.link}"${item.children.length ? ' onclick="toggle(this)"' : ''}>${item.title}</a>
-          ${item.children.length ? '<span class="arrow"></span>' : ''}
-        </div>
-        ${item.children.length ? generateSubmenu(item.children) : ''}
-      </li>`;
-  });
-  
-  html += '</ul>';
-  return html;
-}
+    function generateHTML(menu) {
+      let html = '<ul class="nav">';
 
-function generateSubmenu(items) {
-  let html = '<ul class="submenu">';
-  
-  items.forEach(item => {
-    html += `
-      <li>
-        ${item.children.length ? '<div class="menu-title">' : ''}
-        <a href="${item.link}"${item.children.length ? ' onclick="toggle(this, event)"' : ''}>${item.title}</a>
-        ${item.children.length ? '<span class="arrow"></span></div>' : ''}
-        ${item.children.length ? generateSubmenu(item.children) : ''}
-      </li>`;
-  });
-  
-  html += '</ul>';
-  return html;
-}
+      menu.forEach(item => {
+        const hasChildren = item.children && item.children.length > 0;
+        html += `
+          <li class="nav-item">
+            <div class="menu-title">
+              <a href="${item.link}">${item.title}</a>
+              ${hasChildren ? '<span class="arrow"></span>' : ''}
+            </div>
+            ${hasChildren ? generateSubmenu(item.children) : ''}
+          </li>
+        `;
+      });
 
-function toggle(el, event) {
-  event.preventDefault();
-  const menuTitle = el.closest('.menu-title');
-  const navItem = menuTitle.closest('.nav-item');
-  const submenu = navItem.querySelector('.submenu');
-  const arrow = menuTitle.querySelector('.arrow');
-  const link = menuTitle.querySelector('a');
-  
-  if (!submenu) {
-    window.location.href = link.getAttribute('href');
-    return;
-  }
-  
-  submenu.classList.toggle('active');
-  arrow.style.transform = submenu.classList.contains('active') ? 'rotate(-135deg)' : 'rotate(45deg)';
-}
+      html += '</ul>';
+      return html;
+    }
 
-document.addEventListener('DOMContentLoaded', () => {
-  const menuText = document.getElementById('rawMenuList').textContent;
-  const menuStructure = parseMenu(menuText);
-  const menuHTML = generateHTML(menuStructure);
-  document.getElementById('menu-container').innerHTML = menuHTML;
+    function generateSubmenu(items) {
+      let html = '<ul class="submenu">';
 
-document.getElementById('rawMenuList').remove();
-});
+      items.forEach(item => {
+        const hasChildren = item.children && item.children.length > 0;
+        html += `
+          <li class="nav-item">
+            <div class="menu-title">
+              <a href="${item.link}">${item.title}</a>
+              ${hasChildren ? '<span class="arrow"></span>' : ''}
+            </div>
+            ${hasChildren ? generateSubmenu(item.children) : ''}
+          </li>
+        `;
+      });
+
+      html += '</ul>';
+      return html;
+    }
+
+    function toggle(el, event) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const menuTitle = el.closest('.menu-title');
+      const navItem = menuTitle.closest('.nav-item');
+      const submenu = navItem.querySelector(':scope > .submenu');
+
+      if (!submenu) {
+        const link = menuTitle.querySelector('a').getAttribute('href');
+        if (link && link !== '#') {
+          window.location.href = link;
+        }
+        return;
+      }
+
+      const isExpanded = navItem.classList.contains('expanded');
+
+      if (isExpanded) {
+        collapseWithChildren(navItem);
+      } else {
+        expandSubmenu(navItem);
+      }
+    }
+
+    function expandSubmenu(navItem) {
+      const submenu = navItem.querySelector(':scope > .submenu');
+      if (!submenu) return;
+
+      navItem.classList.add('expanded');
+      submenu.classList.add('open');
+
+      const totalHeight = getSubmenuFullHeight(submenu);
+      submenu.style.maxHeight = `${totalHeight}px`;
+      submenu.style.opacity = '1';
+    }
+
+    function collapseWithChildren(navItem) {
+      const allSubmenus = navItem.querySelectorAll('.submenu');
+      allSubmenus.forEach(sub => {
+        sub.style.maxHeight = '0';
+        sub.style.opacity = '0';
+        sub.closest('.nav-item').classList.remove('expanded');
+      });
+
+      allSubmenus.forEach(sub => {
+        sub.addEventListener('transitionend', function handler() {
+          sub.classList.remove('open');
+          sub.removeEventListener('transitionend', handler);
+        });
+      });
+    }
+
+    function getSubmenuFullHeight(submenu) {
+      const clone = submenu.cloneNode(true);
+      clone.style.maxHeight = 'none';
+      clone.style.opacity = '1';
+      clone.style.position = 'absolute';
+      clone.style.visibility = 'hidden';
+      document.body.appendChild(clone);
+
+      const height = clone.scrollHeight;
+      document.body.removeChild(clone);
+
+      return height;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const menuText = document.getElementById('rawMenuList').textContent;
+      const menuStructure = parseMenu(menuText);
+      console.log('Parsed Menu Structure:', JSON.stringify(menuStructure, null, 2));
+
+      const menuHTML = generateHTML(menuStructure);
+      console.log('Generated HTML:', menuHTML);
+
+      const menuContainer = document.getElementById('menu-container');
+      menuContainer.innerHTML = menuHTML;
+
+      document.getElementById('rawMenuList').remove();
+
+      const submenus = menuContainer.querySelectorAll('.submenu');
+      submenus.forEach(submenu => {
+        submenu.style.maxHeight = '0';
+        submenu.style.opacity = '0';
+      });
+
+      const menuTitles = menuContainer.querySelectorAll('.menu-title');
+      menuTitles.forEach(title => {
+        title.addEventListener('click', (event) => toggle(title, event));
+      });
+    });
 
 	/*
   // Fungsi menuliskan hakcipta
