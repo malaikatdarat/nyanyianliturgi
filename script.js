@@ -1076,6 +1076,64 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Menu
 
+// Tambahkan fungsi ini
+function initMenu(containerId, menuListId) {
+  // Cari elemen menu
+  const rawMenuList = document.getElementById(menuListId);
+  const menuContainer = document.getElementById(containerId);
+  
+  if (!rawMenuList || !menuContainer) {
+    console.error('Menu elements not found');
+    return;
+  }
+
+  const menuText = rawMenuList.textContent;
+  const menuStructure = parseMenu(menuText);
+  
+  const menuHTML = generateHTML(menuStructure);
+  menuContainer.innerHTML = menuHTML;
+
+  rawMenuList.remove();
+
+  const submenus = menuContainer.querySelectorAll('.submenu');
+  submenus.forEach(submenu => {
+    submenu.style.maxHeight = '0';
+    submenu.style.opacity = '0';
+  });
+
+  const menuTitles = menuContainer.querySelectorAll('.menu-title');
+  menuTitles.forEach(title => {
+    title.addEventListener('click', (event) => toggle(title, event));
+  });
+}
+
+// Buat fungsi untuk cek dan init menu
+function tryInitMenu() {
+  if (typeof Blogger !== 'undefined') {
+    // Tunggu widget selesai dimuat
+    const checkWidget = setInterval(() => {
+      const rawMenuList = document.getElementById('rawMenuList');
+      const menuContainer = document.getElementById('menu-container');
+      
+      if (rawMenuList && menuContainer) {
+        clearInterval(checkWidget);
+        initMenu('menu-container', 'rawMenuList');
+      }
+    }, 100);
+    
+    // Hentikan pengecekan setelah 10 detik
+    setTimeout(() => clearInterval(checkWidget), 10000);
+  } else {
+    // Untuk penggunaan non-Blogger
+    document.addEventListener('DOMContentLoaded', () => {
+      initMenu('menu-container', 'rawMenuList');
+    });
+  }
+}
+
+// Panggil fungsi
+tryInitMenu();
+
 function parseMenu(text) {
   const lines = text.trim().split('\n');
   const menu = [];
