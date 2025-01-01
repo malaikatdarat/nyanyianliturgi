@@ -1078,15 +1078,25 @@ document.addEventListener('DOMContentLoaded', () => {
 function toggle(el) {
   event.preventDefault();
   const menuTitle = el.closest('.menu-title');
-  const submenu = menuTitle.nextElementSibling;
-  submenu.classList.toggle('active');
-  
+  const navItem = menuTitle.closest('.nav-item');
+  const submenu = navItem.querySelector('.submenu');
   const arrow = menuTitle.querySelector('.arrow');
-  if(arrow) {
-    arrow.style.transform = submenu.classList.contains('active') ? 
-      'rotate(-135deg)' : 'rotate(45deg)';
+  const link = menuTitle.querySelector('a');
+  
+  if (!submenu) {
+    window.location.href = link.getAttribute('href');
+    return;
   }
+  
+  submenu.classList.toggle('active');
+  arrow.style.transform = submenu.classList.contains('active') ? 'rotate(-135deg)' : 'rotate(45deg)';
 }
+
+document.querySelectorAll('.menu-title').forEach(title => {
+  title.addEventListener('click', function(e) {
+    toggle(this);
+  });
+});
 
 	/*
   // Fungsi menuliskan hakcipta
