@@ -795,18 +795,32 @@ ol {
       font-weight: 500;
       flex: 1;
     }
-    .submenu {
-      max-height: 0;
-      opacity: 0;
-      overflow: hidden;
-      transition: max-height 0.3s ease, opacity 0.3s ease;
-      padding-left: 20px;
-      list-style: none;
-      margin: 0;
-    }
-    .submenu.open {
-      opacity: 1;
-    }
+
+.submenu {
+  max-height: 0;
+  opacity: 0;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  transition: max-height 0.5s ease, opacity 0.3s ease;
+  padding-left: 20px;
+  list-style: none;
+  margin: 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.submenu::-webkit-scrollbar {
+  display: none;
+}
+
+.submenu .submenu {
+  padding-left: 20px;
+  transition: max-height 0.5s ease, opacity 0.3s ease;
+}
+.submenu.open {
+  opacity: 1;
+  visibility: visible;
+}
     .submenu .menu-title {
       background: #fafafa;
     }
