@@ -769,11 +769,11 @@ ol {
  padding: 0;
 }
 
-.has-submenu > .submenu {
+.submenu {
  display: none;
  padding-left: 20px;
 }
 
-.has-submenu:hover > .submenu {
+.active {
  display: block;
 }
