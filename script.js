@@ -1076,11 +1076,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Menu
 function toggle(el) {
- event.preventDefault();
- const submenu = el.closest('.nav-item').querySelector('.submenu');
- submenu.classList.toggle('active');
- el.closest('.menu-title').querySelector('.arrow').style.transform = 
-   submenu.classList.contains('active') ? 'rotate(-135deg)' : 'rotate(45deg)';
+  event.preventDefault();
+  const menuTitle = el.closest('.menu-title');
+  const submenu = menuTitle.nextElementSibling;
+  submenu.classList.toggle('active');
+  
+  const arrow = menuTitle.querySelector('.arrow');
+  if(arrow) {
+    arrow.style.transform = submenu.classList.contains('active') ? 
+      'rotate(-135deg)' : 'rotate(45deg)';
+  }
 }
 
 	/*
