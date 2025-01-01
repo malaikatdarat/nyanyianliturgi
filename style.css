@@ -772,12 +772,12 @@ ol {
 }
 
 .nav-item {
- margin: 8px 0;
+ margin: 12px 0;
 }
 
 .menu-title {
  background: #f5f5f5;
- padding: 12px 16px;
+ padding: 14px 18px;
  border-radius: 6px;
  display: flex;
  justify-content: space-between;
@@ -800,19 +800,28 @@ ol {
  overflow: hidden;
  transition: max-height 0.3s ease-out;
  margin: 0;
- padding: 0 0 0 20px;
+ padding: 8px 0 0 24px;
 }
 
 .submenu.active {
  max-height: 500px;
- margin-top: 10px;
+ margin-top: 8px;
+ margin-bottom: 8px;
 }
 
 .submenu a {
  display: block;
- padding: 8px 16px;
+ padding: 10px 16px;
+ margin: 4px 0;
  color: #666;
  text-decoration: none;
+}
+
+.submenu a:hover {
+  background: #f5f5f5;
+  color: #333;
+  border-radius: 4px;
+  transition: all 0.2s ease;
 }
 
 .arrow {
@@ -829,39 +838,38 @@ ol {
 }
 
 @media screen and (max-width: 768px) {
- .nav {
-   width: 100%;
- }
-
- .menu-title {
-   padding: 14px 12px;
- }
-
- .menu-title a {
-   font-size: 15px;
- }
-
- .submenu {
-   padding-left: 12px;
- }
-
- .submenu a {
-   padding: 12px;
-   font-size: 14px;
- }
+  .nav {
+    width: 100%;
+  }
+  .menu-title {
+    padding: 14px 16px;
+  }
+  .menu-title a {
+    font-size: 15px;
+  }
+  .submenu {
+    padding: 6px 0 0 20px;
+  }
+  .submenu a {
+    padding: 10px 14px;
+    margin: 3px 0;
+    font-size: 14px;
+  }
 }
 
 @media screen and (max-width: 480px) {
- .menu-title {
-   padding: 16px 10px;
- }
-
- .menu-title a {
-   font-size: 14px;
- }
-
- .submenu a {
-   padding: 14px 10px;
-   font-size: 13px;
- }
+  .menu-title {
+    padding: 12px 14px;
+  }
+  .menu-title a {
+    font-size: 14px;
+  }
+  .submenu {
+    padding: 4px 0 0 16px;
+  }
+  .submenu a {
+    padding: 8px 12px;
+    margin: 2px 0;
+    font-size: 13px;
+  }
 }
