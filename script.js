@@ -1077,7 +1077,10 @@ document.addEventListener('DOMContentLoaded', () => {
 // Menu
 function toggle(el) {
  event.preventDefault();
- el.parentElement.querySelector('.submenu').classList.toggle('active');
+ const submenu = el.closest('.nav-item').querySelector('.submenu');
+ submenu.classList.toggle('active');
+ el.closest('.menu-title').querySelector('.arrow').style.transform = 
+   submenu.classList.contains('active') ? 'rotate(-135deg)' : 'rotate(45deg)';
 }
 
 	/*
