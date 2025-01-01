@@ -1075,6 +1075,66 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Menu
+function parseMenu(text) {
+  const lines = text.trim().split('\n');
+  const menu = [];
+  let currentLevel = -1;
+  let stack = [menu];
+  
+  lines.forEach(line => {
+    const level = line.match(/^-+/)[0].length - 1;
+    const [title, link] = line.replace(/^-+\s*/, '').split(/\s+\(([^)]+)\)/);
+    
+    while (currentLevel >= level) {
+      stack.pop();
+      currentLevel--;
+    }
+    
+    const item = { title, link, children: [] };
+    stack[stack.length - 1].push(item);
+    
+    stack.push(item.children);
+    currentLevel = level;
+  });
+  
+  return menu;
+}
+
+function generateHTML(menu) {
+  let html = '<ul class="nav">';
+  
+  menu.forEach(item => {
+    html += `
+      <li class="nav-item">
+        <div class="menu-title">
+          <a href="${item.link}"${item.children.length ? ' onclick="toggle(this)"' : ''}>${item.title}</a>
+          ${item.children.length ? '<span class="arrow"></span>' : ''}
+        </div>
+        ${item.children.length ? generateSubmenu(item.children) : ''}
+      </li>`;
+  });
+  
+  html += '</ul>';
+  return html;
+}
+
+function generateSubmenu(items) {
+  let html = '<ul class="submenu">';
+  
+  items.forEach(item => {
+    html += `
+      <li>
+        ${item.children.length ? '<div class="menu-title">' : ''}
+        <a href="${item.link}"${item.children.length ? ' onclick="toggle(this)"' : ''}>${item.title}</a>
+        ${item.children.length ? '<span class="arrow"></span></div>' : ''}
+        ${item.children.length ? generateSubmenu(item.children) : ''}
+      </li>`;
+  });
+  
+  html += '</ul>';
+  return html;
+}
+
 function toggle(el) {
   event.preventDefault();
   const menuTitle = el.closest('.menu-title');
@@ -1092,10 +1152,11 @@ function toggle(el) {
   arrow.style.transform = submenu.classList.contains('active') ? 'rotate(-135deg)' : 'rotate(45deg)';
 }
 
-document.querySelectorAll('.menu-title').forEach(title => {
-  title.addEventListener('click', function(e) {
-    toggle(this);
-  });
+document.addEventListener('DOMContentLoaded', () => {
+  const menuText = document.getElementById('rawMenuList').textContent;
+  const menuStructure = parseMenu(menuText);
+  const menuHTML = generateHTML(menuStructure);
+  document.getElementById('menu-container').innerHTML = menuHTML;
 });
 
 	/*
