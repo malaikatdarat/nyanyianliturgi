@@ -1076,7 +1076,300 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Menu
 
+// Tambahkan fungsi ini
+function initMenu(containerId, menuListId) {
+  // Cari elemen menu
+  const rawMenuList = document.getElementById(menuListId);
+  const menuContainer = document.getElementById(containerId);
+  
+  if (!rawMenuList || !menuContainer) {
+    console.error('Menu elements not found');
+    return;
+  }
 
+  const menuText = rawMenuList.textContent;
+  const menuStructure = parseMenu(menuText);
+  
+  const menuHTML = generateHTML(menuStructure);
+  menuContainer.innerHTML = menuHTML;
+
+  rawMenuList.remove();
+
+  const submenus = menuContainer.querySelectorAll('.submenu');
+  submenus.forEach(submenu => {
+    submenu.style.maxHeight = '0';
+    submenu.style.opacity = '0';
+  });
+
+  const menuTitles = menuContainer.querySelectorAll('.menu-title');
+  menuTitles.forEach(title => {
+    title.addEventListener('click', (event) => toggle(title, event));
+  });
+}
+
+// Buat fungsi untuk cek dan init menu
+function tryInitMenu() {
+  if (typeof Blogger !== 'undefined') {
+    // Tunggu widget selesai dimuat
+    const checkWidget = setInterval(() => {
+      const rawMenuList = document.getElementById('rawMenuList');
+      const menuContainer = document.getElementById('menu-container');
+      
+      if (rawMenuList && menuContainer) {
+        clearInterval(checkWidget);
+        initMenu('menu-container', 'rawMenuList');
+      }
+    }, 100);
+    
+    // Hentikan pengecekan setelah 10 detik
+    setTimeout(() => clearInterval(checkWidget), 10000);
+  } else {
+    // Untuk penggunaan non-Blogger
+    document.addEventListener('DOMContentLoaded', () => {
+      initMenu('menu-container', 'rawMenuList');
+    });
+  }
+}
+
+// Panggil fungsi
+tryInitMenu();
+
+function parseMenu(text) {
+  const lines = text.trim().split('\n');
+  const menu = [];
+  let currentPath = [menu];
+
+  lines.forEach((line, index) => {
+    const trimmedLine = line.trim();
+    const match = trimmedLine.match(/^(-+)\s*([^(]+)(?:\(([^)]+)\))?$/);
+
+    if (!match) return;
+
+    const level = match[1].length - 1;
+    const title = match[2].trim();
+    const link = match[3] ? match[3].trim() : '#';
+    const item = { title, link, children: [] };
+
+    // Memastikan currentPath memiliki panjang yang tepat
+    while (currentPath.length > level + 1) {
+      currentPath.pop();
+    }
+
+    // Menambahkan item ke level yang sesuai
+    currentPath[level].push(item);
+    currentPath[level + 1] = item.children;
+  });
+
+  return menu;
+}
+
+    function generateHTML(menu) {
+      let html = '<ul class="nav">';
+
+      menu.forEach(item => {
+        const hasChildren = item.children && item.children.length > 0;
+        html += `
+          <li class="nav-item">
+            <div class="menu-title">
+              <a href="${item.link}">${item.title}</a>
+              ${hasChildren ? '<span class="arrow"></span>' : ''}
+            </div>
+            ${hasChildren ? generateSubmenu(item.children) : ''}
+          </li>
+        `;
+      });
+
+      html += '</ul>';
+      return html;
+    }
+
+    function generateSubmenu(items) {
+      let html = '<ul class="submenu">';
+
+      items.forEach(item => {
+        const hasChildren = item.children && item.children.length > 0;
+        html += `
+          <li class="nav-item">
+            <div class="menu-title">
+              <a href="${item.link}">${item.title}</a>
+              ${hasChildren ? '<span class="arrow"></span>' : ''}
+            </div>
+            ${hasChildren ? generateSubmenu(item.children) : ''}
+          </li>
+        `;
+      });
+
+      html += '</ul>';
+      return html;
+    }
+
+    function toggle(el, event) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const menuTitle = el.closest('.menu-title');
+      const navItem = menuTitle.closest('.nav-item');
+      const submenu = navItem.querySelector(':scope > .submenu');
+
+      if (!submenu) {
+        const link = menuTitle.querySelector('a').getAttribute('href');
+        if (link && link !== '#') {
+          window.location.href = link;
+        }
+        return;
+      }
+
+      const isExpanded = navItem.classList.contains('expanded');
+
+      if (isExpanded) {
+        collapseWithChildren(navItem);
+      } else {
+        expandSubmenu(navItem);
+      }
+    }
+
+function expandSubmenu(navItem) {
+  const submenu = navItem.querySelector(':scope > .submenu');
+  if (!submenu) return;
+
+  // Tutup semua sibling menu di level yang sama
+  const parent = navItem.parentElement;
+  const siblings = parent.children;
+  Array.from(siblings).forEach(sibling => {
+    if (sibling !== navItem && sibling.classList.contains('nav-item')) {
+      collapseWithChildren(sibling);
+    }
+  });
+
+  // Tambahkan class expanded dan open
+  navItem.classList.add('expanded');
+  submenu.classList.add('open');
+
+  // Buka semua parent submenu
+  let parentEl = navItem.parentElement;
+  while (parentEl) {
+    if (parentEl.classList.contains('submenu')) {
+      parentEl.style.maxHeight = 'none';
+      parentEl.classList.add('open');
+      parentEl.parentElement.classList.add('expanded');
+    }
+    parentEl = parentEl.parentElement;
+  }
+
+  // Set max height untuk scrolling
+  const windowHeight = window.innerHeight;
+  const submenuTop = submenu.getBoundingClientRect().top;
+  const maxAvailableHeight = windowHeight - submenuTop - 20; // 20px margin bottom
+  
+  // Hitung total height termasuk nested submenu
+  const totalHeight = getSubmenuFullHeight(submenu);
+  // Gunakan nilai yang lebih kecil antara maxAvailableHeight dan totalHeight
+  const finalHeight = Math.min(maxAvailableHeight, totalHeight);
+  
+  submenu.style.maxHeight = `${finalHeight}px`;
+  submenu.style.opacity = '1';
+
+  // Update parent submenu heights
+  parentEl = navItem.parentElement;
+  while (parentEl) {
+    if (parentEl.classList.contains('submenu')) {
+      const parentTotalHeight = getSubmenuFullHeight(parentEl);
+      const parentTop = parentEl.getBoundingClientRect().top;
+      const parentMaxHeight = Math.min(windowHeight - parentTop - 20, parentTotalHeight);
+      parentEl.style.maxHeight = `${parentMaxHeight}px`;
+    }
+    parentEl = parentEl.parentElement;
+  }
+}
+function collapseWithChildren(navItem) {
+  // Simpan referensi ke semua submenu dalam navItem
+  const allSubmenus = navItem.querySelectorAll('.submenu');
+  const parentSubmenus = [];
+  
+  // Cari parent submenu yang perlu diupdate heightnya
+  let parent = navItem.parentElement;
+  while (parent) {
+    if (parent.classList.contains('submenu')) {
+      parentSubmenus.push(parent);
+    }
+    parent = parent.parentElement;
+  }
+
+  // Tutup semua submenu dalam navItem
+  allSubmenus.forEach(sub => {
+    sub.style.maxHeight = '0';
+    sub.style.opacity = '0';
+    sub.closest('.nav-item').classList.remove('expanded');
+  });
+
+  // Hapus class open setelah transisi selesai
+  allSubmenus.forEach(sub => {
+    sub.addEventListener('transitionend', function handler(e) {
+      // Hanya proses event untuk maxHeight
+      if (e.propertyName !== 'max-height') return;
+      
+      sub.classList.remove('open');
+      sub.removeEventListener('transitionend', handler);
+    }, { once: true }); // Gunakan once: true agar event handler terhapus otomatis
+  });
+
+  // Update height parent submenu
+  parentSubmenus.forEach(sub => {
+    const newHeight = getSubmenuFullHeight(sub);
+    sub.style.maxHeight = `${newHeight}px`;
+  });
+
+  // Hapus expanded class dari navItem yang diklik
+  navItem.classList.remove('expanded');
+}
+
+function getSubmenuFullHeight(submenu) {
+  const clone = submenu.cloneNode(true);
+  clone.style.maxHeight = 'none';
+  clone.style.opacity = '1';
+  clone.style.position = 'absolute';
+  clone.style.visibility = 'hidden';
+  clone.style.display = 'block'; // Pastikan terlihat
+  
+  // Pastikan semua submenu di dalamnya juga visible
+  const nestedSubmenus = clone.querySelectorAll('.submenu');
+  nestedSubmenus.forEach(sub => {
+    sub.style.maxHeight = 'none';
+    sub.style.opacity = '1';
+    sub.style.display = 'block';
+  });
+  
+  document.body.appendChild(clone);
+  const height = clone.scrollHeight;
+  document.body.removeChild(clone);
+  
+  return height;
+}
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const menuText = document.getElementById('rawMenuList').textContent;
+      const menuStructure = parseMenu(menuText);
+      console.log('Parsed Menu Structure:', JSON.stringify(menuStructure, null, 2));
+
+      const menuHTML = generateHTML(menuStructure);
+      console.log('Generated HTML:', menuHTML);
+
+      const menuContainer = document.getElementById('menu-container');
+      menuContainer.innerHTML = menuHTML;
+
+      document.getElementById('rawMenuList').remove();
+
+      const submenus = menuContainer.querySelectorAll('.submenu');
+      submenus.forEach(submenu => {
+        submenu.style.maxHeight = '0';
+        submenu.style.opacity = '0';
+      });
+
+      const menuTitles = menuContainer.querySelectorAll('.menu-title');
+      menuTitles.forEach(title => {
+        title.addEventListener('click', (event) => toggle(title, event));
+      });
+    });
 
 
 	/*
