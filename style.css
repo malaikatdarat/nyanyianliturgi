@@ -700,7 +700,7 @@ ol {
   width: auto;
   height: 64px;
   margin: 0;
-  background-color: #F5F5F5;
+  background-color: transparent;
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -784,8 +784,6 @@ ol {
   justify-content: space-between;
   align-items: center;
   transition: background 0.3s;
-  width: 100%;
-  box-sizing: border-box;
 }
 .menu-title:hover {
   background: #eaeaea;
@@ -800,22 +798,31 @@ ol {
 .submenu {
   max-height: 0;
   opacity: 0;
-  overflow: hidden;
+  overflow-y: scroll;
+  overflow-x: hidden;
   transition: max-height 0.5s ease, opacity 0.3s ease;
+  padding-left: 20px;
   list-style: none;
   margin: 0;
-  box-sizing: border-box;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
-.submenu .menu-title {
+submenu .menu-title {
   background: #fcfcfc;
 }
 .submenu .menu-title:hover {
   background: #eaeaea;
 }
+.submenu::-webkit-scrollbar {
+  display: none;
+}
+.submenu .submenu {
+  padding-left: 20px;
+  transition: max-height 0.5s ease, opacity 0.3s ease;
+}
 .submenu.open {
   opacity: 1;
   visibility: visible;
-  max-height: 1000px;
 }
 /* Level 1 expanded */
 .nav-item.expanded > .submenu .menu-title {
@@ -843,7 +850,6 @@ ol {
   transform: rotate(45deg);
   transition: transform 0.3s ease;
   margin-left: 8px;
-  flex-shrink: 0;
 }
 .nav-item.expanded > .menu-title .arrow {
   transform: rotate(-135deg);
