@@ -767,6 +767,7 @@ ol {
     .nav {
       list-style: none;
       padding: 0;
+      background: ##ffffff;
       font-family: Arial, sans-serif;
       max-width: 250px;
       margin: 0;
