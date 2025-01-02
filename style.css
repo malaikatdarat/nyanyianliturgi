@@ -700,7 +700,7 @@ ol {
   width: auto;
   height: 64px;
   margin: 0;
-  background-color: transparent;
+  background-color: #F5F5F5;
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -771,12 +771,10 @@ ol {
   max-width: 250px;
   margin: 0;
 }
-
 .nav-item {
   margin: 4px 0;
   position: relative;
 }
-
 .menu-title {
   cursor: pointer;
   background: #ffffff;
@@ -789,11 +787,9 @@ ol {
   width: 100%;
   box-sizing: border-box;
 }
-
 .menu-title:hover {
   background: #eaeaea;
 }
-
 .menu-title a {
   pointer-events: none;
   color: #333;
@@ -801,56 +797,44 @@ ol {
   font-weight: 500;
   flex: 1;
 }
-
 .submenu {
   max-height: 0;
   opacity: 0;
   overflow: hidden;
   transition: max-height 0.5s ease, opacity 0.3s ease;
-  padding-left: 20px;
   list-style: none;
   margin: 0;
   box-sizing: border-box;
 }
-
 .submenu .menu-title {
-  background: #f7f7f7;
+  background: #fcfcfc;
 }
-
 .submenu .menu-title:hover {
   background: #eaeaea;
 }
-
 .submenu.open {
   opacity: 1;
   visibility: visible;
   max-height: 1000px;
 }
-
 /* Level 1 expanded */
 .nav-item.expanded > .submenu .menu-title {
-  background: #f0f0f0;
+  background: #fafafa;
 }
-
 .nav-item.expanded > .submenu .menu-title:hover {
   background: #eaeaea;
 }
-
 /* Level 2 */
 .submenu .submenu {
-  padding-left: 20px;
   max-height: 0;
   transition: max-height 0.5s ease, opacity 0.3s ease;
 }
-
 .submenu .submenu .menu-title {
-  background: #e8e8e8;
+  background: #f8f8f8;
 }
-
 .submenu .submenu .menu-title:hover {
   background: #eaeaea;
 }
-
 .arrow {
   border: solid #666;
   border-width: 0 2px 2px 0;
@@ -861,7 +845,6 @@ ol {
   margin-left: 8px;
   flex-shrink: 0;
 }
-
 .nav-item.expanded > .menu-title .arrow {
   transform: rotate(-135deg);
 }
