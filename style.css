@@ -767,7 +767,6 @@ ol {
     .nav {
       list-style: none;
       padding: 0;
-      background: ##ffffff;
       font-family: Arial, sans-serif;
       max-width: 250px;
       margin: 0;
@@ -778,7 +777,7 @@ ol {
     }
     .menu-title {
       cursor: pointer;
-      background: #f5f5f5;
+      background: ##ffffff;
       padding: 10px 16px;
       border-radius: 4px;
       display: flex;
