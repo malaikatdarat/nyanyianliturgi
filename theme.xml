@@ -1511,9 +1511,11 @@ font-size:1.1em;
 font-style:italic
 }
 .post-filter-message{
-background-color:$(postFilter.background.color);
+/* background-color:$(postFilter.background.color); */
+background-color:#333333;
 box-sizing:border-box;
-color:$(postFilter.message.color);
+/* color:$(postFilter.message.color); */
+color:#d9d9d9;
 display:-webkit-box;
 display:-webkit-flex;
 display:-ms-flexbox;
@@ -1523,6 +1525,26 @@ margin-bottom:16px;
 margin-top:32px;
 padding:12px 16px
 }
+
+@media (max-width: 768px) {
+  .post-filter-message {
+font-size: 13px;
+margin-bottom:8px;
+margin-top:16px;
+padding:6px 8px
+  }
+}
+
+.search-message {
+  font-style: normal;
+  text-align: justify;
+}
+
+@media (max-width: 768px) {
+  .search-message {
+  }
+}
+
 .post-filter-message>div:first-child{
 -webkit-box-flex:1;
 -webkit-flex:1 0 auto;
@@ -2134,7 +2156,7 @@ opacity:1;
 -webkit-transition:opacity .3s cubic-bezier(.4,0,.2,1);
 transition:opacity .3s cubic-bezier(.4,0,.2,1)
 }
-.centered-top.search-focused .blog-name,.centered-top.search-focused .return_link,.centered-top.search-focused .subscribe-section-container{
+.centered-top.search-focused .customheader, .centered-top.search-focused .blog-name,.centered-top.search-focused .return_link,.centered-top.search-focused .subscribe-section-container{
 opacity:0
 }
 body.search-view .centered-top.search-focused .blog-name .section,body.search-view .centered-top.search-focused .subscribe-section-container{
@@ -2615,7 +2637,8 @@ display:block
 }
 }
 .item-view .page_body{
-padding-top:70px
+/* padding-top:70px */
+padding-top:64px
 }
 .item-view .centered,.item-view .centered .main,.item-view .centered .main-container,.item-view .page_body.has-vertical-ads .centered,.item-view .page_body.has-vertical-ads .centered .main,.item-view .page_body.has-vertical-ads .centered .main-container{
 width:100%
@@ -2637,8 +2660,10 @@ max-width:1328px;
 width:100%
 }
 .item-view .bg-photo{
--webkit-filter:blur(12px);
-filter:blur(12px);
+/* -webkit-filter:blur(12px);
+filter:blur(12px); */
+-webkit-filter:blur(50px);
+filter:blur(50px);
 -webkit-transform:scale(1.05);
 -ms-transform:scale(1.05);
 transform:scale(1.05)
@@ -2826,6 +2851,48 @@ overflow:hidden
 #comment-holder .continue{
 display:none
 }
+#HTML2 {
+  padding: 0;
+  margin: 0;
+  max-width: 250px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.sidebar-container {
+  max-width: 250px;
+  float: right;
+}
+@media (max-width:745px){
+#HTML2 {
+  margin-top: 48px;
+  margin-left: 24px;
+  margin-right: 24px;
+}
+.sidebar-container {
+  max-width: 298px;
+  float: none;
+}}
+/* .feed-view .post-wrapper .post {
+  margin: 0;
+  padding: 12px 12px;
+  text-align: center;
+}
+.feed-view .post-title a .snippet-container {
+  height: 24px; !important;
+}
+.feed-view .post-wrapper .post-title a {
+  margin: -40px -16px !important;
+  padding: 24px 16px !important;
+}
+.post-header {
+  display: none;
+}
+.post-body {
+  display: none;
+}
+.post-footer {
+  display: none;
+} */
 ]]></b:skin>
 
     <b:template-skin>
@@ -3259,10 +3326,20 @@ display:none
                     <b:include data='{ iconClass: &quot;touch-icon hamburger-menu&quot; }' name='menuIcon'/>
                   </div>
                 </b:if>
+                
+                <a href='/'>
+      <figure class='customheader' data-ckbox-resource-id='ws6LoGo-ZMQc'>
+        <picture>
+          <source sizes='(max-width: 782px) 100vw, 782px' srcset='https://ckbox.cloud/46eb1b2bc4a9019326aa/assets/ws6LoGo-ZMQc/images/80.webp 80w,https://ckbox.cloud/46eb1b2bc4a9019326aa/assets/ws6LoGo-ZMQc/images/160.webp 160w,https://ckbox.cloud/46eb1b2bc4a9019326aa/assets/ws6LoGo-ZMQc/images/240.webp 240w,https://ckbox.cloud/46eb1b2bc4a9019326aa/assets/ws6LoGo-ZMQc/images/320.webp 320w,https://ckbox.cloud/46eb1b2bc4a9019326aa/assets/ws6LoGo-ZMQc/images/400.webp 400w,https://ckbox.cloud/46eb1b2bc4a9019326aa/assets/ws6LoGo-ZMQc/images/480.webp 480w,https://ckbox.cloud/46eb1b2bc4a9019326aa/assets/ws6LoGo-ZMQc/images/560.webp 560w,https://ckbox.cloud/46eb1b2bc4a9019326aa/assets/ws6LoGo-ZMQc/images/640.webp 640w,https://ckbox.cloud/46eb1b2bc4a9019326aa/assets/ws6LoGo-ZMQc/images/720.webp 720w,https://ckbox.cloud/46eb1b2bc4a9019326aa/assets/ws6LoGo-ZMQc/images/782.webp 782w' type='image/webp'>
+            <img alt='Logo website Nyanyian Liturgi' height='150' src='https://ckbox.cloud/46eb1b2bc4a9019326aa/assets/ws6LoGo-ZMQc/images/782.png' width='782'/> 
+        </source>
+        </picture>
+      </figure>
+    </a>
 
                 <div class='blog-name'>
                   <b:section id='header' name='Header' showaddelement='false'>
-                    <b:widget id='Header1' locked='true' title='Nyanyian Liturgi (Header)' type='Header' visible='true'>
+                    <b:widget id='Header1' locked='true' title='Nyanyian Liturgi (Header)' type='Header' visible='false'>
                       <b:widget-settings>
                         <b:widget-setting name='displayUrl'>https://blogger.googleusercontent.com/img/a/AVvXsEiatbX4oVcv3W5ii-TppB_aLLY31NMuxKUZrkJcyivfj4W3rSb3sEwmkH5YtGe6wxwuI8_mYYPoOTjsBuaEyWBwWIWAIXmJ4jMMX1kkctsPJyHpbCim0Gq0Tpsw3ZlEtaxo6hcwJota2BtQv5pW8xEnT5Ei1s8P9vpjsVqTpBjDEfVcvV1-q3-fhrskDJAh=s150</b:widget-setting>
                         <b:widget-setting name='displayHeight'>14</b:widget-setting>
@@ -3446,7 +3523,31 @@ display:none
               </div>
 
             </header>
+            
             <div class='centered-bottom'>
+              
+<b:if cond='data:view.isArchive or (data:view.isSearch and data:view.search.resultsMessage)'>
+  <div class='post-filter-message'>
+    <div>
+      <b:if cond='data:view.isArchive'>
+        <data:view.archive.rangeMessage/>
+      <b:elseif cond='data:view.isSearch and data:view.search.resultsMessage'/>
+        <div class='search-message'>
+          <b:if cond='data:view.search.label'>
+            Menampilkan nyanyian liturgi dengan label: &quot;<data:view.search.label/>&quot;
+          <b:else/>
+            Menampilkan nyanyian liturgi dengan kata kunci: &quot;<data:view.search.query/>&quot;
+          </b:if>
+        </div>
+      </b:if>
+    </div>
+    <div>
+      <a href='https://www.nyanyianliturgi.com/p/indeks-nyanyian-liturgi.html'>Lihat Semua</a>
+    </div>
+  </div>
+</b:if>
+              
+              <!--
               <b:if cond='data:view.isArchive or (data:view.isSearch and data:view.search.resultsMessage)'>
                 <div class='post-filter-message'>
                   <div>
@@ -3461,6 +3562,7 @@ display:none
                   </div>
                 </div>
               </b:if>
+-->
 
               <main class='main-container' id='main' role='main' tabindex='-1'>
                 <b:if cond='data:view.isMultipleItems'>
@@ -4485,37 +4587,34 @@ display:none
                     <b:include data='{ iconClass: &quot;touch-icon sidebar-back&quot; }' name='closeIcon'/>
                   </div>
                   <b:section class='sidebar' id='sidebar_feed' name='Sidebar' preferred='yes'>
-                    <b:widget id='Label1' locked='false' title='Kategori' type='Label' visible='true'>
+                    <b:widget id='HTML2' locked='true' title='' type='HTML' visible='true'>
                       <b:widget-settings>
-                        <b:widget-setting name='sorting'>FREQUENCY</b:widget-setting>
-                        <b:widget-setting name='display'>LIST</b:widget-setting>
-                        <b:widget-setting name='selectedLabelsList'/>
-                        <b:widget-setting name='showType'>ALL</b:widget-setting>
-                        <b:widget-setting name='showFreqNumbers'>true</b:widget-setting>
+                        <b:widget-setting name='content'><![CDATA[<div id="menu-container"></div>
+<pre id="rawMenuList" style="display: none;">
+- Beranda (/)
+- Artikel
+-- Katekese Liturgi (/search/label/Katekese)
+-- Seputar Musik Liturgi (/search/label/Artikel)
+-- Saran Nyanyian (/search/label/Saran%20Nyanyian)
+-- Indeks Artikel (/p/indeks-artikel.html)
+- Daftar Nyanyian
+-- Puji Syukur (/p/puji-syukur.html)
+-- Madah Bakti (/p/madah-bakti.html)
+-- Mazmur Tanggapan (/p/mazmur-tanggapan.html)
+-- Semua Kategori (/p/indeks-kategori.html)
+-- Indeks Nyanyian (/p/indeks-nyanyian-liturgi.html)
+- Katalog (/p/katalog.html)
+- Tentang
+-- Kontribusi (/p/kontribusi.html)
+-- Nyanyian Liturgi (/p/tentang-nyanyian-liturgi.html)
+</pre>]]></b:widget-setting>
                       </b:widget-settings>
-                      <b:includable id='main' var='this'>
-          <details class='collapsible extendable'>
-            <b:attr cond='data:view.isLabelSearch' name='open' value='open'/>
-            <b:with value='true' var='renderAsDetails'>
-            <b:with value='data:messages.labels' var='defaultTitle'>
-              <b:include name='super.main'/>
-            </b:with>
-            </b:with>
-          </details>
-        </b:includable>
-                      <b:includable id='cloud'>
-          <b:include data='{                               buttonClass: &quot;flat-button&quot;,                               items: data:this.labels,                               itemSet: &quot;labels&quot;,                               itemsMarkup: &quot;super.cloud&quot;                             }' name='extendableItems'/>
-        </b:includable>
-                      <b:includable id='content'>
+                      <b:includable id='main'>
+  <b:include name='widget-title'/>
   <div class='widget-content'>
-    <b:class expr:name='data:this.display + &quot;-label-widget-content&quot;'/>
-    <b:include cond='data:this.display == &quot;list&quot;' name='list'/>
-    <b:include cond='data:this.display == &quot;cloud&quot;' name='cloud'/>
+    <data:content/>
   </div>
 </b:includable>
-                      <b:includable id='list'>
-          <b:include data='{                               buttonClass: &quot;flat-button&quot;,                               items: data:this.labels,                               itemSet: &quot;labels&quot;,                               itemsMarkup: &quot;super.list&quot;                             }' name='extendableItems'/>
-        </b:includable>
                     </b:widget>
                     <b:widget id='ReportAbuse1' locked='true' title='' type='ReportAbuse' visible='false'>
                       <b:includable id='main'>
