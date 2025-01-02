@@ -821,7 +821,7 @@ ol {
 /* Submenu Styles */
 .submenu {
   margin: 0;
-  padding-left: 20px;
+  padding: 0;
   max-height: 0;
   opacity: 0;
   list-style: none;
@@ -851,12 +851,6 @@ ol {
 }
 
 /* Level 2 Submenu */
-.submenu .submenu {
-  padding-left: 20px;
-  max-height: 0;
-  transition: max-height 0.5s ease, opacity 0.3s ease;
-}
-
 .submenu .submenu .menu-title {
   background: #f8f8f8;
 }
