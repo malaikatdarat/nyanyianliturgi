@@ -802,6 +802,7 @@ ol {
   overflow-y: scroll;
   overflow-x: hidden;
   transition: max-height 0.5s ease, opacity 0.3s ease;
+  padding-left: 20px;
   list-style: none;
   margin: 0;
   scrollbar-width: none;
@@ -809,7 +810,7 @@ ol {
 }
 
 .submenu: hover {
-	background: #eaeaea;
+  background: #eaeaea;
 }
 
 .submenu::-webkit-scrollbar {
