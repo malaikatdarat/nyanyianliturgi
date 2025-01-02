@@ -777,7 +777,7 @@ ol {
     }
     .menu-title {
       cursor: pointer;
-      background: ##ffffff;
+      background: #ffffff;
       padding: 10px 16px;
       border-radius: 4px;
       display: flex;
@@ -802,11 +802,14 @@ ol {
   overflow-y: scroll;
   overflow-x: hidden;
   transition: max-height 0.5s ease, opacity 0.3s ease;
-  padding-left: 20px;
   list-style: none;
   margin: 0;
   scrollbar-width: none;
   -ms-overflow-style: none;
+}
+
+.submenu: hover {
+	background: #eaeaea;
 }
 
 .submenu::-webkit-scrollbar {
