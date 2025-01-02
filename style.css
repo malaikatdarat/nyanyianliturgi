@@ -773,6 +773,11 @@ ol {
   font-family: Arial, sans-serif;
 }
 
+@media (max-width: 768px) {
+.nav {
+  margin-top: 48px;
+}
+
 .nav, 
 .nav ul,
 .nav li,
