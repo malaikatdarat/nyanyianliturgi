@@ -795,7 +795,6 @@ ol {
   align-items: center;
   padding: 10px 16px;
   background: #ffffff;
-  border-radius: 4px;
   cursor: pointer;
   transition: background 0.3s;
 }
@@ -865,5 +864,23 @@ ol {
 }
 
 .submenu .submenu .menu-title:hover {
+  background: #eaeaea;
+}
+
+/* Level 3 Submenu */
+.submenu .submenu .submenu .menu-title {
+  background: #f5f5f5;
+}
+
+.submenu .submenu .submenu .menu-title:hover {
+  background: #eaeaea;
+}
+
+/* Level 4 Submenu */
+.submenu .submenu .submenu .submenu .menu-title {
+  background: whitesmoke;
+}
+
+.submenu .submenu .submenu .submenu .menu-title:hover {
   background: #eaeaea;
 }
