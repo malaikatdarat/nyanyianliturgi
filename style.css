@@ -764,93 +764,103 @@ ol {
 }
 
 /* Menu */
+/* Base Navigation Styles */
 .nav {
   list-style: none;
-  padding: 0;
-  font-family: Arial, sans-serif;
-  max-width: 250px;
   margin: 0;
+  padding: 0;
+  max-width: 250px;
+  font-family: Arial, sans-serif;
 }
+
+/* Navigation Item */
 .nav-item {
-  margin: 4px 0;
   position: relative;
+  margin: 4px 0;
 }
+
+/* Menu Title */
 .menu-title {
-  cursor: pointer;
-  background: #ffffff;
-  padding: 10px 16px;
-  border-radius: 4px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 10px 16px;
+  background: #ffffff;
+  border-radius: 4px;
+  cursor: pointer;
   transition: background 0.3s;
 }
+
 .menu-title:hover {
   background: #eaeaea;
 }
+
 .menu-title a {
-  pointer-events: none;
-  color: #333;
-  text-decoration: none;
-  font-weight: 500;
   flex: 1;
+  color: #333;
+  font-weight: 500;
+  text-decoration: none;
+  pointer-events: none;
 }
+
+/* Arrow Icon */
+.arrow {
+  display: inline-block;
+  padding: 3px;
+  margin-left: 8px;
+  border: solid #666;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  transition: transform 0.3s ease;
+}
+
+.nav-item.expanded > .menu-title .arrow {
+  transform: rotate(-135deg);
+}
+
+/* Submenu Styles */
 .submenu {
+  margin: 0;
+  padding-left: 20px;
   max-height: 0;
   opacity: 0;
+  list-style: none;
   overflow-y: scroll;
   overflow-x: hidden;
   transition: max-height 0.5s ease, opacity 0.3s ease;
-  padding-left: 20px;
-  list-style: none;
-  margin: 0;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
-submenu .menu-title {
-  background: #fcfcfc;
-}
-.submenu .menu-title:hover {
-  background: #eaeaea;
-}
+
 .submenu::-webkit-scrollbar {
   display: none;
 }
-.submenu .submenu {
-  padding-left: 20px;
-  transition: max-height 0.5s ease, opacity 0.3s ease;
-}
+
 .submenu.open {
   opacity: 1;
   visibility: visible;
 }
-/* Level 1 expanded */
+
+/* Level 1 Submenu */
 .nav-item.expanded > .submenu .menu-title {
   background: #fafafa;
 }
+
 .nav-item.expanded > .submenu .menu-title:hover {
   background: #eaeaea;
 }
-/* Level 2 */
+
+/* Level 2 Submenu */
 .submenu .submenu {
+  padding-left: 20px;
   max-height: 0;
   transition: max-height 0.5s ease, opacity 0.3s ease;
 }
+
 .submenu .submenu .menu-title {
   background: #f8f8f8;
 }
+
 .submenu .submenu .menu-title:hover {
   background: #eaeaea;
-}
-.arrow {
-  border: solid #666;
-  border-width: 0 2px 2px 0;
-  display: inline-block;
-  padding: 3px;
-  transform: rotate(45deg);
-  transition: transform 0.3s ease;
-  margin-left: 8px;
-}
-.nav-item.expanded > .menu-title .arrow {
-  transform: rotate(-135deg);
 }
