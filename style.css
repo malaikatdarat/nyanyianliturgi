@@ -350,6 +350,7 @@ ol {
     flex-wrap: wrap;
     width: 100%;
     gap: 20px;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 
 .download-row.last-row {
