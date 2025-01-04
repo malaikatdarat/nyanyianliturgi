@@ -843,12 +843,35 @@ document.addEventListener('DOMContentLoaded', function () {
             .join(',');
     }
 
+    function createImagePage(links) {
+        const newWindow = window.open('', '_blank');
+        newWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Preview Images</title>
+                <style>
+                    body { margin: 20px; background: #f5f5f5; }
+                    img { max-width: 100%; height: auto; margin: 10px 0; display: block; }
+                </style>
+            </head>
+            <body>
+        `);
+
+        links.forEach(link => {
+            newWindow.document.write(`<img src="${link}" alt="Preview Image">`);
+        });
+
+        newWindow.document.write('</body></html>');
+        newWindow.document.close();
+    }
+
     function processPreContent(content) {
         const entries = content.trim().split(/(?=unduh-link:)/);
         let processedHtml = '';
         let title = '';
-	let itemCount = 0;
-	let currentRow = '';
+        let itemCount = 0;
+        let currentRow = '';
         
         entries.forEach(entry => {
             if (!entry.trim()) return;
@@ -866,15 +889,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
 
-        const processedData = {
-            'unduh-link': data['unduh-link'] || '#',
-            'preview-source': data['preview-source'] || 'https://placehold.co/200x300',
-            'width': data['width'] || '2481',
-            'height': data['height'] || '3508',
-            'alt': data['alt'] || 'No description available',
-            'label': data['label'] || 'Download',
-            'sub': data['sub'] || ''
-        };
+            const processedData = {
+                'unduh-link': data['unduh-link'] || '#',
+                'preview-source': data['preview-source'] || 'https://placehold.co/200x300',
+                'width': data['width'] || '2481',
+                'height': data['height'] || '3508',
+                'alt': data['alt'] || 'No description available',
+                'label': data['label'] || 'Download',
+                'sub': data['sub'] || ''
+            };
 
             if (data['judul-lagu']) {
                 title = data['judul-lagu'];
@@ -888,19 +911,29 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div id="download-section">
                     <h2>Unduh Partitur</h2>
                     <p class="unduh-description">
-		    <span class="baris1">Pilih format yang sesuai </span><span class="baris1">untuk mengunduh partitur lagu </span><span class="baris2"><strong>${title}</strong>.</span>
+                    <span class="baris1">Pilih format yang sesuai </span><span class="baris1">untuk mengunduh partitur lagu </span><span class="baris2"><strong>${title}</strong>.</span>
                     </p>
                     <div class="download-grid">`;
             }
 
-	itemCount++;
-        
-        currentRow += `	
-                <a href="${processedData['unduh-link']}" 
-                   target="_blank" 
-                   rel="noopener noreferrer" 
-                   title="${processedData.alt}" 
-                   class="download-item">
+            itemCount++;
+            
+            const links = processedData['unduh-link'].split(';').map(link => link.trim());
+            const isMultipleLinks = links.length > 1;
+            
+            // Generate different HTML based on number of links
+            currentRow += isMultipleLinks ? 
+                `<a href="javascript:void(0)" 
+                    data-links="${links.join(';')}"
+                    title="${processedData.alt}" 
+                    class="download-item multiple-links">` :
+                `<a href="${processedData['unduh-link']}" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    title="${processedData.alt}" 
+                    class="download-item">`;
+                
+            currentRow += `
                     <figure class="unduh-preview">
                         <picture>
                             <source sizes="(max-width: ${data.width}px) 100vw, ${data.width}px" 
@@ -912,21 +945,21 @@ document.addEventListener('DOMContentLoaded', function () {
                                  height="${processedData.height}">
                         </picture>
                     </figure>
-        <div class="download-text">
-            <span class="download-label">${processedData.label}</span>
-            <span class="download-sub">${processedData.sub}</span>
-        </div>
+                    <div class="download-text">
+                        <span class="download-label">${processedData.label}</span>
+                        <span class="download-sub">${processedData.sub}</span>
+                    </div>
                 </a>`;
 
-		if (itemCount % 2 === 0) {
-            processedHtml += `<div class="download-row">${currentRow}</div>`;
-            currentRow = '';
-        }
-    });
+            if (itemCount % 2 === 0) {
+                processedHtml += `<div class="download-row">${currentRow}</div>`;
+                currentRow = '';
+            }
+        });
 
-	if (currentRow !== '') {
-        processedHtml += `<div class="download-row last-row">${currentRow}</div>`;
-    	}
+        if (currentRow !== '') {
+            processedHtml += `<div class="download-row last-row">${currentRow}</div>`;
+        }
 
         if (processedHtml !== '') {
             processedHtml += `</div></div>`;
@@ -935,11 +968,20 @@ document.addEventListener('DOMContentLoaded', function () {
         return processedHtml;
     }
 
-        const pre = document.getElementById('download-tab');
-        if (pre) {
+    const pre = document.getElementById('download-tab');
+    if (pre) {
         const content = pre.textContent;
         const html = processPreContent(content);
         pre.outerHTML = html;
+
+        // Add click event listeners only to download items with multiple links
+        document.querySelectorAll('.download-item.multiple-links').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const links = this.getAttribute('data-links').split(';');
+                createImagePage(links);
+            });
+        });
     }
 });
 
