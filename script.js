@@ -866,6 +866,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
 
+        const processedData = {
+            'unduh-link': data['unduh-link'] || '#',
+            'preview-source': data['preview-source'] || 'https://placehold.co/200x300',
+            'width': data['width'] || '2481',
+            'height': data['height'] || '3508',
+            'alt': data['alt'] || 'No description available',
+            'label': data['label'] || 'Download',
+            'sub': data['sub'] || ''
+        };
+
             if (data['judul-lagu']) {
                 title = data['judul-lagu'];
                 return;
@@ -879,7 +889,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
 
-            const baseUrl = data['preview-source'].substring(0, data['preview-source'].lastIndexOf('/'));
+            const baseUrl = processedData['preview-source'].substring(0, data['preview-source'].lastIndexOf('/'));
 
             if (processedHtml === '') {
                 processedHtml = `
@@ -894,25 +904,25 @@ document.addEventListener('DOMContentLoaded', function () {
 	itemCount++;
         
         currentRow += `	
-                <a href="${data['unduh-link']}" 
+                <a href="${processedData['unduh-link']}" 
                    target="_blank" 
                    rel="noopener noreferrer" 
-                   title="${data.alt}" 
+                   title="${processedData.alt}" 
                    class="download-item">
                     <figure class="unduh-preview">
                         <picture>
                             <source sizes="(max-width: ${data.width}px) 100vw, ${data.width}px" 
                                     srcset="${generateSrcset(baseUrl, parseInt(data.width))}"
                                     type="image/webp">
-                            <img src="${data['preview-source']}" 
-                                 alt="${data.alt}" 
-                                 width="${data.width}" 
-                                 height="${data.height}">
+                            <img src="${processedData['preview-source']}" 
+                                 alt="${processedData.alt}" 
+                                 width="${processedData.width}" 
+                                 height="${processedData.height}">
                         </picture>
                     </figure>
         <div class="download-text">
-            <span class="download-label">${data.label}</span>
-            <span class="download-sub">${data.sub}</span>
+            <span class="download-label">${processedData.label}</span>
+            <span class="download-sub">${processedData.sub}</span>
         </div>
                 </a>`;
 
