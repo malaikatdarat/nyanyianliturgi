@@ -881,15 +881,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            const requiredFields = ['unduh-link', 'preview-source', 'width', 'height', 'alt', 'label', 'sub'];
-            for (const field of requiredFields) {
-                if (!data[field]) {
-                    console.error(`Missing required field: ${field}`);
-                    return;
-                }
-            }
-
-            const baseUrl = processedData['preview-source'].substring(0, data['preview-source'].lastIndexOf('/'));
+            const baseUrl = processedData['preview-source'].substring(0, processedData['preview-source'].lastIndexOf('/'));
 
             if (processedHtml === '') {
                 processedHtml = `
@@ -933,7 +925,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
 	if (currentRow !== '') {
-        processedHtml += `<div class="download-row">${currentRow}</div>`;
+        processedHtml += `<div class="download-row last-row">${currentRow}</div>`;
     	}
 
         if (processedHtml !== '') {
