@@ -352,6 +352,14 @@ ol {
     gap: 20px;
 }
 
+.download-row.last-row {
+    justify-content: center;
+}
+
+.download-row.last-row .download-item:last-child {
+    margin-right: auto;
+}
+
 .download-item {
     text-decoration: none;
     display: flex;
@@ -371,7 +379,7 @@ ol {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
 }
 
 .download-label {
@@ -379,12 +387,14 @@ ol {
     text-align: center;
     font-weight: bold;
     color: #333;
+    margin-bottom: 1px;
 }
 
 .download-sub {
     font-size: 0.8em;
     text-align: center;
     color: #666;
+    margin-top: 0;
 }
 
 .unduh-preview {
@@ -444,6 +454,10 @@ ol {
     
     .download-row {
         gap: 15px;
+    }
+
+    .download-text {
+        gap: 1px;
     }
 }
 
