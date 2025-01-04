@@ -871,7 +871,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            const requiredFields = ['unduh-link', 'preview-source', 'width', 'height', 'alt', 'label'];
+            const requiredFields = ['unduh-link', 'preview-source', 'width', 'height', 'alt', 'label', 'sub'];
             for (const field of requiredFields) {
                 if (!data[field]) {
                     console.error(`Missing required field: ${field}`);
@@ -910,7 +910,10 @@ document.addEventListener('DOMContentLoaded', function () {
                                  height="${data.height}">
                         </picture>
                     </figure>
-                    <span class="download-label">${data.label}</span>
+        <div class="download-text">
+            <span class="download-label">${data.label}</span>
+            <span class="download-sub">${data.sub}</span>
+        </div>
                 </a>`;
 
 		if (itemCount % 2 === 0) {
