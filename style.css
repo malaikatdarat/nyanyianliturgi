@@ -354,10 +354,12 @@ ol {
 
 .download-row.last-row {
     justify-content: center;
+    width: 100%;
+    gap: 20px;
 }
 
 .download-row.last-row .download-item:last-child {
-    margin-right: auto;
+    margin-right: 0;
 }
 
 .download-item {
