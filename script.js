@@ -1,7 +1,7 @@
-  document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", () => {
     const tabHtml = `
         <div class="tab-wrap">
-            <input type="radio" id="tab1" name="tabGroup1" class="tab" checked>
+            <input type="radio" id="tab1" name="tabGroup1" class="tab">
             <label for="tab1"><span class="tab-text">Partitur</span><span class="tab-emoji">🎼</span></label>
             <input type="radio" id="tab2" name="tabGroup1" class="tab">
             <label for="tab2"><span class="tab-text">Syair</span><span class="tab-emoji">📖</span></label>
@@ -23,26 +23,67 @@
     const container = document.getElementById('mantab');
     container.innerHTML = tabHtml;
 
-    const template = document.getElementById('tab1-content');
-    const tab1Content = template.content.cloneNode(true);
-    const tabContents = container.querySelectorAll('.tab__content');
-    tabContents[0].appendChild(tab1Content);
+    // Map hash names to tab numbers
+    const hashToTab = {
+        'partitur': 1,
+        'syair': 2,
+        'media': 3,
+        'unduh': 4,
+        'info': 5
+    };
 
-    const template2 = document.getElementById('tab2-content');
-    const tab2Content = template2.content.cloneNode(true);
-    tabContents[1].appendChild(tab2Content);
-	
-	const template3 = document.getElementById('tab3-content');
-    const tab3Content = template3.content.cloneNode(true);
-    tabContents[2].appendChild(tab3Content);
-	
-	const template4 = document.getElementById('tab4-content');
-    const tab4Content = template4.content.cloneNode(true);
-    tabContents[3].appendChild(tab4Content);
-	
-	const template5 = document.getElementById('tab5-content');
-    const tab5Content = template5.content.cloneNode(true);
-    tabContents[4].appendChild(tab5Content);
+    // Map tab numbers to hash names (reverse mapping)
+    const tabToHash = {
+        1: 'partitur',
+        2: 'syair',
+        3: 'media',
+        4: 'unduh',
+        5: 'info'
+    };
+
+    // Clone and append content for each tab
+    for(let i = 1; i <= 5; i++) {
+        const template = document.getElementById(`tab${i}-content`);
+        const tabContent = template.content.cloneNode(true);
+        const tabContents = container.querySelectorAll('.tab__content');
+        tabContents[i-1].appendChild(tabContent);
+    }
+
+    // Function to open specific tab
+    function openTab(tabNumber) {
+        const tab = document.getElementById(`tab${tabNumber}`);
+        if (tab) {
+            tab.checked = true;
+        }
+    }
+
+    // Check URL hash on load
+    function checkHash() {
+        const hash = window.location.hash.replace('#', '');
+        if (hash && hashToTab[hash]) {
+            openTab(hashToTab[hash]);
+        } else {
+            // If no hash or invalid hash, default to tab1 (partitur)
+            openTab(1);
+        }
+    }
+
+    // Listen for hash changes
+    window.addEventListener('hashchange', checkHash);
+
+    // Initial check
+    checkHash();
+
+    // Update hash when tabs are clicked
+    const tabs = container.querySelectorAll('.tab');
+    tabs.forEach((tab, index) => {
+        tab.addEventListener('change', () => {
+            if (tab.checked) {
+                const tabNumber = index + 1;
+                window.location.hash = tabToHash[tabNumber];
+            }
+        });
+    });
 });
 
 function showFullImage(clickedImageSrc) {
