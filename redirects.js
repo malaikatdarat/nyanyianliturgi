@@ -1,6 +1,4 @@
 const redirects = {
-    '/ps': '/p/puji-syukur.html',
-    '/mb': '/p/madah-bakti.html',
     '/test': '/2024/12/peziarah-harapan-himne-yubileum-2025.html',
 };
 
