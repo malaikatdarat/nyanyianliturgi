@@ -1478,13 +1478,11 @@ function getSubmenuFullHeight(submenu) {
         });
 */
 
-(function() {
-  const originalConsoleError = console.error;
-
-  console.error = function(...args) {
-  };
-
-  // Opsional: Jika ingin memulihkan fungsi console.error seperti semula
-  // cukup panggil:
-  // console.error = originalConsoleError;
-})();
+window.onerror = function(message, source, lineno, colno, error) {
+  // Kosong: tidak melakukan apa pun
+  // atau log ke server, misalnya:
+  // sendToServer({ message, source, lineno, colno, error });
+  
+  // Return true agar browser tidak lagi menampilkan pesan error di console
+  return true;
+};
