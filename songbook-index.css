@@ -1,6 +1,7 @@
-.hymn-data {
-  display: none;
+#hymn-data {
+    display: none;
 }
+
 /* Hymn Table Container */
 .hymn-table-container {
     width: 80%;
