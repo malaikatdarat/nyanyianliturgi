@@ -1478,32 +1478,6 @@ function getSubmenuFullHeight(submenu) {
         });
 */
 
-/* Sembunyikan semua pesan error dari console */
-
-(function() {
-  // Simpan fungsi asli console.error
-  const originalConsoleError = console.error;
-
-  // Override console.error
-  console.error = function(...args) {
-    // Kosong: tidak melakukan apa pun
-    // originalConsoleError.apply(console, args); // Uncomment baris ini jika ingin mencatat error ke log lain.
-  };
-
-  // Opsional: Jika ingin memulihkan fungsi console.error seperti semula
-  // cukup panggil:
-  // console.error = originalConsoleError;
-})();
-
-window.onerror = function(message, source, lineno, colno, error) {
-  // Kosong: tidak melakukan apa pun
-  // atau log ke server, misalnya:
-  // sendToServer({ message, source, lineno, colno, error });
-  
-  // Return true agar browser tidak lagi menampilkan pesan error di console
-  return true;
-};
-
 /* Songbook Index */
 document.addEventListener('DOMContentLoaded', function() {
     // Get the pre element content
@@ -1660,3 +1634,29 @@ document.addEventListener('DOMContentLoaded', function() {
     preElement.parentNode.insertBefore(styles, preElement);
     preElement.parentNode.replaceChild(table, preElement);
 });
+
+/* Sembunyikan semua pesan error dari console */
+
+(function() {
+  // Simpan fungsi asli console.error
+  const originalConsoleError = console.error;
+
+  // Override console.error
+  console.error = function(...args) {
+    // Kosong: tidak melakukan apa pun
+    // originalConsoleError.apply(console, args); // Uncomment baris ini jika ingin mencatat error ke log lain.
+  };
+
+  // Opsional: Jika ingin memulihkan fungsi console.error seperti semula
+  // cukup panggil:
+  // console.error = originalConsoleError;
+})();
+
+window.onerror = function(message, source, lineno, colno, error) {
+  // Kosong: tidak melakukan apa pun
+  // atau log ke server, misalnya:
+  // sendToServer({ message, source, lineno, colno, error });
+  
+  // Return true agar browser tidak lagi menampilkan pesan error di console
+  return true;
+};
