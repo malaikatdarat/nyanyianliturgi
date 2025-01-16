@@ -1,4 +1,3 @@
-<script>
 document.addEventListener('DOMContentLoaded', function() {
     // Get the pre element content
     const preContent = document.getElementById('hymn-data').textContent;
@@ -154,4 +153,3 @@ document.addEventListener('DOMContentLoaded', function() {
     preElement.parentNode.insertBefore(styles, preElement);
     preElement.parentNode.replaceChild(table, preElement);
 });
-</script>
