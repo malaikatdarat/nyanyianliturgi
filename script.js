@@ -21,6 +21,8 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
 	
     const container = document.getElementById('mantab');
+	if (!container) return;
+	
     container.innerHTML = tabHtml;
 
     // Map hash names to tab numbers
@@ -596,7 +598,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
         const pre = document.getElementById('imageData');
-        if (pre) {
+	if (!pre) return;
+
         const content = pre.textContent;
         const html = processPreContent(content);
         pre.outerHTML = html;
@@ -679,10 +682,12 @@ document.addEventListener('DOMContentLoaded', function() {
 // Tab2
 document.addEventListener('DOMContentLoaded', function() {
     const rawSyairElement = document.getElementById('rawDataSyair');
+    const syairContainer = document.getElementById('syair-container');
+    
+    if (!rawSyairElement || !syairContainer) return;
+    
     const rawSyairText = rawSyairElement.textContent.trim();
     const lines = rawSyairText.split('\n');
-
-    const syairContainer = document.getElementById('syair-container');
 
     const headings = {
         REFRAIN: false,
@@ -793,6 +798,9 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('DOMContentLoaded', function() {
     const mediaSource = document.querySelector('.media-source');
     const mediaContainer = document.getElementById('media-container');
+    
+    if (!mediaSource || !mediaContainer) return;
+	
     const text = mediaSource.innerHTML;
     let html = '';
 
@@ -1010,7 +1018,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     const pre = document.getElementById('download-tab');
-    if (pre) {
+	if (!pre) return;
+	
         const content = pre.textContent;
         const html = processPreContent(content);
         pre.outerHTML = html;
@@ -1029,6 +1038,8 @@ document.addEventListener('DOMContentLoaded', function () {
 // Tab5
 document.addEventListener('DOMContentLoaded', function() {
   const rawElement = document.getElementById('rawDataTabel');
+	if (!rawElement) return;
+	
   const rawText = rawElement.textContent.trim();
   const lines = rawText.split('\n');
   
