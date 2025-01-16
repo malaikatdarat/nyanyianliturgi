@@ -1038,7 +1038,6 @@ document.addEventListener('DOMContentLoaded', function () {
 // Tab5
 document.addEventListener('DOMContentLoaded', function() {
   const rawElement = document.getElementById('rawDataTabel');
-	if (!rawElement) return;
 	
   const rawText = rawElement.textContent.trim();
   const lines = rawText.split('\n');
