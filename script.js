@@ -1477,3 +1477,14 @@ function getSubmenuFullHeight(submenu) {
             endnoteDiv.classList.add(&quot;endnote&quot;);
         });
 */
+
+(function() {
+  const originalConsoleError = console.error;
+
+  console.error = function(...args) {
+  };
+
+  // Opsional: Jika ingin memulihkan fungsi console.error seperti semula
+  // cukup panggil:
+  // console.error = originalConsoleError;
+})();
