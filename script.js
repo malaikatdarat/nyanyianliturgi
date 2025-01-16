@@ -1478,6 +1478,23 @@ function getSubmenuFullHeight(submenu) {
         });
 */
 
+/* Sembunyikan semua pesan error dari console */
+
+(function() {
+  // Simpan fungsi asli console.error
+  const originalConsoleError = console.error;
+
+  // Override console.error
+  console.error = function(...args) {
+    // Kosong: tidak melakukan apa pun
+    // originalConsoleError.apply(console, args); // Uncomment baris ini jika ingin mencatat error ke log lain.
+  };
+
+  // Opsional: Jika ingin memulihkan fungsi console.error seperti semula
+  // cukup panggil:
+  // console.error = originalConsoleError;
+})();
+
 window.onerror = function(message, source, lineno, colno, error) {
   // Kosong: tidak melakukan apa pun
   // atau log ke server, misalnya:
