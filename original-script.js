@@ -795,17 +795,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const mediaContainer = document.getElementById('media-container');
     const text = mediaSource.innerHTML;
     let html = '';
-
     const lines = text.split('\n').map(line => line.trim()).filter(line => line);
-
+    
     for(let i = 0; i < lines.length; i += 2) {
         const mediaLine = lines[i];
         const channelLine = lines[i + 1];
-
         if(mediaLine.startsWith('Video:')) {
             const videoMatch = mediaLine.match(/Video: (.*?) \[(.*?)\]/);
             const channelMatch = channelLine.match(/Kanal: (.*?) \[(.*?)\]/);
-
             if(videoMatch && channelMatch) {
                 const [_, title, videoIdWithParams] = videoMatch;
                 const [__, channelName, channelId] = channelMatch;
@@ -815,9 +812,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 html += generateVideoHTML(title, videoUrl, embedUrl, channelName, channelUrl);
             }
         } else if(mediaLine.startsWith('Audio:')) {
+            // Audio handling remains the same
             const audioMatch = mediaLine.match(/Audio: (.*?) \[(.*?)\]/);
             const channelMatch = channelLine.match(/Kanal: (.*?) \[(.*?)\]/);
-
             if(audioMatch && channelMatch) {
                 const [_, title, trackId] = audioMatch;
                 const [__, channelName, audioTrackPath] = channelMatch;
@@ -829,34 +826,39 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
-
     mediaContainer.innerHTML = html;
-
     mediaSource.remove();
+    
+    // Initialize lazy loading after content is added
+    initializeLazyLoading();
 });
 
 function generateVideoHTML(title, videoUrl, embedUrl, channelName, channelUrl) {
+    // Use a placeholder div instead of iframe initially
     return `
     <p class="judulvideo">
         <span class="baris1"><a target="_blank" rel="noopener noreferrer nofollow" href="${videoUrl}" title="Tonton di YouTube">🎬 ${title}</a></span>
-	<span class="batas"> | </span>
+        <span class="batas"> | </span>
         <span class="baris2"><a target="_blank" rel="noopener noreferrer nofollow" href="${channelUrl}" title="Buka kanal YouTube">📺 ${channelName}</a></span>
     </p>
     <div class="video-wrapper">
-        <iframe class="videoiframe"
-            src="${embedUrl}"
-	    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" 
-            playsinline
-	    allowfullscreen>
-        </iframe>
+        <div class="video-placeholder" 
+             data-embed-url="${embedUrl}"
+             style="background: #000; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+            <div style="text-align: center; color: white;">
+                <div style="font-size: 48px;">▶️</div>
+                <div>Klik untuk memuat video</div>
+            </div>
+        </div>
     </div>`;
 }
 
 function generateAudioHTML(title, audioTrackUrl, channelName, channelUrl, audioEmbedUrl) {
+    // Audio HTML remains the same
     return `
     <p class="judulaudio">
         <span class="baris1"><a target="_blank" rel="noopener noreferrer nofollow" href="${audioTrackUrl}" title="Dengarkan di SoundCloud">🎶 ${title}</a></span>
-	<span class="batas"> | </span>
+        <span class="batas"> | </span>
         <span class="baris2"><a target="_blank" rel="noopener noreferrer nofollow" href="${channelUrl}" title="Buka kanal SoundCloud">📻 ${channelName}</a></span>
     </p>
     <div class="audio-wrapper">
@@ -865,6 +867,46 @@ function generateAudioHTML(title, audioTrackUrl, channelName, channelUrl, audioE
             allowfullscreen>
         </iframe>
     </div>`;
+}
+
+function initializeLazyLoading() {
+    // Initialize Intersection Observer
+    const options = {
+        root: null,
+        rootMargin: '50px',
+        threshold: 0.1
+    };
+
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const placeholder = entry.target;
+                loadVideo(placeholder);
+                observer.unobserve(placeholder);
+            }
+        });
+    }, options);
+
+    // Observe all video placeholders
+    document.querySelectorAll('.video-placeholder').forEach(placeholder => {
+        observer.observe(placeholder);
+        // Add click handler for manual loading
+        placeholder.addEventListener('click', () => loadVideo(placeholder));
+    });
+}
+
+function loadVideo(placeholder) {
+    const embedUrl = placeholder.dataset.embedUrl;
+    const iframe = document.createElement('iframe');
+    iframe.className = 'videoiframe';
+    iframe.src = embedUrl;
+    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+    iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+    iframe.playsinline = true;
+    iframe.allowFullscreen = true;
+
+    // Replace placeholder with iframe
+    placeholder.parentNode.replaceChild(iframe, placeholder);
 }
 
 // Tab4
