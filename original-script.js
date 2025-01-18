@@ -688,6 +688,8 @@ document.addEventListener('DOMContentLoaded', function() {
         REFRAIN: false,
         REFREN: false,
         ULANGAN: false,
+	INTRO: false,
+	CODA: false,
         AYAT: true,
         BAIT: true
     };
