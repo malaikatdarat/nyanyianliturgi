@@ -522,6 +522,12 @@ overlay.addEventListener('click', (e) => {
 
 // Tab1
 document.addEventListener('DOMContentLoaded', function() {
+    const MOBILE_BREAKPOINT = 768; // Define breakpoint for mobile devices
+    
+    function isMobileView() {
+        return window.innerWidth < MOBILE_BREAKPOINT;
+    }
+
     function generateSrcset(baseUrl, originalWidth) {
         const increment = Math.max(80, Math.floor(originalWidth * 0.1));
         let breakpoints = [];
@@ -538,69 +544,130 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function processPreContent(content) {
-        const entries = content.trim().split(/(?=original-image-link:)/);
+        const entries = content.trim().split(/(?=(?:desktop|mobile)-image-link:)/);
         let processedHtml = '';
         
         entries.forEach(entry => {
             if (!entry.trim()) return;
             
-            const data = {};
+            const data = {
+                desktop: {},
+                mobile: {}
+            };
             const lines = entry.trim().split('\n');
             
+            // Parse data for both desktop and mobile
             lines.forEach(line => {
                 line = line.trim();
                 if (line.includes(':')) {
                     const colonIndex = line.indexOf(':');
                     const key = line.substring(0, colonIndex).trim();
                     const value = line.substring(colonIndex + 1).trim();
-                    data[key] = value.replace(/^"(.*)"$/, '$1') || null;
+                    
+                    if (key.startsWith('desktop-')) {
+                        data.desktop[key.replace('desktop-', '')] = value.replace(/^"(.*)"$/, '$1') || null;
+                    } else if (key.startsWith('mobile-')) {
+                        data.mobile[key.replace('mobile-', '')] = value.replace(/^"(.*)"$/, '$1') || null;
+                    } else {
+                        // Shared properties
+                        data.desktop[key] = value.replace(/^"(.*)"$/, '$1') || null;
+                        data.mobile[key] = value.replace(/^"(.*)"$/, '$1') || null;
+                    }
                 }
             });
 
-            const requiredFields = ['original-image-link', 'width', 'height', 'alt'];
-            for (const field of requiredFields) {
-                if (!data[field]) {
-                    console.error(`Missing required field: ${field}`);
-                    return;
-                }
+            // Validate required fields for available modes
+            const requiredFields = ['image-link', 'width', 'height', 'alt'];
+            const hasDesktop = requiredFields.every(field => data.desktop[field]);
+            const hasMobile = requiredFields.every(field => data.mobile[field]);
+
+            if (!hasDesktop && !hasMobile) {
+                console.error('Missing required fields for both desktop and mobile');
+                return;
             }
 
-            const resourceId = data['original-image-link'].split('/assets/')[1].split('/')[0];
-            const baseUrl = data['original-image-link'].substring(0, data['original-image-link'].lastIndexOf('/'));
-            
+            // Generate HTML for both versions
             let titleHtml = '';
-            if (data.title && data.title.trim()) {
-                titleHtml = `<p><strong>${data.title}</strong></p>`;
+            if (data.desktop.title && data.desktop.title.trim()) {
+                titleHtml = `<p><strong>${data.desktop.title}</strong></p>`;
+            }
+
+            function createPicture(imageData, mode) {
+                if (!imageData['image-link']) return '';
+                
+                const resourceId = imageData['image-link'].split('/assets/')[1].split('/')[0];
+                const baseUrl = imageData['image-link'].substring(0, imageData['image-link'].lastIndexOf('/'));
+                
+                return `
+                    <picture class="image-${mode}" style="display: none;">
+                        <source 
+                            sizes="(max-width: ${imageData.width}px) 100vw, ${imageData.width}px"
+                            srcset="${generateSrcset(baseUrl, parseInt(imageData.width))}"
+                            type="image/webp">
+                        <img src="${imageData['image-link']}"
+                             alt="${imageData.alt}"
+                             width="${imageData.width}"
+                             height="${imageData.height}"
+                             loading="lazy"
+                             onclick="showFullImage(this.src)">
+                    </picture>`;
             }
 
             const html = `
                 ${titleHtml}
-                <figure class="image" data-ckbox-resource-id="${resourceId}">
-                    <picture>
-                        <source 
-                            sizes="(max-width: ${data.width}px) 100vw, ${data.width}px"
-                            srcset="${generateSrcset(baseUrl, parseInt(data.width))}"
-                            type="image/webp">
-                        <img src="${data['original-image-link']}"
-                             alt="${data.alt}"
-                             width="${data.width}"
-                             height="${data.height}"
-                             onclick="showFullImage(this.src)">
-                    </picture>
+                <figure class="responsive-image" data-has-desktop="${hasDesktop}" data-has-mobile="${hasMobile}">
+                    ${createPicture(data.desktop, 'desktop')}
+                    ${createPicture(data.mobile, 'mobile')}
                 </figure>`;
             
             processedHtml += html;
         });
-
         return processedHtml;
     }
 
-        const pre = document.getElementById('imageData');
-        if (pre) {
+    function updateImageVisibility() {
+        const isMobile = isMobileView();
+        document.querySelectorAll('.responsive-image').forEach(figure => {
+            const hasDesktop = figure.dataset.hasDesktop === 'true';
+            const hasMobile = figure.dataset.hasMobile === 'true';
+            const desktopPicture = figure.querySelector('.image-desktop');
+            const mobilePicture = figure.querySelector('.image-mobile');
+
+            if (isMobile) {
+                // Mobile view logic
+                if (hasMobile) {
+                    if (mobilePicture) mobilePicture.style.display = 'block';
+                    if (desktopPicture) desktopPicture.style.display = 'none';
+                } else if (hasDesktop) {
+                    if (desktopPicture) desktopPicture.style.display = 'block';
+                }
+            } else {
+                // Desktop view logic
+                if (hasDesktop) {
+                    if (desktopPicture) desktopPicture.style.display = 'block';
+                    if (mobilePicture) mobilePicture.style.display = 'none';
+                } else if (hasMobile) {
+                    if (mobilePicture) mobilePicture.style.display = 'block';
+                }
+            }
+        });
+    }
+
+    // Initial setup
+    const pre = document.getElementById('imageData');
+    if (pre) {
         const content = pre.textContent;
         const html = processPreContent(content);
         pre.outerHTML = html;
+        updateImageVisibility();
     }
+
+    // Handle window resize
+    let resizeTimeout;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(updateImageVisibility, 100);
+    });
 });
 
 /*
