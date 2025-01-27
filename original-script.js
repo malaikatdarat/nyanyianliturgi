@@ -571,27 +571,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function processPreContent(content) {
-        // Split content by titles, but preserve entries without titles at the start
         const titleSections = content.trim().split(/(?=\n\s*title:)/i);
         let processedHtml = '';
         const isMobile = isMobileDevice();
         
         titleSections.forEach(section => {
-            // Split section into entries by double newlines
             const entries = section.trim().split(/\n\s*\n/);
             let currentTitle = null;
-            let sectionHtml = '';
-            let sectionEntries = [];
             let willShowImages = false;
+            let sectionEntries = [];
             
-            // Process each entry in the section
             entries.forEach(entry => {
                 if (!entry.trim()) return;
                 
                 const data = {};
                 const lines = entry.trim().split('\n');
                 
-                // Parse the entry's data
                 lines.forEach(line => {
                     line = line.trim();
                     if (line.includes(':')) {
@@ -602,12 +597,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 });
 
-                // Update title if found
                 if (data.title) {
                     currentTitle = data.title;
                 }
 
-                // Collect entry if it has image data
                 if ((data['desktop-image-link'] && data['desktop-width'] && data['desktop-height']) ||
                     (data['mobile-image-link'] && data['mobile-width'] && data['mobile-height'])) {
                     sectionEntries.push(data);
@@ -617,7 +610,6 @@ document.addEventListener('DOMContentLoaded', function() {
             let imagesHtml = '';
             
             if (isMobile) {
-                // Check if section has any mobile images
                 const hasMobileImages = sectionEntries.some(entry => 
                     entry['mobile-image-link'] && entry['mobile-width'] && entry['mobile-height']
                 );
@@ -655,12 +647,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
 
-            // Only add title and images if there are images to show
             if (willShowImages) {
+                let sectionHtml = '';
+                // Add title first if it exists with custom class
                 if (currentTitle) {
-                    sectionHtml += `<h2>${currentTitle}</h2>`;
+                    sectionHtml = `<div class="image-section-title">${currentTitle}</div>\n`;
                 }
                 sectionHtml += imagesHtml;
+                
                 processedHtml += sectionHtml;
             }
         });
@@ -674,6 +668,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const content = pre.textContent;
         const html = processPreContent(content);
         const div = document.createElement('div');
+        div.className = 'image-sections-container';
         div.innerHTML = html;
         pre.parentNode.replaceChild(div, pre);
     }
@@ -683,10 +678,15 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('resize', function() {
         clearTimeout(resizeTimeout);
         resizeTimeout = setTimeout(function() {
-            const container = document.querySelector('#imageData').parentNode;
-            const content = container.querySelector('pre')?.textContent || container.innerHTML;
-            const html = processPreContent(content);
-            container.innerHTML = html;
+            const container = document.querySelector('.image-sections-container');
+            if (container) {
+                const content = container.querySelector('pre')?.textContent || 
+                              document.getElementById('imageData')?.textContent;
+                if (content) {
+                    const html = processPreContent(content);
+                    container.innerHTML = html;
+                }
+            }
         }, 250);
     });
 });
