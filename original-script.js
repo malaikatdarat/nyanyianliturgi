@@ -521,169 +521,105 @@ overlay.addEventListener('click', (e) => {
 
 
 // Tab1
-document.addEventListener('DOMContentLoaded', function() {
-    function generateSrcset(baseUrl, originalWidth) {
-        const increment = Math.max(80, Math.floor(originalWidth * 0.1));
-        let breakpoints = [];
-        let currentWidth = increment;
+function processPreContent(content) {
+    const titleSections = content.trim().split(/(?=\n\s*title:)/i);
+    let processedHtml = '';
+    const isMobile = isMobileDevice();
+    
+    titleSections.forEach(section => {
+        const entries = section.trim().split(/(?=\n\s*\n)/);
+        let currentTitle = '';
+        let sectionHtml = '';
+        let sectionEntries = [];
+        let willShowImages = false;
         
-        while (currentWidth <= originalWidth && breakpoints.length < 10) {
-            breakpoints.push(currentWidth);
-            currentWidth += increment;
-        }
-        
-        return breakpoints
-            .map(width => `${baseUrl}/${width}.webp ${width}w`)
-            .join(',');
-    }
-
-    function isMobileDevice() {
-        return window.matchMedia('(max-width: 768px)').matches;
-    }
-
-    function processPreContent(content) {
-        // Split content by empty lines, but keep track of entries between titles
-        const titleSections = content.trim().split(/(?=\n\s*title:)/i);
-        let processedHtml = '';
-        const isMobile = isMobileDevice();
-        
-        titleSections.forEach(section => {
-            const entries = section.trim().split(/(?=\n\s*\n)/);
+        // First pass: Get title and collect entries
+        entries.forEach(entry => {
+            if (!entry.trim()) return;
             
-            // Track available image types within this title section
-            let availableDesktopImages = new Set();
-            let availableMobileImages = new Set();
+            const data = {};
+            const lines = entry.trim().split('\n');
             
-            // First pass: identify available images in this section
-            entries.forEach(entry => {
-                if (!entry.trim()) return;
-                
-                const data = {};
-                const lines = entry.trim().split('\n');
-                
-                lines.forEach(line => {
-                    line = line.trim();
-                    if (line.includes(':')) {
-                        const colonIndex = line.indexOf(':');
-                        const key = line.substring(0, colonIndex).trim();
-                        const value = line.substring(colonIndex + 1).trim();
-                        data[key] = value.replace(/^"(.*)"$/, '$1') || null;
-                    }
-                });
-
-                if (data['desktop-image-link'] && data['desktop-width'] && data['desktop-height']) {
-                    availableDesktopImages.add(entry);
-                }
-                if (data['mobile-image-link'] && data['mobile-width'] && data['mobile-height']) {
-                    availableMobileImages.add(entry);
+            lines.forEach(line => {
+                line = line.trim();
+                if (line.includes(':')) {
+                    const colonIndex = line.indexOf(':');
+                    const key = line.substring(0, colonIndex).trim().toLowerCase();
+                    const value = line.substring(colonIndex + 1).trim();
+                    data[key] = value.replace(/^"(.*)"$/, '$1') || null;
                 }
             });
 
-            // Second pass: process entries
-            entries.forEach(entry => {
-                if (!entry.trim()) return;
-                
-                const data = {};
-                const lines = entry.trim().split('\n');
-                
-                lines.forEach(line => {
-                    line = line.trim();
-                    if (line.includes(':')) {
-                        const colonIndex = line.indexOf(':');
-                        const key = line.substring(0, colonIndex).trim();
-                        const value = line.substring(colonIndex + 1).trim();
-                        data[key] = value.replace(/^"(.*)"$/, '$1') || null;
-                    }
-                });
-
-                // Determine which image to use
-                let useDeviceType = null;
-                const hasDesktopImage = data['desktop-image-link'] && data['desktop-width'] && data['desktop-height'];
-                const hasMobileImage = data['mobile-image-link'] && data['mobile-width'] && data['mobile-height'];
-
-                if (isMobile) {
-                    useDeviceType = hasMobileImage ? 'mobile' : 
-                                  (hasDesktopImage ? 'desktop' : null);
-                } else {
-                    useDeviceType = hasDesktopImage ? 'desktop' : 
-                                  (hasMobileImage ? 'mobile' : null);
-                }
-
-                if (!useDeviceType) {
-                    console.error('No valid image data found for entry:', entry);
-                    return;
-                }
-
-                const imageLink = data[`${useDeviceType}-image-link`];
-                const width = data[`${useDeviceType}-width`];
-                const height = data[`${useDeviceType}-height`];
-                const alt = data.alt || '';
-                const title = data.title || '';
-
-                if (!imageLink || !width || !height) {
-                    console.error(`Missing required fields for ${useDeviceType} image in entry:`, entry);
-                    return;
-                }
-
-                const resourceId = imageLink.split('/assets/')[1]?.split('/')[0];
-                if (!resourceId) {
-                    console.error('Invalid image link format in entry:', entry);
-                    return;
-                }
-
-                const baseUrl = imageLink.substring(0, imageLink.lastIndexOf('/'));
-                
-let titleHtml = '';
-if (title && title.trim()) {  // Memastikan title ada dan bukan string kosong
-    titleHtml = `<p><strong>${title}</strong></p>`;
-}
-
-                const html = `
-                    ${titleHtml}
-                    <figure class="image" data-ckbox-resource-id="${resourceId}">
-                        <picture>
-                            <source 
-                                sizes="(max-width: ${width}px) 100vw, ${width}px"
-                                srcset="${generateSrcset(baseUrl, parseInt(width))}"
-                                type="image/webp"
-                                media="${useDeviceType === 'mobile' ? '(max-width: 768px)' : '(min-width: 769px)'}">
-                            <img src="${imageLink}"
-                                 alt="${alt}"
-                                 width="${width}"
-                                 height="${height}"
-                                 loading="lazy"
-                                 onclick="showFullImage(this.src)">
-                        </picture>
-                    </figure>`;
-                
-                processedHtml += html;
-            });
+            if (data.title) {
+                currentTitle = data.title;
+            }
+            
+            // Only add entries with images
+            if ((data['desktop-image-link'] && data['desktop-width'] && data['desktop-height']) ||
+                (data['mobile-image-link'] && data['mobile-width'] && data['mobile-height'])) {
+                sectionEntries.push(data);
+            }
         });
 
-        return processedHtml;
-    }
+        let imagesHtml = '';
+        
+        // Process entries based on device type
+        if (isMobile) {
+            // Check if section has any mobile images
+            const hasMobileImages = sectionEntries.some(entry => 
+                entry['mobile-image-link'] && entry['mobile-width'] && entry['mobile-height']
+            );
 
-    const pre = document.getElementById('imageData');
-    if (pre) {
-        const content = pre.textContent;
-        const html = processPreContent(content);
-        pre.outerHTML = html;
-    }
+            sectionEntries.forEach(data => {
+                if (hasMobileImages) {
+                    // If section has mobile images, only show mobile images
+                    if (data['mobile-image-link'] && data['mobile-width'] && data['mobile-height']) {
+                        imagesHtml += generateImageHtml(data, 'mobile');
+                        willShowImages = true;
+                    }
+                } else {
+                    // If section has no mobile images, show desktop images
+                    if (data['desktop-image-link'] && data['desktop-width'] && data['desktop-height']) {
+                        imagesHtml += generateImageHtml(data, 'desktop');
+                        willShowImages = true;
+                    }
+                }
+            });
+        } else {
+            // Desktop mode
+            const hasDesktopImages = sectionEntries.some(entry => 
+                entry['desktop-image-link'] && entry['desktop-width'] && entry['desktop-height']
+            );
 
-    // Handle screen resize
-    let resizeTimeout;
-    window.addEventListener('resize', function() {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(function() {
-            const pre = document.getElementById('imageData');
-            if (pre) {
-                const content = pre.textContent;
-                const html = processPreContent(content);
-                pre.outerHTML = html;
+            sectionEntries.forEach(data => {
+                if (hasDesktopImages) {
+                    // If section has desktop images, only show desktop images
+                    if (data['desktop-image-link'] && data['desktop-width'] && data['desktop-height']) {
+                        imagesHtml += generateImageHtml(data, 'desktop');
+                        willShowImages = true;
+                    }
+                } else {
+                    // If section has no desktop images, show mobile images
+                    if (data['mobile-image-link'] && data['mobile-width'] && data['mobile-height']) {
+                        imagesHtml += generateImageHtml(data, 'mobile');
+                        willShowImages = true;
+                    }
+                }
+            });
+        }
+
+        // Only add title and images if there are images to show
+        if (willShowImages) {
+            if (currentTitle) {
+                sectionHtml += `<h2>${currentTitle}</h2>`;
             }
-        }, 250);
+            sectionHtml += imagesHtml;
+            processedHtml += sectionHtml;
+        }
     });
-});
+
+    return processedHtml;
+}
 
 /*
 document.addEventListener('DOMContentLoaded', function() {
