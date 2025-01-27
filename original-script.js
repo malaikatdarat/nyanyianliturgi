@@ -542,7 +542,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function processPreContent(content) {
-        const entries = content.trim().split(/(?=(?:desktop|mobile)-image-link:)/);
+        const entries = content.trim().split(/(?=\n\s*\n)/); // Pisahkan entri berdasarkan baris kosong
         let processedHtml = '';
         const isMobile = isMobileDevice();
         
@@ -562,26 +562,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
-            // Determine which image set to use
+            // Tentukan jenis perangkat
             const deviceType = isMobile ? 'mobile' : 'desktop';
             const altDeviceType = isMobile ? 'desktop' : 'mobile';
             
-            // Check if preferred device type images exist
+            // Cek apakah gambar untuk perangkat yang digunakan tersedia
             const hasPreferredImage = data[`${deviceType}-image-link`] && 
                                     data[`${deviceType}-width`] && 
                                     data[`${deviceType}-height`];
             
-            // Check if alternative device type images exist
+            // Cek apakah gambar untuk perangkat alternatif tersedia
             const hasAltImage = data[`${altDeviceType}-image-link`] && 
                               data[`${altDeviceType}-width`] && 
                               data[`${altDeviceType}-height`];
 
-            // Use fallback if preferred image doesn't exist
+            // Gunakan gambar untuk perangkat yang sesuai atau alternatif
             const useDeviceType = hasPreferredImage ? deviceType : 
                                 (hasAltImage ? altDeviceType : null);
 
             if (!useDeviceType) {
-                console.error('No valid image data found');
+                console.error('No valid image data found for entry:', entry);
                 return;
             }
 
@@ -592,13 +592,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const title = data.title || '';
 
             if (!imageLink || !width || !height) {
-                console.error(`Missing required fields for ${useDeviceType} image`);
+                console.error(`Missing required fields for ${useDeviceType} image in entry:`, entry);
                 return;
             }
 
             const resourceId = imageLink.split('/assets/')[1]?.split('/')[0];
             if (!resourceId) {
-                console.error('Invalid image link format');
+                console.error('Invalid image link format in entry:', entry);
                 return;
             }
 
@@ -617,7 +617,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             sizes="(max-width: ${width}px) 100vw, ${width}px"
                             srcset="${generateSrcset(baseUrl, parseInt(width))}"
                             type="image/webp"
-                            media="${isMobile ? '(max-width: 768px)' : '(min-width: 769px)'}">
+                            media="${useDeviceType === 'mobile' ? '(max-width: 768px)' : '(min-width: 769px)'}">
                         <img src="${imageLink}"
                              alt="${alt}"
                              width="${width}"
