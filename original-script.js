@@ -521,105 +521,175 @@ overlay.addEventListener('click', (e) => {
 
 
 // Tab1
-function processPreContent(content) {
-    const titleSections = content.trim().split(/(?=\n\s*title:)/i);
-    let processedHtml = '';
-    const isMobile = isMobileDevice();
-    
-    titleSections.forEach(section => {
-        const entries = section.trim().split(/(?=\n\s*\n)/);
-        let currentTitle = '';
-        let sectionHtml = '';
-        let sectionEntries = [];
-        let willShowImages = false;
+document.addEventListener('DOMContentLoaded', function() {
+    function generateSrcset(baseUrl, originalWidth) {
+        const increment = Math.max(80, Math.floor(originalWidth * 0.1));
+        let breakpoints = [];
+        let currentWidth = increment;
         
-        // First pass: Get title and collect entries
-        entries.forEach(entry => {
-            if (!entry.trim()) return;
+        while (currentWidth <= originalWidth && breakpoints.length < 10) {
+            breakpoints.push(currentWidth);
+            currentWidth += increment;
+        }
+        
+        return breakpoints
+            .map(width => `${baseUrl}/${width}.webp ${width}w`)
+            .join(',');
+    }
+
+    function isMobileDevice() {
+        return window.matchMedia('(max-width: 768px)').matches;
+    }
+
+    function generateImageHtml(data, deviceType) {
+        const imageLink = data[`${deviceType}-image-link`];
+        const width = data[`${deviceType}-width`];
+        const height = data[`${deviceType}-height`];
+        const alt = data.alt || '';
+        
+        const resourceId = imageLink.split('/assets/')[1]?.split('/')[0];
+        if (!resourceId) return '';
+        
+        const baseUrl = imageLink.substring(0, imageLink.lastIndexOf('/'));
+        
+        return `
+            <figure class="image" data-ckbox-resource-id="${resourceId}">
+                <picture>
+                    <source 
+                        sizes="(max-width: ${width}px) 100vw, ${width}px"
+                        srcset="${generateSrcset(baseUrl, parseInt(width))}"
+                        type="image/webp"
+                        media="${deviceType === 'mobile' ? '(max-width: 768px)' : '(min-width: 769px)'}">
+                    <img src="${imageLink}"
+                         alt="${alt}"
+                         width="${width}"
+                         height="${height}"
+                         loading="lazy"
+                         onclick="showFullImage(this.src)">
+                </picture>
+            </figure>`;
+    }
+
+    function processPreContent(content) {
+        // Split content by titles, but preserve entries without titles at the start
+        const titleSections = content.trim().split(/(?=\n\s*title:)/i);
+        let processedHtml = '';
+        const isMobile = isMobileDevice();
+        
+        titleSections.forEach(section => {
+            // Split section into entries by double newlines
+            const entries = section.trim().split(/\n\s*\n/);
+            let currentTitle = null;
+            let sectionHtml = '';
+            let sectionEntries = [];
+            let willShowImages = false;
             
-            const data = {};
-            const lines = entry.trim().split('\n');
-            
-            lines.forEach(line => {
-                line = line.trim();
-                if (line.includes(':')) {
-                    const colonIndex = line.indexOf(':');
-                    const key = line.substring(0, colonIndex).trim().toLowerCase();
-                    const value = line.substring(colonIndex + 1).trim();
-                    data[key] = value.replace(/^"(.*)"$/, '$1') || null;
+            // Process each entry in the section
+            entries.forEach(entry => {
+                if (!entry.trim()) return;
+                
+                const data = {};
+                const lines = entry.trim().split('\n');
+                
+                // Parse the entry's data
+                lines.forEach(line => {
+                    line = line.trim();
+                    if (line.includes(':')) {
+                        const colonIndex = line.indexOf(':');
+                        const key = line.substring(0, colonIndex).trim().toLowerCase();
+                        const value = line.substring(colonIndex + 1).trim();
+                        data[key] = value.replace(/^"(.*)"$/, '$1') || null;
+                    }
+                });
+
+                // Update title if found
+                if (data.title) {
+                    currentTitle = data.title;
+                }
+
+                // Collect entry if it has image data
+                if ((data['desktop-image-link'] && data['desktop-width'] && data['desktop-height']) ||
+                    (data['mobile-image-link'] && data['mobile-width'] && data['mobile-height'])) {
+                    sectionEntries.push(data);
                 }
             });
 
-            if (data.title) {
-                currentTitle = data.title;
-            }
+            let imagesHtml = '';
             
-            // Only add entries with images
-            if ((data['desktop-image-link'] && data['desktop-width'] && data['desktop-height']) ||
-                (data['mobile-image-link'] && data['mobile-width'] && data['mobile-height'])) {
-                sectionEntries.push(data);
+            if (isMobile) {
+                // Check if section has any mobile images
+                const hasMobileImages = sectionEntries.some(entry => 
+                    entry['mobile-image-link'] && entry['mobile-width'] && entry['mobile-height']
+                );
+
+                sectionEntries.forEach(data => {
+                    if (hasMobileImages) {
+                        if (data['mobile-image-link'] && data['mobile-width'] && data['mobile-height']) {
+                            imagesHtml += generateImageHtml(data, 'mobile');
+                            willShowImages = true;
+                        }
+                    } else {
+                        if (data['desktop-image-link'] && data['desktop-width'] && data['desktop-height']) {
+                            imagesHtml += generateImageHtml(data, 'desktop');
+                            willShowImages = true;
+                        }
+                    }
+                });
+            } else {
+                const hasDesktopImages = sectionEntries.some(entry => 
+                    entry['desktop-image-link'] && entry['desktop-width'] && entry['desktop-height']
+                );
+
+                sectionEntries.forEach(data => {
+                    if (hasDesktopImages) {
+                        if (data['desktop-image-link'] && data['desktop-width'] && data['desktop-height']) {
+                            imagesHtml += generateImageHtml(data, 'desktop');
+                            willShowImages = true;
+                        }
+                    } else {
+                        if (data['mobile-image-link'] && data['mobile-width'] && data['mobile-height']) {
+                            imagesHtml += generateImageHtml(data, 'mobile');
+                            willShowImages = true;
+                        }
+                    }
+                });
+            }
+
+            // Only add title and images if there are images to show
+            if (willShowImages) {
+                if (currentTitle) {
+                    sectionHtml += `<h2>${currentTitle}</h2>`;
+                }
+                sectionHtml += imagesHtml;
+                processedHtml += sectionHtml;
             }
         });
 
-        let imagesHtml = '';
-        
-        // Process entries based on device type
-        if (isMobile) {
-            // Check if section has any mobile images
-            const hasMobileImages = sectionEntries.some(entry => 
-                entry['mobile-image-link'] && entry['mobile-width'] && entry['mobile-height']
-            );
+        return processedHtml;
+    }
 
-            sectionEntries.forEach(data => {
-                if (hasMobileImages) {
-                    // If section has mobile images, only show mobile images
-                    if (data['mobile-image-link'] && data['mobile-width'] && data['mobile-height']) {
-                        imagesHtml += generateImageHtml(data, 'mobile');
-                        willShowImages = true;
-                    }
-                } else {
-                    // If section has no mobile images, show desktop images
-                    if (data['desktop-image-link'] && data['desktop-width'] && data['desktop-height']) {
-                        imagesHtml += generateImageHtml(data, 'desktop');
-                        willShowImages = true;
-                    }
-                }
-            });
-        } else {
-            // Desktop mode
-            const hasDesktopImages = sectionEntries.some(entry => 
-                entry['desktop-image-link'] && entry['desktop-width'] && entry['desktop-height']
-            );
+    // Initial processing
+    const pre = document.getElementById('imageData');
+    if (pre) {
+        const content = pre.textContent;
+        const html = processPreContent(content);
+        const div = document.createElement('div');
+        div.innerHTML = html;
+        pre.parentNode.replaceChild(div, pre);
+    }
 
-            sectionEntries.forEach(data => {
-                if (hasDesktopImages) {
-                    // If section has desktop images, only show desktop images
-                    if (data['desktop-image-link'] && data['desktop-width'] && data['desktop-height']) {
-                        imagesHtml += generateImageHtml(data, 'desktop');
-                        willShowImages = true;
-                    }
-                } else {
-                    // If section has no desktop images, show mobile images
-                    if (data['mobile-image-link'] && data['mobile-width'] && data['mobile-height']) {
-                        imagesHtml += generateImageHtml(data, 'mobile');
-                        willShowImages = true;
-                    }
-                }
-            });
-        }
-
-        // Only add title and images if there are images to show
-        if (willShowImages) {
-            if (currentTitle) {
-                sectionHtml += `<h2>${currentTitle}</h2>`;
-            }
-            sectionHtml += imagesHtml;
-            processedHtml += sectionHtml;
-        }
+    // Handle screen resize
+    let resizeTimeout;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(function() {
+            const container = document.querySelector('#imageData').parentNode;
+            const content = container.querySelector('pre')?.textContent || container.innerHTML;
+            const html = processPreContent(content);
+            container.innerHTML = html;
+        }, 250);
     });
-
-    return processedHtml;
-}
+});
 
 /*
 document.addEventListener('DOMContentLoaded', function() {
