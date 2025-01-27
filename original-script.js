@@ -542,92 +542,122 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function processPreContent(content) {
-        const entries = content.trim().split(/(?=\n\s*\n)/); // Pisahkan entri berdasarkan baris kosong
+        // Split content by empty lines, but keep track of entries between titles
+        const titleSections = content.trim().split(/(?=\n\s*title:)/i);
         let processedHtml = '';
         const isMobile = isMobileDevice();
         
-        entries.forEach(entry => {
-            if (!entry.trim()) return;
+        titleSections.forEach(section => {
+            const entries = section.trim().split(/(?=\n\s*\n)/);
             
-            const data = {};
-            const lines = entry.trim().split('\n');
+            // Track available image types within this title section
+            let availableDesktopImages = new Set();
+            let availableMobileImages = new Set();
             
-            lines.forEach(line => {
-                line = line.trim();
-                if (line.includes(':')) {
-                    const colonIndex = line.indexOf(':');
-                    const key = line.substring(0, colonIndex).trim();
-                    const value = line.substring(colonIndex + 1).trim();
-                    data[key] = value.replace(/^"(.*)"$/, '$1') || null;
+            // First pass: identify available images in this section
+            entries.forEach(entry => {
+                if (!entry.trim()) return;
+                
+                const data = {};
+                const lines = entry.trim().split('\n');
+                
+                lines.forEach(line => {
+                    line = line.trim();
+                    if (line.includes(':')) {
+                        const colonIndex = line.indexOf(':');
+                        const key = line.substring(0, colonIndex).trim();
+                        const value = line.substring(colonIndex + 1).trim();
+                        data[key] = value.replace(/^"(.*)"$/, '$1') || null;
+                    }
+                });
+
+                if (data['desktop-image-link'] && data['desktop-width'] && data['desktop-height']) {
+                    availableDesktopImages.add(entry);
+                }
+                if (data['mobile-image-link'] && data['mobile-width'] && data['mobile-height']) {
+                    availableMobileImages.add(entry);
                 }
             });
 
-            // Tentukan jenis perangkat
-            const deviceType = isMobile ? 'mobile' : 'desktop';
-            const altDeviceType = isMobile ? 'desktop' : 'mobile';
-            
-            // Cek apakah gambar untuk perangkat yang digunakan tersedia
-            const hasPreferredImage = data[`${deviceType}-image-link`] && 
-                                    data[`${deviceType}-width`] && 
-                                    data[`${deviceType}-height`];
-            
-            // Cek apakah gambar untuk perangkat alternatif tersedia
-            const hasAltImage = data[`${altDeviceType}-image-link`] && 
-                              data[`${altDeviceType}-width`] && 
-                              data[`${altDeviceType}-height`];
+            // Second pass: process entries
+            entries.forEach(entry => {
+                if (!entry.trim()) return;
+                
+                const data = {};
+                const lines = entry.trim().split('\n');
+                
+                lines.forEach(line => {
+                    line = line.trim();
+                    if (line.includes(':')) {
+                        const colonIndex = line.indexOf(':');
+                        const key = line.substring(0, colonIndex).trim();
+                        const value = line.substring(colonIndex + 1).trim();
+                        data[key] = value.replace(/^"(.*)"$/, '$1') || null;
+                    }
+                });
 
-            // Gunakan gambar untuk perangkat yang sesuai atau alternatif
-            const useDeviceType = hasPreferredImage ? deviceType : 
-                                (hasAltImage ? altDeviceType : null);
+                // Determine which image to use
+                let useDeviceType = null;
+                const hasDesktopImage = data['desktop-image-link'] && data['desktop-width'] && data['desktop-height'];
+                const hasMobileImage = data['mobile-image-link'] && data['mobile-width'] && data['mobile-height'];
 
-            if (!useDeviceType) {
-                console.error('No valid image data found for entry:', entry);
-                return;
-            }
+                if (isMobile) {
+                    useDeviceType = hasMobileImage ? 'mobile' : 
+                                  (hasDesktopImage ? 'desktop' : null);
+                } else {
+                    useDeviceType = hasDesktopImage ? 'desktop' : 
+                                  (hasMobileImage ? 'mobile' : null);
+                }
 
-            const imageLink = data[`${useDeviceType}-image-link`];
-            const width = data[`${useDeviceType}-width`];
-            const height = data[`${useDeviceType}-height`];
-            const alt = data.alt || '';
-            const title = data.title || '';
+                if (!useDeviceType) {
+                    console.error('No valid image data found for entry:', entry);
+                    return;
+                }
 
-            if (!imageLink || !width || !height) {
-                console.error(`Missing required fields for ${useDeviceType} image in entry:`, entry);
-                return;
-            }
+                const imageLink = data[`${useDeviceType}-image-link`];
+                const width = data[`${useDeviceType}-width`];
+                const height = data[`${useDeviceType}-height`];
+                const alt = data.alt || '';
+                const title = data.title || '';
 
-            const resourceId = imageLink.split('/assets/')[1]?.split('/')[0];
-            if (!resourceId) {
-                console.error('Invalid image link format in entry:', entry);
-                return;
-            }
+                if (!imageLink || !width || !height) {
+                    console.error(`Missing required fields for ${useDeviceType} image in entry:`, entry);
+                    return;
+                }
 
-            const baseUrl = imageLink.substring(0, imageLink.lastIndexOf('/'));
-            
-            let titleHtml = '';
-            if (title.trim()) {
-                titleHtml = `<p><strong>${title}</strong></p>`;
-            }
+                const resourceId = imageLink.split('/assets/')[1]?.split('/')[0];
+                if (!resourceId) {
+                    console.error('Invalid image link format in entry:', entry);
+                    return;
+                }
 
-            const html = `
-                ${titleHtml}
-                <figure class="image" data-ckbox-resource-id="${resourceId}">
-                    <picture>
-                        <source 
-                            sizes="(max-width: ${width}px) 100vw, ${width}px"
-                            srcset="${generateSrcset(baseUrl, parseInt(width))}"
-                            type="image/webp"
-                            media="${useDeviceType === 'mobile' ? '(max-width: 768px)' : '(min-width: 769px)'}">
-                        <img src="${imageLink}"
-                             alt="${alt}"
-                             width="${width}"
-                             height="${height}"
-                             loading="lazy"
-                             onclick="showFullImage(this.src)">
-                    </picture>
-                </figure>`;
-            
-            processedHtml += html;
+                const baseUrl = imageLink.substring(0, imageLink.lastIndexOf('/'));
+                
+                let titleHtml = '';
+                if (title.trim()) {
+                    titleHtml = `<p><strong>${title}</strong></p>`;
+                }
+
+                const html = `
+                    ${titleHtml}
+                    <figure class="image" data-ckbox-resource-id="${resourceId}">
+                        <picture>
+                            <source 
+                                sizes="(max-width: ${width}px) 100vw, ${width}px"
+                                srcset="${generateSrcset(baseUrl, parseInt(width))}"
+                                type="image/webp"
+                                media="${useDeviceType === 'mobile' ? '(max-width: 768px)' : '(min-width: 769px)'}">
+                            <img src="${imageLink}"
+                                 alt="${alt}"
+                                 width="${width}"
+                                 height="${height}"
+                                 loading="lazy"
+                                 onclick="showFullImage(this.src)">
+                        </picture>
+                    </figure>`;
+                
+                processedHtml += html;
+            });
         });
 
         return processedHtml;
