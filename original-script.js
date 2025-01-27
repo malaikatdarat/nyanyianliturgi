@@ -633,10 +633,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 const baseUrl = imageLink.substring(0, imageLink.lastIndexOf('/'));
                 
-                let titleHtml = '';
-                if (title.trim()) {
-                    titleHtml = `<p><strong>${title}</strong></p>`;
-                }
+let titleHtml = '';
+if (title && title.trim()) {  // Memastikan title ada dan bukan string kosong
+    titleHtml = `<p><strong>${title}</strong></p>`;
+}
 
                 const html = `
                     ${titleHtml}
