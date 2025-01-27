@@ -537,9 +537,14 @@ document.addEventListener('DOMContentLoaded', function() {
             .join(',');
     }
 
+    function isMobileDevice() {
+        return window.matchMedia('(max-width: 768px)').matches;
+    }
+
     function processPreContent(content) {
-        const entries = content.trim().split(/(?=original-image-link:)/);
+        const entries = content.trim().split(/(?=(?:desktop|mobile)-image-link:)/);
         let processedHtml = '';
+        const isMobile = isMobileDevice();
         
         entries.forEach(entry => {
             if (!entry.trim()) return;
@@ -557,20 +562,51 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
-            const requiredFields = ['original-image-link', 'width', 'height', 'alt'];
-            for (const field of requiredFields) {
-                if (!data[field]) {
-                    console.error(`Missing required field: ${field}`);
-                    return;
-                }
+            // Determine which image set to use
+            const deviceType = isMobile ? 'mobile' : 'desktop';
+            const altDeviceType = isMobile ? 'desktop' : 'mobile';
+            
+            // Check if preferred device type images exist
+            const hasPreferredImage = data[`${deviceType}-image-link`] && 
+                                    data[`${deviceType}-width`] && 
+                                    data[`${deviceType}-height`];
+            
+            // Check if alternative device type images exist
+            const hasAltImage = data[`${altDeviceType}-image-link`] && 
+                              data[`${altDeviceType}-width`] && 
+                              data[`${altDeviceType}-height`];
+
+            // Use fallback if preferred image doesn't exist
+            const useDeviceType = hasPreferredImage ? deviceType : 
+                                (hasAltImage ? altDeviceType : null);
+
+            if (!useDeviceType) {
+                console.error('No valid image data found');
+                return;
             }
 
-            const resourceId = data['original-image-link'].split('/assets/')[1].split('/')[0];
-            const baseUrl = data['original-image-link'].substring(0, data['original-image-link'].lastIndexOf('/'));
+            const imageLink = data[`${useDeviceType}-image-link`];
+            const width = data[`${useDeviceType}-width`];
+            const height = data[`${useDeviceType}-height`];
+            const alt = data.alt || '';
+            const title = data.title || '';
+
+            if (!imageLink || !width || !height) {
+                console.error(`Missing required fields for ${useDeviceType} image`);
+                return;
+            }
+
+            const resourceId = imageLink.split('/assets/')[1]?.split('/')[0];
+            if (!resourceId) {
+                console.error('Invalid image link format');
+                return;
+            }
+
+            const baseUrl = imageLink.substring(0, imageLink.lastIndexOf('/'));
             
             let titleHtml = '';
-            if (data.title && data.title.trim()) {
-                titleHtml = `<p><strong>${data.title}</strong></p>`;
+            if (title.trim()) {
+                titleHtml = `<p><strong>${title}</strong></p>`;
             }
 
             const html = `
@@ -578,13 +614,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 <figure class="image" data-ckbox-resource-id="${resourceId}">
                     <picture>
                         <source 
-                            sizes="(max-width: ${data.width}px) 100vw, ${data.width}px"
-                            srcset="${generateSrcset(baseUrl, parseInt(data.width))}"
-                            type="image/webp">
-                        <img src="${data['original-image-link']}"
-                             alt="${data.alt}"
-                             width="${data.width}"
-                             height="${data.height}"
+                            sizes="(max-width: ${width}px) 100vw, ${width}px"
+                            srcset="${generateSrcset(baseUrl, parseInt(width))}"
+                            type="image/webp"
+                            media="${isMobile ? '(max-width: 768px)' : '(min-width: 769px)'}">
+                        <img src="${imageLink}"
+                             alt="${alt}"
+                             width="${width}"
+                             height="${height}"
+                             loading="lazy"
                              onclick="showFullImage(this.src)">
                     </picture>
                 </figure>`;
@@ -595,12 +633,26 @@ document.addEventListener('DOMContentLoaded', function() {
         return processedHtml;
     }
 
-        const pre = document.getElementById('imageData');
-        if (pre) {
+    const pre = document.getElementById('imageData');
+    if (pre) {
         const content = pre.textContent;
         const html = processPreContent(content);
         pre.outerHTML = html;
     }
+
+    // Handle screen resize
+    let resizeTimeout;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(function() {
+            const pre = document.getElementById('imageData');
+            if (pre) {
+                const content = pre.textContent;
+                const html = processPreContent(content);
+                pre.outerHTML = html;
+            }
+        }, 250);
+    });
 });
 
 /*
