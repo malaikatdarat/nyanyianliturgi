@@ -570,7 +570,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             let titleHtml = '';
             if (data.title && data.title.trim()) {
-                titleHtml = `<p><strong>${data.title}</strong></p>`;
+                titleHtml = `<p class="mobile-only"><strong>${data.title}</strong></p>`;
             }
 
             const html = `
