@@ -147,30 +147,45 @@ function showFullImage(clickedImageSrc) {
         counter.textContent = `${currentIndex + 1}/${imageList.length}`;
     }
 
-    function showImage(index) {
-        if (index >= 0 && index < imageList.length) {
-            currentIndex = index;
-            isImageLoaded = false;
-            img.style.display = 'none';
-            
-            clearTimeout(loaderTimeout);
-            loaderTimeout = setTimeout(() => {
-                if (!isImageLoaded) {
-                    loader.style.display = 'block';
-                }
-            }, 100);
-            
-            img.src = imageList[currentIndex];
-            
-            updateCounter();
-            
-            const currentImg = allImages[currentIndex];
-            tooltip.textContent = currentImg.alt;
-            
-            prevButton.style.visibility = currentIndex === 0 ? 'hidden' : 'visible';
-            nextButton.style.visibility = currentIndex === imageList.length - 1 ? 'hidden' : 'visible';
-        }
+function showImage(index) {
+    if (index >= imageList.length) {
+        index = 0; // Kembali ke gambar pertama jika melebihi jumlah gambar
+    } else if (index < 0) {
+        index = imageList.length - 1; // Kembali ke gambar terakhir jika kurang dari 0
     }
+
+    currentIndex = index;
+    isImageLoaded = false;
+    img.style.display = 'none';
+    
+    clearTimeout(loaderTimeout);
+    loaderTimeout = setTimeout(() => {
+        if (!isImageLoaded) {
+            loader.style.display = 'block';
+        }
+    }, 100);
+    
+    img.src = imageList[currentIndex];
+    
+    updateCounter();
+    
+    const currentImg = allImages[currentIndex];
+    tooltip.textContent = currentImg.alt;
+    
+    // Tambahkan class 'last-image' jika sudah di gambar terakhir
+    if (currentIndex === imageList.length - 1) {
+        nextButton.classList.add('last-image');
+    } else {
+        nextButton.classList.remove('last-image');
+    }
+
+    // Tambahkan class 'first-image' jika sudah di gambar pertama
+    if (currentIndex === 0) {
+        prevButton.classList.add('first-image');
+    } else {
+        prevButton.classList.remove('first-image');
+    }
+}
 
     let isZoomed = false;
     let zoomScale = isMobile() ? 1.5 : 2.5;
