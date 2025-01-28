@@ -73,6 +73,19 @@
 .prev { left: 20px; }
 .next { right: 20px; }
 
+.nav-button.last-image {
+    opacity: 0.5; /* Lebih transparan */
+}
+
+.nav-button.first-image {
+    opacity: 0.5; /* Lebih transparan */
+}
+
+.nav-button:hover {
+    background: rgba(0, 0, 0, 0.7);
+    opacity: 1; /* Kembalikan opacity saat hover */
+}
+
 .close-button {
     position: fixed;
     top: 20px; 
