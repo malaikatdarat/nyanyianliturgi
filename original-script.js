@@ -521,18 +521,26 @@ overlay.addEventListener('click', (e) => {
 
 
 // Tab1
-function processPreContent(content) {
-    const titleSections = content.trim().split(/(?=\n\s*title:)/i);
-    let processedHtml = '';
-    const isMobile = isMobileDevice();
-    
-    titleSections.forEach(section => {
-        const entries = section.trim().split(/\n\s*\n/);
-        let currentTitle = null;
-        let sectionEntries = [];
-        let sectionHtml = '';
+document.addEventListener('DOMContentLoaded', function() {
+    function generateSrcset(baseUrl, originalWidth) {
+        const increment = Math.max(80, Math.floor(originalWidth * 0.1));
+        let breakpoints = [];
+        let currentWidth = increment;
         
-        // First pass: collect title and entries
+        while (currentWidth <= originalWidth && breakpoints.length < 10) {
+            breakpoints.push(currentWidth);
+            currentWidth += increment;
+        }
+        
+        return breakpoints
+            .map(width => `${baseUrl}/${width}.webp ${width}w`)
+            .join(',');
+    }
+
+    function processPreContent(content) {
+        const entries = content.trim().split(/(?=mobile-image-link:)/);
+        let processedHtml = '';
+        
         entries.forEach(entry => {
             if (!entry.trim()) return;
             
@@ -543,80 +551,139 @@ function processPreContent(content) {
                 line = line.trim();
                 if (line.includes(':')) {
                     const colonIndex = line.indexOf(':');
-                    const key = line.substring(0, colonIndex).trim().toLowerCase();
+                    const key = line.substring(0, colonIndex).trim();
                     const value = line.substring(colonIndex + 1).trim();
                     data[key] = value.replace(/^"(.*)"$/, '$1') || null;
                 }
             });
 
-            if (data.title) {
-                currentTitle = data.title;
+            const requiredFields = ['mobile-image-link', 'width', 'height', 'alt'];
+            for (const field of requiredFields) {
+                if (!data[field]) {
+                    console.error(`Missing required field: ${field}`);
+                    return;
+                }
             }
 
-            if ((data['desktop-image-link'] && data['desktop-width'] && data['desktop-height']) ||
-                (data['mobile-image-link'] && data['mobile-width'] && data['mobile-height'])) {
-                sectionEntries.push(data);
+            const resourceId = data['mobile-image-link'].split('/assets/')[1].split('/')[0];
+            const baseUrl = data['mobile-image-link'].substring(0, data['mobile-image-link'].lastIndexOf('/'));
+            
+            let titleHtml = '';
+            if (data.title && data.title.trim()) {
+                titleHtml = `<p><strong>${data.title}</strong></p>`;
             }
+
+            const html = `
+                ${titleHtml}
+                <figure class="image" data-ckbox-resource-id="${resourceId}">
+                    <picture>
+                        <source 
+                            sizes="(max-width: ${data.width}px) 100vw, ${data.width}px"
+                            srcset="${generateSrcset(baseUrl, parseInt(data.width))}"
+                            type="image/webp">
+                        <img src="${data['mobile-image-link']}"
+                             alt="${data.alt}"
+                             width="${data.width}"
+                             height="${data.height}"
+                             onclick="showFullImage(this.src)">
+                    </picture>
+                </figure>`;
+            
+            processedHtml += html;
         });
 
-        // Process images only if we have entries
-        if (sectionEntries.length > 0) {
-            let willShowImages = false;
-            let imagesHtml = '';
-            
-            if (isMobile) {
-                const hasMobileImages = sectionEntries.some(entry => 
-                    entry['mobile-image-link'] && entry['mobile-width'] && entry['mobile-height']
-                );
+        return processedHtml;
+    }
 
-                sectionEntries.forEach(data => {
-                    if (hasMobileImages) {
-                        if (data['mobile-image-link'] && data['mobile-width'] && data['mobile-height']) {
-                            imagesHtml += generateImageHtml(data, 'mobile');
-                            willShowImages = true;
-                        }
-                    } else {
-                        if (data['desktop-image-link'] && data['desktop-width'] && data['desktop-height']) {
-                            imagesHtml += generateImageHtml(data, 'desktop');
-                            willShowImages = true;
-                        }
-                    }
-                });
-            } else {
-                const hasDesktopImages = sectionEntries.some(entry => 
-                    entry['desktop-image-link'] && entry['desktop-width'] && entry['desktop-height']
-                );
+    const pre = document.getElementById('imageDataM');
+    if (pre) {
+        const content = pre.textContent;
+        const html = processPreContent(content);
+        pre.outerHTML = html;
+    }
+});
 
-                sectionEntries.forEach(data => {
-                    if (hasDesktopImages) {
-                        if (data['desktop-image-link'] && data['desktop-width'] && data['desktop-height']) {
-                            imagesHtml += generateImageHtml(data, 'desktop');
-                            willShowImages = true;
-                        }
-                    } else {
-                        if (data['mobile-image-link'] && data['mobile-width'] && data['mobile-height']) {
-                            imagesHtml += generateImageHtml(data, 'mobile');
-                            willShowImages = true;
-                        }
-                    }
-                });
-            }
-
-            // Only create section if we have images to show
-            if (willShowImages) {
-                // Add title first if exists
-                if (currentTitle) {
-                    sectionHtml += `<div class="image-section-title">${currentTitle}</div>\n`;
-                }
-                // Then add all images
-                sectionHtml += `<div class="image-section-content">${imagesHtml}</div>`;
-                processedHtml += sectionHtml;
-            }
+document.addEventListener('DOMContentLoaded', function() {
+    function generateSrcset(baseUrl, originalWidth) {
+        const increment = Math.max(80, Math.floor(originalWidth * 0.1));
+        let breakpoints = [];
+        let currentWidth = increment;
+        
+        while (currentWidth <= originalWidth && breakpoints.length < 10) {
+            breakpoints.push(currentWidth);
+            currentWidth += increment;
         }
-    });
+        
+        return breakpoints
+            .map(width => `${baseUrl}/${width}.webp ${width}w`)
+            .join(',');
+    }
 
-    return processedHtml;
-}
+    function processPreContent(content) {
+        const entries = content.trim().split(/(?=original-image-link:)/);
+        let processedHtml = '';
+        
+        entries.forEach(entry => {
+            if (!entry.trim()) return;
+            
+            const data = {};
+            const lines = entry.trim().split('\n');
+            
+            lines.forEach(line => {
+                line = line.trim();
+                if (line.includes(':')) {
+                    const colonIndex = line.indexOf(':');
+                    const key = line.substring(0, colonIndex).trim();
+                    const value = line.substring(colonIndex + 1).trim();
+                    data[key] = value.replace(/^"(.*)"$/, '$1') || null;
+                }
+            });
+
+            const requiredFields = ['original-image-link', 'width', 'height', 'alt'];
+            for (const field of requiredFields) {
+                if (!data[field]) {
+                    console.error(`Missing required field: ${field}`);
+                    return;
+                }
+            }
+
+            const resourceId = data['original-image-link'].split('/assets/')[1].split('/')[0];
+            const baseUrl = data['original-image-link'].substring(0, data['original-image-link'].lastIndexOf('/'));
+            
+            let titleHtml = '';
+            if (data.title && data.title.trim()) {
+                titleHtml = `<p><strong>${data.title}</strong></p>`;
+            }
+
+            const html = `
+                ${titleHtml}
+                <figure class="image" data-ckbox-resource-id="${resourceId}">
+                    <picture>
+                        <source 
+                            sizes="(max-width: ${data.width}px) 100vw, ${data.width}px"
+                            srcset="${generateSrcset(baseUrl, parseInt(data.width))}"
+                            type="image/webp">
+                        <img src="${data['original-image-link']}"
+                             alt="${data.alt}"
+                             width="${data.width}"
+                             height="${data.height}"
+                             onclick="showFullImage(this.src)">
+                    </picture>
+                </figure>`;
+            
+            processedHtml += html;
+        });
+
+        return processedHtml;
+    }
+
+        const pre = document.getElementById('imageData');
+        if (pre) {
+        const content = pre.textContent;
+        const html = processPreContent(content);
+        pre.outerHTML = html;
+    }
+});
 
 /*
 document.addEventListener('DOMContentLoaded', function() {
