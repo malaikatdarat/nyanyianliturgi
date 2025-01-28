@@ -575,7 +575,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const html = `
                 ${titleHtml}
-                <figure class="image" data-ckbox-resource-id="${resourceId}">
+                <figure class="image mobile-only" data-ckbox-resource-id="${resourceId}">
                     <picture>
                         <source 
                             sizes="(max-width: ${data.width}px) 100vw, ${data.width}px"
