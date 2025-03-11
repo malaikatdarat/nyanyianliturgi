@@ -536,12 +536,14 @@ overlay.addEventListener('click', (e) => {
 
 
 // Tab1
-// Mobile Version
 document.addEventListener('DOMContentLoaded', function() {
-    function processPreContent(content) {
-        const entries = content.trim().split(/(?=mobile-image-link:)/);
-        let processedHtml = '';
-        
+    // Common processing function
+    function processImageContent(content, isMobile = false) {
+        const entries = content.trim().split(/(?=original-image-link:|mobile-image-link:)/);
+        const groups = [];
+        let currentGroup = { images: [] };
+
+        // Grouping logic
         entries.forEach(entry => {
             if (!entry.trim()) return;
             
@@ -556,179 +558,123 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
-            // Validasi field wajib
-            const requiredFields = ['mobile-image-link', 'original-size', 'sizes', 'srcset', 'alt'];
-            for (const field of requiredFields) {
-                if (!data[field]) {
-                    console.error(`Missing required field: ${field}`);
-                    return;
-                }
-            }
-
-            // Ekstrak width dan height
-            const [width, height] = data['original-size'].split('x');
-            
-            // Dapatkan ekstensi asli
-            const originalExt = data['mobile-image-link'].match(/\.([^/.]+)$/)[1];
-            
-            // Bangun base URL untuk webp dan fallback
-            const webpBase = data['mobile-image-link']
-                .replace('/images/', '/images/webp/')
-                .replace(/\.[^/.]+$/, "");
-                
-            const fallbackBase = data['mobile-image-link']
-                .replace('/images/', '/images/fallback/')
-                .replace(/\.[^/.]+$/, "");
-
-            // Bangun srcset untuk webp
-            const webpSrcset = data.srcset.split(',')
-                .map(w => w.trim().replace('w', ''))
-                .map(w => `${webpBase}-${w}.webp ${w}w`)
-                .join(', ');
-
-            // Bangun srcset untuk fallback
-            const fallbackSrcset = data['fallback-srcset'].split(',')
-                .map(w => w.trim().replace('w', ''))
-                .map(w => `${fallbackBase}-${w}.${originalExt} ${w}w`)
-                .join(', ');
-
-            // Tentukan tipe MIME
-            let mimeType = 'image/jpeg';
-            if (originalExt.toLowerCase() === 'png') mimeType = 'image/png';
-            if (originalExt.toLowerCase() === 'gif') mimeType = 'image/gif';
-
-            // Bangun HTML
-            let titleHtml = '';
             if (data.title) {
-                titleHtml = `<p class="mobile-only"><strong>${data.title}</strong></p>`;
+                if (currentGroup.images.length > 0) groups.push(currentGroup);
+                currentGroup = {
+                    title: data.title,
+                    images: [data]
+                };
+            } else {
+                currentGroup.images.push(data);
             }
-
-            processedHtml += `
-                ${titleHtml}
-                <figure class="image mobile-only">
-                    <picture>
-                        <source 
-                            sizes="${data.sizes.replace('sizes=', '')}"
-                            srcset="${webpSrcset}"
-                            type="image/webp">
-                        <source 
-                            sizes="${data.sizes.replace('sizes=', '')}"
-                            srcset="${fallbackSrcset}"
-                            type="${mimeType}">
-                        <img src="${data['mobile-image-link']}"
-                            alt="${data.alt}"
-                            width="${width}"
-                            height="${height}"
-                            onclick="showFullImage(this.src)">
-                    </picture>
-                </figure>`;
         });
-
-        return processedHtml;
-    }
-
-    const pre = document.getElementById('imageDataM');
-    if (pre) {
-        pre.outerHTML = processPreContent(pre.textContent);
-    }
-});
-
-// Desktop Version
-document.addEventListener('DOMContentLoaded', function() {
-    function processPreContent(content) {
-        const entries = content.trim().split(/(?=original-image-link:)/);
-        let processedHtml = '';
         
-        entries.forEach(entry => {
-            if (!entry.trim()) return;
-            
-            const data = {};
-            const lines = entry.trim().split('\n');
-            
-            lines.forEach(line => {
-                line = line.trim();
-                if (line.includes(':')) {
-                    const [key, ...values] = line.split(':');
-                    data[key.trim()] = values.join(':').trim().replace(/^"(.*)"$/, '$1');
-                }
+        if (currentGroup.images.length > 0) groups.push(currentGroup);
+
+        // Build HTML
+        let html = `<div class="image-tabs ${isMobile ? 'mobile-only' : ''}">`;
+        
+        // Build tabs if there are titles
+        if (groups.some(g => g.title)) {
+            html += `<div class="tabs">`;
+            groups.forEach((group, index) => {
+                if (!group.title) return;
+                html += `
+                    <button class="tab ${index === 0 ? 'active' : ''}" 
+                           onclick="switchTab(this, ${index})">
+                        ${group.title}
+                    </button>`;
             });
+            html += `</div>`;
+        }
 
-            // Validasi field wajib
-            const requiredFields = ['original-image-link', 'original-size', 'sizes', 'srcset', 'alt'];
-            for (const field of requiredFields) {
-                if (!data[field]) {
-                    console.error(`Missing required field: ${field}`);
-                    return;
-                }
-            }
-
-            // Ekstrak width dan height
-            const [width, height] = data['original-size'].split('x');
-            
-            // Dapatkan ekstensi asli
-            const originalExt = data['original-image-link'].match(/\.([^/.]+)$/)[1];
-            
-            // Bangun base URL untuk webp dan fallback
-            const webpBase = data['original-image-link']
-                .replace('/images/', '/images/webp/')
-                .replace(/\.[^/.]+$/, "");
-                
-            const fallbackBase = data['original-image-link']
-                .replace('/images/', '/images/fallback/')
-                .replace(/\.[^/.]+$/, "");
-
-            // Bangun srcset untuk webp
-            const webpSrcset = data.srcset.split(',')
-                .map(w => w.trim().replace('w', ''))
-                .map(w => `${webpBase}-${w}.webp ${w}w`)
-                .join(', ');
-
-            // Bangun srcset untuk fallback
-            const fallbackSrcset = data['fallback-srcset'].split(',')
-                .map(w => w.trim().replace('w', ''))
-                .map(w => `${fallbackBase}-${w}.${originalExt} ${w}w`)
-                .join(', ');
-
-            // Tentukan tipe MIME
-            let mimeType = 'image/jpeg';
-            if (originalExt.toLowerCase() === 'png') mimeType = 'image/png';
-            if (originalExt.toLowerCase() === 'gif') mimeType = 'image/gif';
-
-            // Bangun HTML
-            let titleHtml = '';
-            if (data.title) {
-                titleHtml = `<p><strong>${data.title}</strong></p>`;
-            }
-
-            processedHtml += `
-                ${titleHtml}
-                <figure class="image">
-                    <picture>
-                        <source 
-                            sizes="${data.sizes.replace('sizes=', '')}"
-                            srcset="${webpSrcset}"
-                            type="image/webp">
-                        <source 
-                            sizes="${data.sizes.replace('sizes=', '')}"
-                            srcset="${fallbackSrcset}"
-                            type="${mimeType}">
-                        <img src="${data['original-image-link']}"
-                            alt="${data.alt}"
-                            width="${width}"
-                            height="${height}"
-                            onclick="showFullImage(this.src)">
-                    </picture>
-                </figure>`;
+        // Build content
+        html += `<div class="tab-content">`;
+        groups.forEach((group, index) => {
+            html += `<div class="tab-pane ${index === 0 ? 'active' : ''}">`;
+            group.images.forEach(imageData => {
+                const imageHtml = generateImageHtml(imageData, isMobile);
+                html += imageHtml;
+            });
+            html += `</div>`;
         });
+        html += `</div></div>`;
 
-        return processedHtml;
+        return html;
     }
 
-    const pre = document.getElementById('imageData');
-    if (pre) {
-        pre.outerHTML = processPreContent(pre.textContent);
+    // Image HTML generator
+    function generateImageHtml(data, isMobile) {
+        const imgKey = isMobile ? 'mobile-image-link' : 'original-image-link';
+        const [width, height] = data['original-size'].split('x');
+        const originalExt = data[imgKey].match(/\.([^/.]+)$/)[1];
+        
+        // Webp and fallback paths
+        const webpBase = data[imgKey]
+            .replace('/images/', '/images/webp/')
+            .replace(/\.[^/.]+$/, "");
+            
+        const fallbackBase = data[imgKey]
+            .replace('/images/', '/images/fallback/')
+            .replace(/\.[^/.]+$/, "");
+
+        // Srcset generation
+        const webpSrcset = data.srcset.split(',')
+            .map(w => `${webpBase}-${w.trim().replace('w', '')}.webp ${w.trim()}`)
+            .join(', ');
+
+        const fallbackSrcset = data['fallback-srcset'].split(',')
+            .map(w => `${fallbackBase}-${w.trim().replace('w', '')}.${originalExt} ${w.trim()}`)
+            .join(', ');
+
+        // MIME type
+        const mimeType = originalExt === 'png' ? 'image/png' : 
+                        originalExt === 'gif' ? 'image/gif' : 'image/jpeg';
+
+        return `
+            <figure class="${isMobile ? 'mobile-only' : ''}">
+                <picture>
+                    <source sizes="${data.sizes}" srcset="${webpSrcset}" type="image/webp">
+                    <source sizes="${data.sizes}" srcset="${fallbackSrcset}" type="${mimeType}">
+                    <img src="${data[imgKey]}" 
+                         alt="${data.alt}"
+                         width="${width}"
+                         height="${height}"
+                         loading="lazy"
+                         onclick="showFullImage(this.src)">
+                </picture>
+            </figure>`;
     }
+
+    // Tab switching function
+    window.switchTab = function(button, index) {
+        const tabs = button.parentElement.children;
+        const panes = button.closest('.image-tabs').querySelectorAll('.tab-pane');
+        
+        Array.from(tabs).forEach(tab => tab.classList.remove('active'));
+        button.classList.add('active');
+        
+        panes.forEach(pane => pane.classList.remove('active'));
+        panes[index].classList.add('active');
+    }
+
+    // Process both versions
+    const processAll = () => {
+        const preMobile = document.getElementById('imageDataM');
+        const preDesktop = document.getElementById('imageData');
+        
+        if (preMobile) preMobile.outerHTML = processImageContent(preMobile.textContent, true);
+        if (preDesktop) preDesktop.outerHTML = processImageContent(preDesktop.textContent);
+    }
+
+    // Initial processing
+    processAll();
 });
+
+// Existing showFullImage function (jika ada)
+function showFullImage(src) {
+    window.open(src, '_blank');
+}
 /*
 document.addEventListener('DOMContentLoaded', function() {
     function generateSrcset(baseUrl, originalWidth) {
