@@ -235,52 +235,42 @@
 	
 }
 
-/* Image Tabs System */
-.image-tabs {
-    margin: 1.5rem 0;
-}
-
-.image-tabs .tabs {
+/* Tab System */
+.tabs-nav {
     display: flex;
-    gap: 8px;
-    margin-bottom: 1.2rem;
+    gap: 12px;
+    margin-bottom: 20px;
     flex-wrap: wrap;
 }
 
-.image-tabs .tab {
+.tab-button {
     cursor: pointer;
-    padding: 8px 16px;
-    border: 1px solid #e0e0e0;
+    padding: 10px 20px;
+    border: 1px solid #ddd;
     background: #f8f8f8;
-    border-radius: 4px;
-    font-size: 0.9em;
+    border-radius: 5px;
+    transition: all 0.2s;
+    font-size: 0.95em;
     color: #333;
-    transition: all 0.2s ease;
 }
 
-.image-tabs .tab:hover {
-    background: #e0e0e0;
-    border-color: #ccc;
+.tab-button:hover {
+    background: #eee;
 }
 
-.image-tabs .tab.active {
+.tab-button.active {
     background: #007bff;
     border-color: #007bff;
     color: white;
 }
 
-.tab-content .tab-pane {
+.tab-panel {
     display: none;
     animation: fadeIn 0.3s ease;
 }
 
-.tab-content .tab-pane.active {
+.tab-panel.active {
     display: block;
-}
-
-.tab-content .tab-pane > figure {
-    margin: 0 0 1rem;
-    width: 100%;
 }
 
 @keyframes fadeIn {
@@ -288,20 +278,20 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Mobile Adaptation */
+/* Kompatibilitas dengan existing style */
+.tab__content:nth-of-type(1) figure {
+    margin: 0;
+}
+
 @media (max-width: 768px) {
-    .image-tabs .tabs {
-        gap: 6px;
-        margin-bottom: 1rem;
+    .tabs-nav {
+        gap: 8px;
+        margin-bottom: 15px;
     }
     
-    .image-tabs .tab {
-        padding: 6px 12px;
+    .tab-button {
+        padding: 8px 15px;
         font-size: 0.85em;
-    }
-    
-    .tab-content .tab-pane > figure {
-        margin: 0;
     }
 }
 
