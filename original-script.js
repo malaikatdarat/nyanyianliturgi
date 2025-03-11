@@ -537,33 +537,23 @@ overlay.addEventListener('click', (e) => {
 
 // Tab1
 document.addEventListener('DOMContentLoaded', function() {
-    // Common processing function
-    function processImageContent(content, isMobile = false) {
-        const entries = content.trim().split(/(?=original-image-link:|mobile-image-link:)/);
+    // Fungsi utama untuk memproses konten
+    function processPreContent(content, isMobile = false) {
+        const entries = content.trim().split(/(?=mobile-image-link:|original-image-link:)/);
         const groups = [];
-        let currentGroup = { images: [] };
+        let currentGroup = { title: null, images: [] };
+        let hasTitles = false;
 
-        // Grouping logic
+        // Parse dan grouping entries
         entries.forEach(entry => {
             if (!entry.trim()) return;
             
-            const data = {};
-            const lines = entry.trim().split('\n');
+            const data = parseEntry(entry);
             
-            lines.forEach(line => {
-                line = line.trim();
-                if (line.includes(':')) {
-                    const [key, ...values] = line.split(':');
-                    data[key.trim()] = values.join(':').trim().replace(/^"(.*)"$/, '$1');
-                }
-            });
-
             if (data.title) {
                 if (currentGroup.images.length > 0) groups.push(currentGroup);
-                currentGroup = {
-                    title: data.title,
-                    images: [data]
-                };
+                currentGroup = { title: data.title, images: [data] };
+                hasTitles = true;
             } else {
                 currentGroup.images.push(data);
             }
@@ -571,40 +561,77 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (currentGroup.images.length > 0) groups.push(currentGroup);
 
-        // Build HTML
-        let html = `<div class="image-tabs ${isMobile ? 'mobile-only' : ''}">`;
-        
-        // Build tabs if there are titles
-        if (groups.some(g => g.title)) {
-            html += `<div class="tabs">`;
-            groups.forEach((group, index) => {
-                if (!group.title) return;
-                html += `
-                    <button class="tab ${index === 0 ? 'active' : ''}" 
-                           onclick="switchTab(this, ${index})">
-                        ${group.title}
-                    </button>`;
-            });
-            html += `</div>`;
+        // Bangun HTML
+        let html = '';
+        if (hasTitles) {
+            html += buildTabs(groups, isMobile);
         }
-
-        // Build content
-        html += `<div class="tab-content">`;
-        groups.forEach((group, index) => {
-            html += `<div class="tab-pane ${index === 0 ? 'active' : ''}">`;
-            group.images.forEach(imageData => {
-                const imageHtml = generateImageHtml(imageData, isMobile);
-                html += imageHtml;
-            });
-            html += `</div>`;
-        });
-        html += `</div></div>`;
+        
+        html += buildPanels(groups, isMobile, hasTitles);
 
         return html;
     }
 
-    // Image HTML generator
-    function generateImageHtml(data, isMobile) {
+    // Fungsi parser original
+    function parseEntry(entry) {
+        const data = {};
+        const lines = entry.trim().split('\n');
+        
+        lines.forEach(line => {
+            line = line.trim();
+            if (line.includes(':')) {
+                const [key, ...values] = line.split(':');
+                data[key.trim()] = values.join(':').trim().replace(/^"(.*)"$/, '$1');
+            }
+        });
+        
+        // Validasi field wajib
+        const requiredFields = ['original-size', 'sizes', 'srcset', 'alt'];
+        requiredFields.forEach(field => {
+            if (!data[field]) console.error(`Missing required field: ${field}`);
+        });
+
+        return data;
+    }
+
+    // Bangun tab navigation
+    function buildTabs(groups, isMobile) {
+        let html = `<div class="tabs-nav ${isMobile ? 'mobile-only' : ''}">`;
+        groups.forEach((group, index) => {
+            if (!group.title) return;
+            html += `
+                <button class="tab-button ${index === 0 ? 'active' : ''}" 
+                        data-tab-group="${isMobile ? 'mobile' : 'desktop'}"
+                        data-tab-index="${index}">
+                    ${group.title}
+                </button>`;
+        });
+        html += '</div>';
+        return html;
+    }
+
+    // Bangun konten panel
+    function buildPanels(groups, isMobile, hasTitles) {
+        let html = `<div class="tab-panels ${isMobile ? 'mobile-only' : ''}">`;
+        groups.forEach((group, index) => {
+            const activeClass = (index === 0 && hasTitles) ? 'active' : '';
+            html += `
+                <div class="tab-panel ${activeClass}" 
+                     data-tab-group="${isMobile ? 'mobile' : 'desktop'}"
+                     data-tab-index="${index}">`;
+            
+            group.images.forEach(data => {
+                html += generateImageHTML(data, isMobile);
+            });
+            
+            html += '</div>';
+        });
+        html += '</div>';
+        return html;
+    }
+
+    // Fungsi generate gambar original dengan modifikasi minimal
+    function generateImageHTML(data, isMobile) {
         const imgKey = isMobile ? 'mobile-image-link' : 'original-image-link';
         const [width, height] = data['original-size'].split('x');
         const originalExt = data[imgKey].match(/\.([^/.]+)$/)[1];
@@ -643,35 +670,53 @@ document.addEventListener('DOMContentLoaded', function() {
                          loading="lazy"
                          onclick="showFullImage(this.src)">
                 </picture>
+                ${data.title && !isMobile ? `<figcaption>${data.title}</figcaption>` : ''}
             </figure>`;
     }
 
-    // Tab switching function
-    window.switchTab = function(button, index) {
-        const tabs = button.parentElement.children;
-        const panes = button.closest('.image-tabs').querySelectorAll('.tab-pane');
-        
-        Array.from(tabs).forEach(tab => tab.classList.remove('active'));
-        button.classList.add('active');
-        
-        panes.forEach(pane => pane.classList.remove('active'));
-        panes[index].classList.add('active');
-    }
+    // Event handling untuk tab
+    document.addEventListener('click', function(e) {
+        const tabButton = e.target.closest('.tab-button');
+        if (!tabButton) return;
 
-    // Process both versions
+        const tabGroup = tabButton.dataset.tabGroup;
+        const tabIndex = tabButton.dataset.tabIndex;
+        const tabSystem = tabButton.closest('body');
+
+        // Update buttons
+        tabSystem.querySelectorAll(`.tab-button[data-tab-group="${tabGroup}"]`).forEach(btn => {
+            btn.classList.remove('active');
+        });
+        tabButton.classList.add('active');
+
+        // Update panels
+        tabSystem.querySelectorAll(`.tab-panel[data-tab-group="${tabGroup}"]`).forEach(panel => {
+            panel.classList.remove('active');
+        });
+        tabSystem.querySelector(`.tab-panel[data-tab-group="${tabGroup}"][data-tab-index="${tabIndex}"]`)
+            .classList.add('active');
+    });
+
+    // Inisialisasi untuk kedua versi
     const processAll = () => {
         const preMobile = document.getElementById('imageDataM');
         const preDesktop = document.getElementById('imageData');
         
-        if (preMobile) preMobile.outerHTML = processImageContent(preMobile.textContent, true);
-        if (preDesktop) preDesktop.outerHTML = processImageContent(preDesktop.textContent);
+        if (preMobile) preMobile.outerHTML = processPreContent(preMobile.textContent, true);
+        if (preDesktop) preDesktop.outerHTML = processPreContent(preDesktop.textContent);
+        
+        // Handle initial active states
+        document.querySelectorAll('.tab-panels').forEach(panels => {
+            if (!panels.querySelector('.tab-panel.active')) {
+                panels.querySelector('.tab-panel').classList.add('active');
+            }
+        });
     }
 
-    // Initial processing
     processAll();
 });
 
-// Existing showFullImage function (jika ada)
+// Fungsi existing tetap dipertahankan
 function showFullImage(src) {
     window.open(src, '_blank');
 }
