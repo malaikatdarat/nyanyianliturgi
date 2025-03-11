@@ -536,22 +536,8 @@ overlay.addEventListener('click', (e) => {
 
 
 // Tab1
+// Mobile Version
 document.addEventListener('DOMContentLoaded', function() {
-    function generateSrcset(baseUrl, originalWidth) {
-        const increment = Math.max(80, Math.floor(originalWidth * 0.1));
-        let breakpoints = [];
-        let currentWidth = increment;
-        
-        while (currentWidth <= originalWidth && breakpoints.length < 10) {
-            breakpoints.push(currentWidth);
-            currentWidth += increment;
-        }
-        
-        return breakpoints
-            .map(width => `${baseUrl}/${width}.webp ${width}w`)
-            .join(',');
-    }
-
     function processPreContent(content) {
         const entries = content.trim().split(/(?=mobile-image-link:)/);
         let processedHtml = '';
@@ -565,14 +551,13 @@ document.addEventListener('DOMContentLoaded', function() {
             lines.forEach(line => {
                 line = line.trim();
                 if (line.includes(':')) {
-                    const colonIndex = line.indexOf(':');
-                    const key = line.substring(0, colonIndex).trim();
-                    const value = line.substring(colonIndex + 1).trim();
-                    data[key] = value.replace(/^"(.*)"$/, '$1') || null;
+                    const [key, ...values] = line.split(':');
+                    data[key.trim()] = values.join(':').trim().replace(/^"(.*)"$/, '$1');
                 }
             });
 
-            const requiredFields = ['mobile-image-link', 'width', 'height', 'alt'];
+            // Validasi field wajib
+            const requiredFields = ['mobile-image-link', 'original-size', 'sizes', 'srcset', 'alt'];
             for (const field of requiredFields) {
                 if (!data[field]) {
                     console.error(`Missing required field: ${field}`);
@@ -580,31 +565,37 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
-            const resourceId = data['mobile-image-link'].split('/assets/')[1].split('/')[0];
-            const baseUrl = data['mobile-image-link'].substring(0, data['mobile-image-link'].lastIndexOf('/'));
+            // Ekstrak width dan height dari original-size
+            const [width, height] = data['original-size'].split('x');
+            const baseUrl = data['mobile-image-link'].replace(/\.[^/.]+$/, "");
             
+            // Bangun srcset
+            const srcset = data.srcset.split(',')
+                .map(w => w.trim().replace('w', ''))
+                .map(w => `${baseUrl}-${w}.webp ${w}w`)
+                .join(', ');
+
+            // Bangun HTML
             let titleHtml = '';
-            if (data.title && data.title.trim()) {
+            if (data.title) {
                 titleHtml = `<p class="mobile-only"><strong>${data.title}</strong></p>`;
             }
 
-            const html = `
+            processedHtml += `
                 ${titleHtml}
-                <figure class="image mobile-only" data-ckbox-resource-id="${resourceId}">
+                <figure class="image mobile-only">
                     <picture>
                         <source 
-                            sizes="(max-width: ${data.width}px) 100vw, ${data.width}px"
-                            srcset="${generateSrcset(baseUrl, parseInt(data.width))}"
+                            sizes="${data.sizes.replace('sizes=', '')}"
+                            srcset="${srcset}"
                             type="image/webp">
                         <img src="${data['mobile-image-link']}"
-                             alt="${data.alt}"
-                             width="${data.width}"
-                             height="${data.height}"
-                             onclick="showFullImage(this.src)">
+                            alt="${data.alt}"
+                            width="${width}"
+                            height="${height}"
+                            onclick="showFullImage(this.src)">
                     </picture>
                 </figure>`;
-            
-            processedHtml += html;
         });
 
         return processedHtml;
@@ -612,28 +603,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const pre = document.getElementById('imageDataM');
     if (pre) {
-        const content = pre.textContent;
-        const html = processPreContent(content);
-        pre.outerHTML = html;
+        pre.outerHTML = processPreContent(pre.textContent);
     }
 });
 
+// Desktop Version
 document.addEventListener('DOMContentLoaded', function() {
-    function generateSrcset(baseUrl, originalWidth) {
-        const increment = Math.max(80, Math.floor(originalWidth * 0.1));
-        let breakpoints = [];
-        let currentWidth = increment;
-        
-        while (currentWidth <= originalWidth && breakpoints.length < 10) {
-            breakpoints.push(currentWidth);
-            currentWidth += increment;
-        }
-        
-        return breakpoints
-            .map(width => `${baseUrl}/${width}.webp ${width}w`)
-            .join(',');
-    }
-
     function processPreContent(content) {
         const entries = content.trim().split(/(?=original-image-link:)/);
         let processedHtml = '';
@@ -647,14 +622,13 @@ document.addEventListener('DOMContentLoaded', function() {
             lines.forEach(line => {
                 line = line.trim();
                 if (line.includes(':')) {
-                    const colonIndex = line.indexOf(':');
-                    const key = line.substring(0, colonIndex).trim();
-                    const value = line.substring(colonIndex + 1).trim();
-                    data[key] = value.replace(/^"(.*)"$/, '$1') || null;
+                    const [key, ...values] = line.split(':');
+                    data[key.trim()] = values.join(':').trim().replace(/^"(.*)"$/, '$1');
                 }
             });
 
-            const requiredFields = ['original-image-link', 'width', 'height', 'alt'];
+            // Validasi field wajib
+            const requiredFields = ['original-image-link', 'original-size', 'sizes', 'srcset', 'alt'];
             for (const field of requiredFields) {
                 if (!data[field]) {
                     console.error(`Missing required field: ${field}`);
@@ -662,44 +636,47 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
-            const resourceId = data['original-image-link'].split('/assets/')[1].split('/')[0];
-            const baseUrl = data['original-image-link'].substring(0, data['original-image-link'].lastIndexOf('/'));
+            // Ekstrak width dan height
+            const [width, height] = data['original-size'].split('x');
+            const baseUrl = data['original-image-link'].replace(/\.[^/.]+$/, "");
             
+            // Bangun srcset
+            const srcset = data.srcset.split(',')
+                .map(w => w.trim().replace('w', ''))
+                .map(w => `${baseUrl}-${w}.webp ${w}w`)
+                .join(', ');
+
+            // Bangun HTML
             let titleHtml = '';
-            if (data.title && data.title.trim()) {
+            if (data.title) {
                 titleHtml = `<p><strong>${data.title}</strong></p>`;
             }
 
-            const html = `
+            processedHtml += `
                 ${titleHtml}
-                <figure class="image" data-ckbox-resource-id="${resourceId}">
+                <figure class="image">
                     <picture>
                         <source 
-                            sizes="(max-width: ${data.width}px) 100vw, ${data.width}px"
-                            srcset="${generateSrcset(baseUrl, parseInt(data.width))}"
+                            sizes="${data.sizes.replace('sizes=', '')}"
+                            srcset="${srcset}"
                             type="image/webp">
                         <img src="${data['original-image-link']}"
-                             alt="${data.alt}"
-                             width="${data.width}"
-                             height="${data.height}"
-                             onclick="showFullImage(this.src)">
+                            alt="${data.alt}"
+                            width="${width}"
+                            height="${height}"
+                            onclick="showFullImage(this.src)">
                     </picture>
                 </figure>`;
-            
-            processedHtml += html;
         });
 
         return processedHtml;
     }
 
-        const pre = document.getElementById('imageData');
-        if (pre) {
-        const content = pre.textContent;
-        const html = processPreContent(content);
-        pre.outerHTML = html;
+    const pre = document.getElementById('imageData');
+    if (pre) {
+        pre.outerHTML = processPreContent(pre.textContent);
     }
 });
-
 /*
 document.addEventListener('DOMContentLoaded', function() {
     function generateSrcset(baseUrl, originalWidth) {
