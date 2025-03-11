@@ -235,6 +235,76 @@
 	
 }
 
+/* Image Tabs System */
+.image-tabs {
+    margin: 1.5rem 0;
+}
+
+.image-tabs .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 1.2rem;
+    flex-wrap: wrap;
+}
+
+.image-tabs .tab {
+    cursor: pointer;
+    padding: 8px 16px;
+    border: 1px solid #e0e0e0;
+    background: #f8f8f8;
+    border-radius: 4px;
+    font-size: 0.9em;
+    color: #333;
+    transition: all 0.2s ease;
+}
+
+.image-tabs .tab:hover {
+    background: #e0e0e0;
+    border-color: #ccc;
+}
+
+.image-tabs .tab.active {
+    background: #007bff;
+    border-color: #007bff;
+    color: white;
+}
+
+.tab-content .tab-pane {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.tab-content .tab-pane.active {
+    display: block;
+}
+
+.tab-content .tab-pane > figure {
+    margin: 0 0 1rem;
+    width: 100%;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Mobile Adaptation */
+@media (max-width: 768px) {
+    .image-tabs .tabs {
+        gap: 6px;
+        margin-bottom: 1rem;
+    }
+    
+    .image-tabs .tab {
+        padding: 6px 12px;
+        font-size: 0.85em;
+    }
+    
+    .tab-content .tab-pane > figure {
+        margin: 0;
+    }
+}
+
 /* Style ini dipakai pada tab2 */
 p {
     margin-bottom: 0.5em;
