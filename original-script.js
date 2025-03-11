@@ -565,15 +565,37 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
-            // Ekstrak width dan height dari original-size
+            // Ekstrak width dan height
             const [width, height] = data['original-size'].split('x');
-            const baseUrl = data['mobile-image-link'].replace(/\.[^/.]+$/, "");
             
-            // Bangun srcset
-            const srcset = data.srcset.split(',')
+            // Dapatkan ekstensi asli
+            const originalExt = data['mobile-image-link'].match(/\.([^/.]+)$/)[1];
+            
+            // Bangun base URL untuk webp dan fallback
+            const webpBase = data['mobile-image-link']
+                .replace('/images/', '/images/webp/')
+                .replace(/\.[^/.]+$/, "");
+                
+            const fallbackBase = data['mobile-image-link']
+                .replace('/images/', '/images/fallback/')
+                .replace(/\.[^/.]+$/, "");
+
+            // Bangun srcset untuk webp
+            const webpSrcset = data.srcset.split(',')
                 .map(w => w.trim().replace('w', ''))
-                .map(w => `${baseUrl}-${w}.webp ${w}w`)
+                .map(w => `${webpBase}-${w}.webp ${w}w`)
                 .join(', ');
+
+            // Bangun srcset untuk fallback
+            const fallbackSrcset = data['fallback-srcset'].split(',')
+                .map(w => w.trim().replace('w', ''))
+                .map(w => `${fallbackBase}-${w}.${originalExt} ${w}w`)
+                .join(', ');
+
+            // Tentukan tipe MIME
+            let mimeType = 'image/jpeg';
+            if (originalExt.toLowerCase() === 'png') mimeType = 'image/png';
+            if (originalExt.toLowerCase() === 'gif') mimeType = 'image/gif';
 
             // Bangun HTML
             let titleHtml = '';
@@ -587,8 +609,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     <picture>
                         <source 
                             sizes="${data.sizes.replace('sizes=', '')}"
-                            srcset="${srcset}"
+                            srcset="${webpSrcset}"
                             type="image/webp">
+                        <source 
+                            sizes="${data.sizes.replace('sizes=', '')}"
+                            srcset="${fallbackSrcset}"
+                            type="${mimeType}">
                         <img src="${data['mobile-image-link']}"
                             alt="${data.alt}"
                             width="${width}"
@@ -638,13 +664,35 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Ekstrak width dan height
             const [width, height] = data['original-size'].split('x');
-            const baseUrl = data['original-image-link'].replace(/\.[^/.]+$/, "");
             
-            // Bangun srcset
-            const srcset = data.srcset.split(',')
+            // Dapatkan ekstensi asli
+            const originalExt = data['original-image-link'].match(/\.([^/.]+)$/)[1];
+            
+            // Bangun base URL untuk webp dan fallback
+            const webpBase = data['original-image-link']
+                .replace('/images/', '/images/webp/')
+                .replace(/\.[^/.]+$/, "");
+                
+            const fallbackBase = data['original-image-link']
+                .replace('/images/', '/images/fallback/')
+                .replace(/\.[^/.]+$/, "");
+
+            // Bangun srcset untuk webp
+            const webpSrcset = data.srcset.split(',')
                 .map(w => w.trim().replace('w', ''))
-                .map(w => `${baseUrl}-${w}.webp ${w}w`)
+                .map(w => `${webpBase}-${w}.webp ${w}w`)
                 .join(', ');
+
+            // Bangun srcset untuk fallback
+            const fallbackSrcset = data['fallback-srcset'].split(',')
+                .map(w => w.trim().replace('w', ''))
+                .map(w => `${fallbackBase}-${w}.${originalExt} ${w}w`)
+                .join(', ');
+
+            // Tentukan tipe MIME
+            let mimeType = 'image/jpeg';
+            if (originalExt.toLowerCase() === 'png') mimeType = 'image/png';
+            if (originalExt.toLowerCase() === 'gif') mimeType = 'image/gif';
 
             // Bangun HTML
             let titleHtml = '';
@@ -658,8 +706,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     <picture>
                         <source 
                             sizes="${data.sizes.replace('sizes=', '')}"
-                            srcset="${srcset}"
+                            srcset="${webpSrcset}"
                             type="image/webp">
+                        <source 
+                            sizes="${data.sizes.replace('sizes=', '')}"
+                            srcset="${fallbackSrcset}"
+                            type="${mimeType}">
                         <img src="${data['original-image-link']}"
                             alt="${data.alt}"
                             width="${width}"
