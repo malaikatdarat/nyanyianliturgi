@@ -716,10 +716,6 @@ document.addEventListener('DOMContentLoaded', function() {
     processAll();
 });
 
-// Fungsi existing tetap dipertahankan
-function showFullImage(src) {
-    window.open(src, '_blank');
-}
 /*
 document.addEventListener('DOMContentLoaded', function() {
     function generateSrcset(baseUrl, originalWidth) {
