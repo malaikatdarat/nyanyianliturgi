@@ -581,7 +581,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (currentGroup) {
                     currentGroup.entries.push(data);
                 } else {
-                    // Jika ada gambar tanpa title di awal, buat group khusus
                     currentGroup = {
                         title: 'Gambar',
                         entries: [data]
@@ -594,74 +593,77 @@ document.addEventListener('DOMContentLoaded', function() {
         // Bangun HTML
         let processedHtml = '<div class="image-groups-wrapper">';
         
-        // Container untuk tombol di atas
-        processedHtml += '<div class="group-buttons-container">';
-        groups.forEach((group, groupIndex) => {
-            processedHtml += `
-                <button class="group-button ${groupIndex === 0 ? 'active' : ''}" 
-                        data-group-index="${groupIndex}">
-                    ${group.title}
-                </button>`;
-        });
-        processedHtml += '</div>'; // Tutup container tombol
+        // Container tombol di tengah
+        processedHtml += `
+            <div class="group-buttons-container">
+                ${groups.map((group, i) => `
+                    <button class="group-button ${i === 0 ? 'active' : ''}" 
+                            data-group-index="${i}">
+                        ${group.title}
+                    </button>
+                `).join('')}
+            </div>`;
         
-        // Container untuk konten grup
-        processedHtml += '<div class="group-contents-container">';
-        groups.forEach((group, groupIndex) => {
-            let imagesHtml = '';
-            group.entries.forEach(data => {
-                const [width, height] = data['original-size'].split('x');
-                const originalExt = data['original-image-link'].match(/\.([^/.]+)$/)[1];
-                
-                const webpBase = data['original-image-link']
-                    .replace('/images/', '/images/webp/')
-                    .replace(/\.[^/.]+$/, "");
+        // Container konten dengan placeholder
+        processedHtml += `
+            <div class="group-contents-container">
+                ${groups.map((group, i) => {
+                    const imagesHtml = group.entries.map(data => {
+                        const [width, height] = data['original-size'].split('x');
+                        const originalExt = data['original-image-link'].match(/\.([^/.]+)$/)[1];
+                        
+                        const webpBase = data['original-image-link']
+                            .replace('/images/', '/images/webp/')
+                            .replace(/\.[^/.]+$/, "");
+                            
+                        const fallbackBase = data['original-image-link']
+                            .replace('/images/', '/images/fallback/')
+                            .replace(/\.[^/.]+$/, "");
+
+                        const webpSrcset = data.srcset.split(',')
+                            .map(w => w.trim().replace('w', ''))
+                            .map(w => `${webpBase}-${w}.webp ${w}w`)
+                            .join(', ');
+
+                        const fallbackSrcset = data['fallback-srcset'].split(',')
+                            .map(w => w.trim().replace('w', ''))
+                            .map(w => `${fallbackBase}-${w}.${originalExt} ${w}w`)
+                            .join(', ');
+
+                        let mimeType = 'image/jpeg';
+                        if (originalExt.toLowerCase() === 'png') mimeType = 'image/png';
+                        if (originalExt.toLowerCase() === 'gif') mimeType = 'image/gif';
+
+                        return `
+                            <figure class="image">
+                                <picture>
+                                    <source 
+                                        sizes="${data.sizes.replace('sizes=', '')}"
+                                        srcset="${webpSrcset}"
+                                        type="image/webp">
+                                    <source 
+                                        sizes="${data.sizes.replace('sizes=', '')}"
+                                        srcset="${fallbackSrcset}"
+                                        type="${mimeType}">
+                                    <img src="${data['original-image-link']}"
+                                        alt="${data.alt}"
+                                        width="${width}"
+                                        height="${height}"
+                                        loading="lazy"
+                                        onclick="showFullImage(this.src)">
+                                </picture>
+                            </figure>`;
+                    }).join('');
                     
-                const fallbackBase = data['original-image-link']
-                    .replace('/images/', '/images/fallback/')
-                    .replace(/\.[^/.]+$/, "");
-
-                const webpSrcset = data.srcset.split(',')
-                    .map(w => w.trim().replace('w', ''))
-                    .map(w => `${webpBase}-${w}.webp ${w}w`)
-                    .join(', ');
-
-                const fallbackSrcset = data['fallback-srcset'].split(',')
-                    .map(w => w.trim().replace('w', ''))
-                    .map(w => `${fallbackBase}-${w}.${originalExt} ${w}w`)
-                    .join(', ');
-
-                let mimeType = 'image/jpeg';
-                if (originalExt.toLowerCase() === 'png') mimeType = 'image/png';
-                if (originalExt.toLowerCase() === 'gif') mimeType = 'image/gif';
-
-                imagesHtml += `
-                    <figure class="image">
-                        <picture>
-                            <source 
-                                sizes="${data.sizes.replace('sizes=', '')}"
-                                srcset="${webpSrcset}"
-                                type="image/webp">
-                            <source 
-                                sizes="${data.sizes.replace('sizes=', '')}"
-                                srcset="${fallbackSrcset}"
-                                type="${mimeType}">
-                            <img src="${data['original-image-link']}"
-                                alt="${data.alt}"
-                                width="${width}"
-                                height="${height}"
-                                onclick="showFullImage(this.src)">
-                        </picture>
-                    </figure>`;
-            });
-
-            processedHtml += `
-                <div class="image-group ${groupIndex === 0 ? 'active' : ''}" 
-                     data-group-index="${groupIndex}">
-                    ${imagesHtml}
-                </div>`;
-        });
-        processedHtml += '</div></div>'; // Tutup container konten dan wrapper
+                    return `
+                        <div class="image-group ${i === 0 ? 'active' : ''}" 
+                             data-group-index="${i}">
+                            ${imagesHtml}
+                        </div>`;
+                }).join('')}
+            </div>`;
+        
+        processedHtml += '</div>';
 
         return processedHtml;
     }
@@ -678,9 +680,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const allButtons = document.querySelectorAll('.group-button');
             const targetGroupIndex = e.target.dataset.groupIndex;
             
-            // Update tampilan grup
+            // Update tampilan grup dengan transisi
             allGroups.forEach(group => {
-                group.style.display = group.dataset.groupIndex === targetGroupIndex ? 'block' : 'none';
+                if (group.dataset.groupIndex === targetGroupIndex) {
+                    group.style.opacity = '0';
+                    group.style.display = 'grid';
+                    setTimeout(() => {
+                        group.style.opacity = '1';
+                    }, 10);
+                } else {
+                    group.style.opacity = '0';
+                    setTimeout(() => {
+                        group.style.display = 'none';
+                    }, 300);
+                }
             });
 
             // Update status tombol
@@ -689,9 +702,19 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     });
-});
 
-// Fungsi showFullImage tetap sama
+    // Inisialisasi tinggi container
+    const initContainerHeight = () => {
+        const container = document.querySelector('.group-contents-container');
+        const firstGroup = document.querySelector('.image-group');
+        if (container && firstGroup) {
+            container.style.minHeight = `${firstGroup.offsetHeight}px`;
+        }
+    };
+    
+    // Tunggu sampai gambar pertama selesai dimuat
+    window.addEventListener('load', initContainerHeight);
+});
 
 /*
 document.addEventListener('DOMContentLoaded', function() {
