@@ -538,12 +538,17 @@ overlay.addEventListener('click', (e) => {
 // Tab1
 document.addEventListener('DOMContentLoaded', function() {
     // Fungsi untuk menghitung sizes berdasarkan parent container
-    const calculateSizes = () => {
-        const container = document.querySelector('.group-contents-container');
-        if (!container) return '100vw';
-        const containerWidth = container.offsetWidth;
-        return `${containerWidth}px`;
-    };
+const calculateSizes = () => {
+    const container = document.querySelector('.group-contents-container');
+    if (!container) return '100vw';
+    
+    const containerWidth = container.offsetWidth;
+    const viewportWidth = window.innerWidth;
+    
+    // Hitung relative terhadap viewport
+    const relativeWidth = (containerWidth / viewportWidth * 100).toFixed(2);
+    return `(max-width: ${viewportWidth}px) ${relativeWidth}vw, ${containerWidth}px`;
+};
 
     // Update sizes untuk semua gambar
     const updateImageSizes = () => {
