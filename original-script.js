@@ -537,19 +537,12 @@ overlay.addEventListener('click', (e) => {
 
 // Tab1
 document.addEventListener('DOMContentLoaded', function() {
-    // Fungsi untuk menghitung sizes berdasarkan parent container
+    const srcsetCache = {};
     const calculateSizes = () => {
         const container = document.querySelector('.group-contents-container');
-        if (!container) return '100vw';
-        
-        const containerWidth = container.offsetWidth;
-        const viewportWidth = window.innerWidth;
-        
-        const relativeWidth = (containerWidth / viewportWidth * 100).toFixed(2);
-        return `(max-width: ${viewportWidth}px) ${relativeWidth}vw, ${containerWidth}px`;
+        return container ? `(max-width: ${window.innerWidth}px) ${(container.offsetWidth/window.innerWidth*100).toFixed(2)}vw, ${container.offsetWidth}px` : '100vw';
     };
 
-    // Update sizes untuk semua gambar
     const updateImageSizes = () => {
         const sizesValue = calculateSizes();
         document.querySelectorAll('.image-group picture source').forEach(source => {
@@ -557,7 +550,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     };
 
-    // Handle resize dengan debounce
     let resizeTimer;
     window.addEventListener('resize', () => {
         clearTimeout(resizeTimer);
@@ -570,55 +562,39 @@ document.addEventListener('DOMContentLoaded', function() {
         let currentGroup = null;
 
         const dataEntries = [];
-        
         for (const entry of entries) {
             if (!entry.trim()) continue;
             
             const data = {};
-            const lines = entry.trim().split('\n');
-            
-            lines.forEach(line => {
-                line = line.trim();
-                if (line.includes(':')) {
-                    const [key, ...values] = line.split(':');
-                    data[key.trim()] = values.join(':').trim();
-                }
+            entry.trim().split('\n').forEach(line => {
+                const [key, ...values] = line.split(':').map(s => s.trim());
+                if (key && values.length) data[key] = values.join(':');
             });
 
-            // Validasi field wajib
-            const requiredFields = ['image-link', 'image-size', 'alt'];
-            for (const field of requiredFields) {
-                if (!data[field]) {
-                    console.error(`Missing required field: ${field}`);
-                    return '';
-                }
+            if (!data['image-link'] || !data['image-size'] || !data.alt) {
+                console.error('Missing required fields');
+                dataEntries.push(data);
+                continue;
             }
 
             try {
-                // Membuat path untuk srcset
-                const imagePath = data['image-link'].split('/').slice(0, -1).join('/');
-                const imageName = data['image-link'].split('/').pop().split('.')[0];
+                const imageUrl = new URL(data['image-link']);
+                const pathParts = imageUrl.pathname.split('/');
+                const imageName = pathParts.pop().split('.')[0];
+                const basePath = pathParts.join('/');
                 
-                // Fetch srcset
                 const [webpSrcset, fallbackSrcset] = await Promise.all([
-                    fetch(`${imagePath}/${imageName}/webp/srcset.txt`).then(r => r.text()),
-                    fetch(`${imagePath}/${imageName}/fallback/srcset.txt`).then(r => r.text())
+                    getCachedSrcset(`${basePath}/${imageName}/webp/srcset.txt`),
+                    getCachedSrcset(`${basePath}/${imageName}/fallback/srcset.txt`)
                 ]);
-                
-                // Format srcset
-                data.webpSrcset = webpSrcset.split(',')
-                    .map(item => `${imagePath}/${imageName}/webp/${item.trim().split(' ')[0]} ${item.trim().split(' ')[1]}`)
-                    .join(', ');
-                
-                data.fallbackSrcset = fallbackSrcset.split(',')
-                    .map(item => `${imagePath}/${imageName}/fallback/${item.trim().split(' ')[0]} ${item.trim().split(' ')[1]}`)
-                    .join(', ');
 
-                dataEntries.push(data);
+                data.webpSrcset = processSrcset(webpSrcset, `${basePath}/${imageName}/webp/`);
+                data.fallbackSrcset = processSrcset(fallbackSrcset, `${basePath}/${imageName}/fallback/`);
             } catch (error) {
-                console.error('Gagal memuat srcset:', error);
-                return '';
+                console.error('Error loading srcset:', error);
             }
+            
+            dataEntries.push(data);
         }
 
         // Kelompokkan data
@@ -678,6 +654,34 @@ document.addEventListener('DOMContentLoaded', function() {
         return processedHtml;
     }
 
+    async function getCachedSrcset(url) {
+        if (srcsetCache[url]) return srcsetCache[url];
+        
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('File not found');
+            const content = await response.text();
+            srcsetCache[url] = content;
+            return content;
+        } catch (error) {
+            srcsetCache[url] = null;
+            return null;
+        }
+    }
+
+    function processSrcset(content, basePath) {
+        if (!content) return null;
+        
+        return content.split('\n')
+            .map(line => line.trim())
+            .filter(line => line)
+            .map(line => {
+                const [filename, width] = line.split(/\s+(?=\d+w)/);
+                return `${basePath}${filename} ${width}`;
+            })
+            .join(', ');
+    }
+	
     const pre = document.getElementById('imageData');
     if (pre) {
         processPreContent(pre.textContent).then(html => {
