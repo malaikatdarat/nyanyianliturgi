@@ -536,109 +536,14 @@ overlay.addEventListener('click', (e) => {
 
 
 // Tab1
-// Mobile Version
-document.addEventListener('DOMContentLoaded', function() {
-    function processPreContent(content) {
-        const entries = content.trim().split(/(?=mobile-image-link:)/);
-        let processedHtml = '';
-        
-        entries.forEach(entry => {
-            if (!entry.trim()) return;
-            
-            const data = {};
-            const lines = entry.trim().split('\n');
-            
-            lines.forEach(line => {
-                line = line.trim();
-                if (line.includes(':')) {
-                    const [key, ...values] = line.split(':');
-                    data[key.trim()] = values.join(':').trim().replace(/^"(.*)"$/, '$1');
-                }
-            });
-
-            // Validasi field wajib
-            const requiredFields = ['mobile-image-link', 'original-size', 'sizes', 'srcset', 'alt'];
-            for (const field of requiredFields) {
-                if (!data[field]) {
-                    console.error(`Missing required field: ${field}`);
-                    return;
-                }
-            }
-
-            // Ekstrak width dan height
-            const [width, height] = data['original-size'].split('x');
-            
-            // Dapatkan ekstensi asli
-            const originalExt = data['mobile-image-link'].match(/\.([^/.]+)$/)[1];
-            
-            // Bangun base URL untuk webp dan fallback
-            const webpBase = data['mobile-image-link']
-                .replace('/images/', '/images/webp/')
-                .replace(/\.[^/.]+$/, "");
-                
-            const fallbackBase = data['mobile-image-link']
-                .replace('/images/', '/images/fallback/')
-                .replace(/\.[^/.]+$/, "");
-
-            // Bangun srcset untuk webp
-            const webpSrcset = data.srcset.split(',')
-                .map(w => w.trim().replace('w', ''))
-                .map(w => `${webpBase}-${w}.webp ${w}w`)
-                .join(', ');
-
-            // Bangun srcset untuk fallback
-            const fallbackSrcset = data['fallback-srcset'].split(',')
-                .map(w => w.trim().replace('w', ''))
-                .map(w => `${fallbackBase}-${w}.${originalExt} ${w}w`)
-                .join(', ');
-
-            // Tentukan tipe MIME
-            let mimeType = 'image/jpeg';
-            if (originalExt.toLowerCase() === 'png') mimeType = 'image/png';
-            if (originalExt.toLowerCase() === 'gif') mimeType = 'image/gif';
-
-            // Bangun HTML
-            let titleHtml = '';
-            if (data.title) {
-                titleHtml = `<p class="mobile-only"><strong>${data.title}</strong></p>`;
-            }
-
-            processedHtml += `
-                ${titleHtml}
-                <figure class="image mobile-only">
-                    <picture>
-                        <source 
-                            sizes="${data.sizes.replace('sizes=', '')}"
-                            srcset="${webpSrcset}"
-                            type="image/webp">
-                        <source 
-                            sizes="${data.sizes.replace('sizes=', '')}"
-                            srcset="${fallbackSrcset}"
-                            type="${mimeType}">
-                        <img src="${data['mobile-image-link']}"
-                            alt="${data.alt}"
-                            width="${width}"
-                            height="${height}"
-                            onclick="showFullImage(this.src)">
-                    </picture>
-                </figure>`;
-        });
-
-        return processedHtml;
-    }
-
-    const pre = document.getElementById('imageDataM');
-    if (pre) {
-        pre.outerHTML = processPreContent(pre.textContent);
-    }
-});
-
-// Desktop Version
 document.addEventListener('DOMContentLoaded', function() {
     function processPreContent(content) {
         const entries = content.trim().split(/(?=original-image-link:)/);
-        let processedHtml = '';
-        
+        const groups = [];
+        let currentGroup = null;
+
+        // Proses semua entri menjadi array data
+        const dataEntries = [];
         entries.forEach(entry => {
             if (!entry.trim()) return;
             
@@ -661,65 +566,103 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
             }
+            dataEntries.push(data);
+        });
 
-            // Ekstrak width dan height
-            const [width, height] = data['original-size'].split('x');
-            
-            // Dapatkan ekstensi asli
-            const originalExt = data['original-image-link'].match(/\.([^/.]+)$/)[1];
-            
-            // Bangun base URL untuk webp dan fallback
-            const webpBase = data['original-image-link']
-                .replace('/images/', '/images/webp/')
-                .replace(/\.[^/.]+$/, "");
-                
-            const fallbackBase = data['original-image-link']
-                .replace('/images/', '/images/fallback/')
-                .replace(/\.[^/.]+$/, "");
-
-            // Bangun srcset untuk webp
-            const webpSrcset = data.srcset.split(',')
-                .map(w => w.trim().replace('w', ''))
-                .map(w => `${webpBase}-${w}.webp ${w}w`)
-                .join(', ');
-
-            // Bangun srcset untuk fallback
-            const fallbackSrcset = data['fallback-srcset'].split(',')
-                .map(w => w.trim().replace('w', ''))
-                .map(w => `${fallbackBase}-${w}.${originalExt} ${w}w`)
-                .join(', ');
-
-            // Tentukan tipe MIME
-            let mimeType = 'image/jpeg';
-            if (originalExt.toLowerCase() === 'png') mimeType = 'image/png';
-            if (originalExt.toLowerCase() === 'gif') mimeType = 'image/gif';
-
-            // Bangun HTML
-            let titleHtml = '';
+        // Kelompokkan data berdasarkan title
+        dataEntries.forEach((data, index) => {
             if (data.title) {
-                titleHtml = `<p><strong>${data.title}</strong></p>`;
+                currentGroup = {
+                    title: data.title,
+                    entries: [data],
+                    startIndex: index
+                };
+                groups.push(currentGroup);
+            } else {
+                if (currentGroup) {
+                    currentGroup.entries.push(data);
+                } else {
+                    // Jika ada gambar tanpa title di awal, buat group khusus
+                    currentGroup = {
+                        title: null,
+                        entries: [data],
+                        startIndex: index
+                    };
+                    groups.push(currentGroup);
+                }
+            }
+        });
+
+        // Bangun HTML untuk setiap grup
+        let processedHtml = '<div class="image-groups-container">';
+        groups.forEach((group, groupIndex) => {
+            const isFirstGroup = groupIndex === 0;
+            
+            // HTML untuk judul
+            let titleHtml = '';
+            if (group.title) {
+                titleHtml = isFirstGroup ? 
+                    '' : // Grup pertama tidak perlu tombol
+                    `<button class="group-button" data-group-index="${groupIndex}">${group.title}</button>`;
             }
 
+            // HTML untuk gambar
+            let imagesHtml = '';
+            group.entries.forEach(data => {
+                const [width, height] = data['original-size'].split('x');
+                const originalExt = data['original-image-link'].match(/\.([^/.]+)$/)[1];
+                
+                const webpBase = data['original-image-link']
+                    .replace('/images/', '/images/webp/')
+                    .replace(/\.[^/.]+$/, "");
+                    
+                const fallbackBase = data['original-image-link']
+                    .replace('/images/', '/images/fallback/')
+                    .replace(/\.[^/.]+$/, "");
+
+                const webpSrcset = data.srcset.split(',')
+                    .map(w => w.trim().replace('w', ''))
+                    .map(w => `${webpBase}-${w}.webp ${w}w`)
+                    .join(', ');
+
+                const fallbackSrcset = data['fallback-srcset'].split(',')
+                    .map(w => w.trim().replace('w', ''))
+                    .map(w => `${fallbackBase}-${w}.${originalExt} ${w}w`)
+                    .join(', ');
+
+                let mimeType = 'image/jpeg';
+                if (originalExt.toLowerCase() === 'png') mimeType = 'image/png';
+                if (originalExt.toLowerCase() === 'gif') mimeType = 'image/gif';
+
+                imagesHtml += `
+                    <figure class="image">
+                        <picture>
+                            <source 
+                                sizes="${data.sizes.replace('sizes=', '')}"
+                                srcset="${webpSrcset}"
+                                type="image/webp">
+                            <source 
+                                sizes="${data.sizes.replace('sizes=', '')}"
+                                srcset="${fallbackSrcset}"
+                                type="${mimeType}">
+                            <img src="${data['original-image-link']}"
+                                alt="${data.alt}"
+                                width="${width}"
+                                height="${height}"
+                                onclick="showFullImage(this.src)">
+                        </picture>
+                    </figure>`;
+            });
+
             processedHtml += `
-                ${titleHtml}
-                <figure class="image">
-                    <picture>
-                        <source 
-                            sizes="${data.sizes.replace('sizes=', '')}"
-                            srcset="${webpSrcset}"
-                            type="image/webp">
-                        <source 
-                            sizes="${data.sizes.replace('sizes=', '')}"
-                            srcset="${fallbackSrcset}"
-                            type="${mimeType}">
-                        <img src="${data['original-image-link']}"
-                            alt="${data.alt}"
-                            width="${width}"
-                            height="${height}"
-                            onclick="showFullImage(this.src)">
-                    </picture>
-                </figure>`;
+                <div class="image-group ${isFirstGroup ? 'active' : ''}" data-group-index="${groupIndex}">
+                    ${titleHtml}
+                    <div class="group-images" ${isFirstGroup ? '' : 'style="display: none;"'}>
+                        ${imagesHtml}
+                    </div>
+                </div>`;
         });
+        processedHtml += '</div>';
 
         return processedHtml;
     }
@@ -727,6 +670,44 @@ document.addEventListener('DOMContentLoaded', function() {
     const pre = document.getElementById('imageData');
     if (pre) {
         pre.outerHTML = processPreContent(pre.textContent);
+    }
+
+    // Handle klik tombol grup
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('group-button')) {
+            const allGroups = document.querySelectorAll('.image-group');
+            const allButtons = document.querySelectorAll('.group-button');
+            const targetGroupIndex = e.target.dataset.groupIndex;
+            
+            // Update active state
+            allGroups.forEach(group => {
+                const groupIndex = group.dataset.groupIndex;
+                const groupImages = group.querySelector('.group-images');
+                if (groupIndex === targetGroupIndex) {
+                    group.classList.add('active');
+                    groupImages.style.display = 'block';
+                } else {
+                    group.classList.remove('active');
+                    groupImages.style.display = 'none';
+                }
+            });
+
+            // Update button states
+            allButtons.forEach(btn => {
+                if (btn.dataset.groupIndex === targetGroupIndex) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+    });
+
+    // Aktifkan grup pertama secara default
+    const firstGroup = document.querySelector('.image-group');
+    if (firstGroup) {
+        firstGroup.classList.add('active');
+        firstGroup.querySelector('.group-images').style.display = 'block';
     }
 });
 
