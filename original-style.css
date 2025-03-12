@@ -291,7 +291,14 @@
 .image-group img {
     width: 100%;
     height: auto;
-    aspect-ratio: attr(width) / attr(height);
+    display: block;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 768px) {
+    .image-group img {
+        box-shadow: none;
+    }
 }
 
 /* Style ini dipakai pada tab2 */
