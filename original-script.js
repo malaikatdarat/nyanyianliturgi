@@ -537,12 +537,37 @@ overlay.addEventListener('click', (e) => {
 
 // Tab1
 document.addEventListener('DOMContentLoaded', function() {
+    // Fungsi untuk menghitung sizes berdasarkan parent container
+    const calculateSizes = () => {
+        const container = document.querySelector('.group-contents-container');
+        if (!container) return '100vw';
+        const containerWidth = container.offsetWidth;
+        return `${containerWidth}px`;
+    };
+
+    // Update sizes untuk semua gambar
+    const updateImageSizes = () => {
+        const sizesValue = calculateSizes();
+        document.querySelectorAll('.image-group picture source').forEach(source => {
+            source.setAttribute('sizes', sizesValue);
+        });
+    };
+
+    // Handle resize dengan debounce
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            updateImageSizes();
+        }, 250);
+    });
+
     function processPreContent(content) {
         const entries = content.trim().split(/(?=original-image-link:)/);
         const groups = [];
         let currentGroup = null;
 
-        // Proses semua entri menjadi array data
+        // Proses data (sama seperti sebelumnya tanpa field sizes)
         const dataEntries = [];
         entries.forEach(entry => {
             if (!entry.trim()) return;
@@ -558,8 +583,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
-            // Validasi field wajib
-            const requiredFields = ['original-image-link', 'original-size', 'sizes', 'srcset', 'alt'];
+            // Validasi tanpa sizes
+            const requiredFields = ['original-image-link', 'original-size', 'srcset', 'alt'];
             for (const field of requiredFields) {
                 if (!data[field]) {
                     console.error(`Missing required field: ${field}`);
@@ -569,7 +594,7 @@ document.addEventListener('DOMContentLoaded', function() {
             dataEntries.push(data);
         });
 
-        // Kelompokkan data berdasarkan title
+        // Kelompokkan data
         dataEntries.forEach((data) => {
             if (data.title) {
                 currentGroup = {
@@ -593,7 +618,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Bangun HTML
         let processedHtml = '<div class="image-groups-wrapper">';
         
-        // Container tombol di tengah
+        // Tombol grup
         processedHtml += `
             <div class="group-buttons-container">
                 ${groups.map((group, i) => `
@@ -604,11 +629,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 `).join('')}
             </div>`;
         
-        // Container konten dengan placeholder
-        processedHtml += `
-            <div class="group-contents-container">
-                ${groups.map((group, i) => {
-                    const imagesHtml = group.entries.map(data => {
+        // Konten gambar
+        processedHtml += '<div class="group-contents-container">';
+        groups.forEach((group, i) => {
+            processedHtml += `
+                <div class="image-group ${i === 0 ? 'active' : ''}" data-group-index="${i}">
+                    ${group.entries.map(data => {
                         const [width, height] = data['original-size'].split('x');
                         const originalExt = data['original-image-link'].match(/\.([^/.]+)$/)[1];
                         
@@ -637,14 +663,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         return `
                             <figure class="image">
                                 <picture>
-                                    <source 
-                                        sizes="${data.sizes.replace('sizes=', '')}"
-                                        srcset="${webpSrcset}"
-                                        type="image/webp">
-                                    <source 
-                                        sizes="${data.sizes.replace('sizes=', '')}"
-                                        srcset="${fallbackSrcset}"
-                                        type="${mimeType}">
+                                    <source srcset="${webpSrcset}" type="image/webp">
+                                    <source srcset="${fallbackSrcset}" type="${mimeType}">
                                     <img src="${data['original-image-link']}"
                                         alt="${data.alt}"
                                         width="${width}"
@@ -653,17 +673,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                         onclick="showFullImage(this.src)">
                                 </picture>
                             </figure>`;
-                    }).join('');
-                    
-                    return `
-                        <div class="image-group ${i === 0 ? 'active' : ''}" 
-                             data-group-index="${i}">
-                            ${imagesHtml}
-                        </div>`;
-                }).join('')}
-            </div>`;
-        
-        processedHtml += '</div>';
+                    }).join('')}
+                </div>`;
+        });
+        processedHtml += '</div></div>';
 
         return processedHtml;
     }
@@ -671,49 +684,37 @@ document.addEventListener('DOMContentLoaded', function() {
     const pre = document.getElementById('imageData');
     if (pre) {
         pre.outerHTML = processPreContent(pre.textContent);
+        updateImageSizes();
+        
+        // Inisialisasi pertama untuk ukuran gambar
+        const images = document.querySelectorAll('.image-group img');
+        images.forEach(img => {
+            img.style.width = '100%';
+            img.style.height = 'auto';
+        });
     }
 
-    // Handle klik tombol grup
+    // Handle toggle grup
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('group-button')) {
             const allGroups = document.querySelectorAll('.image-group');
             const allButtons = document.querySelectorAll('.group-button');
             const targetGroupIndex = e.target.dataset.groupIndex;
             
-            // Update tampilan grup dengan transisi
+            // Update tampilan
             allGroups.forEach(group => {
-                if (group.dataset.groupIndex === targetGroupIndex) {
-                    group.style.opacity = '0';
-                    group.style.display = 'grid';
-                    setTimeout(() => {
-                        group.style.opacity = '1';
-                    }, 10);
-                } else {
-                    group.style.opacity = '0';
-                    setTimeout(() => {
-                        group.style.display = 'none';
-                    }, 300);
-                }
+                group.style.display = group.dataset.groupIndex === targetGroupIndex ? 'block' : 'none';
             });
-
-            // Update status tombol
+            
+            // Update tombol aktif
             allButtons.forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.groupIndex === targetGroupIndex);
             });
+            
+            // Update sizes setelah ganti grup
+            updateImageSizes();
         }
     });
-
-    // Inisialisasi tinggi container
-    const initContainerHeight = () => {
-        const container = document.querySelector('.group-contents-container');
-        const firstGroup = document.querySelector('.image-group');
-        if (container && firstGroup) {
-            container.style.minHeight = `${firstGroup.offsetHeight}px`;
-        }
-    };
-    
-    // Tunggu sampai gambar pertama selesai dimuat
-    window.addEventListener('load', initContainerHeight);
 });
 
 /*
