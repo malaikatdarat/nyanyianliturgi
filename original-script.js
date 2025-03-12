@@ -539,114 +539,98 @@ overlay.addEventListener('click', (e) => {
 document.addEventListener('DOMContentLoaded', function() {
     const srcsetCache = new Map();
 
-    const calculateSizes = () => {
-        const container = document.querySelector('.group-contents-container');
-        if (!container) return '100vw';
-        const containerWidth = container.offsetWidth;
-        return `(max-width: ${window.innerWidth}px) ${(containerWidth/window.innerWidth*100).toFixed(2)}vw, ${containerWidth}px`;
+    // Fungsi untuk membuat base path dari URL gambar
+    const createSrcsetBasePath = (imageUrl, type) => {
+        const url = new URL(imageUrl);
+        const pathParts = url.pathname.split('/');
+        const filename = pathParts.pop().split('.')[0];
+        return `${url.origin}/${pathParts.slice(3).join('/')}/${filename}/${type}/`;
     };
 
-    const updateImageSizes = () => {
-        const sizesValue = calculateSizes();
-        document.querySelectorAll('.image-group picture source').forEach(source => {
-            source.sizes = sizesValue;
-        });
-    };
-
-    let resizeTimer;
-    window.addEventListener('resize', () => {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(updateImageSizes, 250);
-    });
-
+    // Fungsi utama untuk memproses konten pre
     async function processPreContent(content) {
         const entries = content.trim().split(/(?=image-link:)/g);
         const groups = [];
-        let currentGroup = null;
-
+        
         for (const entry of entries) {
-            if (!entry.trim()) continue;
-
             const data = {};
             entry.split('\n').forEach(line => {
-                const [key, ...values] = line.split(':').map(s => s.trim());
-                if (key && values.length) data[key] = values.join(':');
+                const [key, ...vals] = line.split(':').map(s => s.trim());
+                if (key) data[key] = vals.join(':');
             });
 
-            // Validasi field wajib
-            if (!data['image-link'] || !data['image-size'] || !data.alt) {
-                console.error('Missing required fields:', data);
-                continue;
-            }
+            if (!data['image-link']) continue;
 
-            try {
-                const imageUrl = new URL(data['image-link']);
-                const pathParts = imageUrl.pathname.split('/');
-                const imageFullName = pathParts.pop();
-                const imageName = imageFullName.split('.')[0];
-                const baseDir = pathParts.join('/');
+            // Generate base paths
+            const webpBase = createSrcsetBasePath(data['image-link'], 'webp');
+            const fallbackBase = createSrcsetBasePath(data['image-link'], 'fallback');
+            
+            // Load srcset
+            data.webpSrcset = await loadSrcset(`${webpBase}srcset.txt`, webpBase);
+            data.fallbackSrcset = await loadSrcset(`${fallbackBase}srcset.txt`, fallbackBase);
 
-                // Format path untuk srcset
-                const webpSrcsetPath = `${baseDir}/${imageName}/webp/srcset.txt`;
-                const fallbackSrcsetPath = `${baseDir}/${imageName}/fallback/srcset.txt`;
-
-                // Ambil data dengan cache
-                const [webpContent, fallbackContent] = await Promise.all([
-                    getCachedSrcset(webpSrcsetPath),
-                    getCachedSrcset(fallbackSrcsetPath)
-                ]);
-
-                // Proses srcset
-                data.webpSrcset = processSrcsetContent(webpContent, `${baseDir}/${imageName}/webp/`);
-                data.fallbackSrcset = processSrcsetContent(fallbackContent, `${baseDir}/${imageName}/fallback/`);
-
-            } catch (error) {
-                console.error('Error processing image:', error);
-                data.webpSrcset = null;
-                data.fallbackSrcset = null;
-            }
-
-            // Kelompokkan berdasarkan title
-            if (data.title) {
-                currentGroup = { title: data.title, entries: [data] };
-                groups.push(currentGroup);
-            } else {
-                currentGroup ? currentGroup.entries.push(data) : groups.push({ title: 'Gambar', entries: [data] });
-            }
+            // Grouping logic
+            const group = groups.find(g => g.title === data.title) || { 
+                title: data.title || 'Untitled', 
+                entries: [] 
+            };
+            group.entries.push(data);
+            if (!groups.includes(group)) groups.push(group);
         }
 
-        // Bangun HTML
-        let html = `<div class="image-groups-wrapper">
+        // Build HTML
+        return buildHTML(groups);
+    }
+
+    async function loadSrcset(url, basePath) {
+        try {
+            const content = srcsetCache.get(url) || await fetch(url).then(r => r.text());
+            if (!srcsetCache.has(url)) srcsetCache.set(url, content);
+            
+            return content.split(/,\r?\n/)
+                .map(line => line.trim().split(/\s+(?=\d+w$)/))
+                .filter(([file]) => file)
+                .map(([file, width]) => `${basePath}${file} ${width}`)
+                .join(', ');
+        } catch {
+            return null;
+        }
+    }
+
+    function buildHTML(groups) {
+        return `<div class="image-groups-wrapper">
             <div class="group-buttons-container">
-                ${groups.map((g, i) => `<button class="group-button ${i === 0 ? 'active' : ''}" data-group-index="${i}">${g.title}</button>`).join('')}
+                ${groups.map((g, i) => `
+                    <button class="group-button ${i === 0 ? 'active' : ''}" 
+                            data-group-index="${i}">
+                        ${g.title}
+                    </button>`).join('')}
             </div>
-            <div class="group-contents-container">`;
-
-        groups.forEach((group, i) => {
-            html += `<div class="image-group ${i === 0 ? 'active' : ''}" data-group-index="${i}">`;
-            
-            group.entries.forEach(data => {
-                const [width, height] = data['image-size'].split('x');
-                const ext = data['image-link'].split('.').pop();
-                
-                html += `<figure class="image">
-                    <picture>
-                        ${data.webpSrcset ? `<source srcset="${data.webpSrcset}" type="image/webp" sizes="">` : ''}
-                        ${data.fallbackSrcset ? `<source srcset="${data.fallbackSrcset}" type="image/${ext === 'jpg' ? 'jpeg' : ext}" sizes="">` : ''}
-                        <img src="${data['image-link']}"
-                            alt="${data.alt}"
-                            width="${width}"
-                            height="${height}"
-                            loading="lazy"
-                            onclick="showFullImage(this.src)">
-                    </picture>
-                </figure>`;
-            });
-            
-            html += '</div>';
-        });
-
-        return html + '</div></div>';
+            <div class="group-contents-container">
+                ${groups.map((group, i) => `
+                    <div class="image-group ${i === 0 ? 'active' : ''}" data-group-index="${i}">
+                        ${group.entries.map(data => `
+                            <figure class="image">
+                                <picture>
+                                    ${data.webpSrcset ? `
+                                    <source srcset="${data.webpSrcset}"
+                                            type="image/webp"
+                                            sizes="">` : ''}
+                                    ${data.fallbackSrcset ? `
+                                    <source srcset="${data.fallbackSrcset}"
+                                            type="${data['image-link'].endsWith('.png') ? 'image/png' : 'image/jpeg'}"
+                                            sizes="">` : ''}
+                                    <img src="${data['image-link']}"
+                                         alt="${data.alt}"
+                                         width="${data['image-size'].split('x')[0]}"
+                                         height="${data['image-size'].split('x')[1]}"
+                                         loading="lazy"
+                                         onclick="showFullImage(this.src)">
+                                </picture>
+                            </figure>`).join('')}
+                    </div>`).join('')}
+            </div>
+        </div>`;
     }
 
     async function getCachedSrcset(url) {
