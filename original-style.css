@@ -245,7 +245,6 @@
     gap: 8px;
     margin-bottom: 15px;
     justify-content: center;
-    position: relative;
 }
 
 .group-button {
@@ -255,13 +254,6 @@
     cursor: pointer;
     border-radius: 4px;
     transition: all 0.3s ease;
-    font-size: 0.95em;
-    color: #333;
-}
-
-.group-button:hover {
-    background: #e9ecef;
-    border-color: #ced4da;
 }
 
 .group-button.active {
@@ -271,34 +263,25 @@
 }
 
 .group-contents-container {
-    position: relative;
-    transition: min-height 0.3s ease;
+    width: 100%;
 }
 
 .image-group {
     display: none;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 15px;
-    opacity: 0;
-    transition: opacity 0.3s ease;
 }
 
 .image-group.active {
-    display: grid;
-    opacity: 1;
+    display: block;
+}
+
+.image-group figure {
+    margin: 0 0 15px 0;
 }
 
 .image-group img {
     width: 100%;
     height: auto;
     display: block;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-}
-
-@media (max-width: 768px) {
-    .image-group img {
-        box-shadow: none;
-    }
 }
 
 /* Style ini dipakai pada tab2 */
