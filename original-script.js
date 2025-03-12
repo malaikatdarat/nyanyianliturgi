@@ -537,16 +537,19 @@ overlay.addEventListener('click', (e) => {
 
 // Tab1
 document.addEventListener('DOMContentLoaded', function() {
-    const srcsetCache = {};
+    const srcsetCache = new Map();
+
     const calculateSizes = () => {
         const container = document.querySelector('.group-contents-container');
-        return container ? `(max-width: ${window.innerWidth}px) ${(container.offsetWidth/window.innerWidth*100).toFixed(2)}vw, ${container.offsetWidth}px` : '100vw';
+        if (!container) return '100vw';
+        const containerWidth = container.offsetWidth;
+        return `(max-width: ${window.innerWidth}px) ${(containerWidth/window.innerWidth*100).toFixed(2)}vw, ${containerWidth}px`;
     };
 
     const updateImageSizes = () => {
         const sizesValue = calculateSizes();
         document.querySelectorAll('.image-group picture source').forEach(source => {
-            source.setAttribute('sizes', sizesValue);
+            source.sizes = sizesValue;
         });
     };
 
@@ -557,161 +560,147 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     async function processPreContent(content) {
-        const entries = content.trim().split(/(?=image-link:)/);
+        const entries = content.trim().split(/(?=image-link:)/g);
         const groups = [];
         let currentGroup = null;
 
-        const dataEntries = [];
         for (const entry of entries) {
             if (!entry.trim()) continue;
-            
+
             const data = {};
-            entry.trim().split('\n').forEach(line => {
+            entry.split('\n').forEach(line => {
                 const [key, ...values] = line.split(':').map(s => s.trim());
                 if (key && values.length) data[key] = values.join(':');
             });
 
+            // Validasi field wajib
             if (!data['image-link'] || !data['image-size'] || !data.alt) {
-                console.error('Missing required fields');
-                dataEntries.push(data);
+                console.error('Missing required fields:', data);
                 continue;
             }
 
             try {
                 const imageUrl = new URL(data['image-link']);
                 const pathParts = imageUrl.pathname.split('/');
-                const imageName = pathParts.pop().split('.')[0];
-                const basePath = pathParts.join('/');
-                
-                const [webpSrcset, fallbackSrcset] = await Promise.all([
-                    getCachedSrcset(`${basePath}/${imageName}/webp/srcset.txt`),
-                    getCachedSrcset(`${basePath}/${imageName}/fallback/srcset.txt`)
+                const imageFullName = pathParts.pop();
+                const imageName = imageFullName.split('.')[0];
+                const baseDir = pathParts.join('/');
+
+                // Format path untuk srcset
+                const webpSrcsetPath = `${baseDir}/${imageName}/webp/srcset.txt`;
+                const fallbackSrcsetPath = `${baseDir}/${imageName}/fallback/srcset.txt`;
+
+                // Ambil data dengan cache
+                const [webpContent, fallbackContent] = await Promise.all([
+                    getCachedSrcset(webpSrcsetPath),
+                    getCachedSrcset(fallbackSrcsetPath)
                 ]);
 
-                data.webpSrcset = processSrcset(webpSrcset, `${basePath}/${imageName}/webp/`);
-                data.fallbackSrcset = processSrcset(fallbackSrcset, `${basePath}/${imageName}/fallback/`);
-            } catch (error) {
-                console.error('Error loading srcset:', error);
-            }
-            
-            dataEntries.push(data);
-        }
+                // Proses srcset
+                data.webpSrcset = processSrcsetContent(webpContent, `${baseDir}/${imageName}/webp/`);
+                data.fallbackSrcset = processSrcsetContent(fallbackContent, `${baseDir}/${imageName}/fallback/`);
 
-        // Kelompokkan data
-        dataEntries.forEach((data) => {
+            } catch (error) {
+                console.error('Error processing image:', error);
+                data.webpSrcset = null;
+                data.fallbackSrcset = null;
+            }
+
+            // Kelompokkan berdasarkan title
             if (data.title) {
-                currentGroup = {
-                    title: data.title,
-                    entries: [data]
-                };
+                currentGroup = { title: data.title, entries: [data] };
                 groups.push(currentGroup);
             } else {
-                currentGroup?.entries.push(data);
+                currentGroup ? currentGroup.entries.push(data) : groups.push({ title: 'Gambar', entries: [data] });
             }
-        });
+        }
 
         // Bangun HTML
-        let processedHtml = '<div class="image-groups-wrapper">';
-        
-        // Tombol grup
-        processedHtml += `
+        let html = `<div class="image-groups-wrapper">
             <div class="group-buttons-container">
-                ${groups.map((group, i) => `
-                    <button class="group-button ${i === 0 ? 'active' : ''}" 
-                            data-group-index="${i}">
-                        ${group.title}
-                    </button>
-                `).join('')}
-            </div>`;
-        
-        // Konten gambar
-        processedHtml += '<div class="group-contents-container">';
-        groups.forEach((group, i) => {
-            processedHtml += `
-                <div class="image-group ${i === 0 ? 'active' : ''}" data-group-index="${i}">
-                    ${group.entries.map(data => {
-                        const [width, height] = data['image-size'].split('x');
-                        const ext = data['image-link'].split('.').pop();
-                        
-                        return `
-                            <figure class="image">
-                                <picture>
-                                    <source srcset="${data.webpSrcset}" type="image/webp" sizes="">
-                                    <source srcset="${data.fallbackSrcset}" type="image/${ext === 'jpg' ? 'jpeg' : ext}" sizes="">
-                                    <img src="${data['image-link']}"
-                                        alt="${data.alt}"
-                                        width="${width}"
-                                        height="${height}"
-                                        loading="lazy"
-                                        onclick="showFullImage(this.src)">
-                                </picture>
-                            </figure>`;
-                    }).join('')}
-                </div>`;
-        });
-        processedHtml += '</div></div>';
+                ${groups.map((g, i) => `<button class="group-button ${i === 0 ? 'active' : ''}" data-group-index="${i}">${g.title}</button>`).join('')}
+            </div>
+            <div class="group-contents-container">`;
 
-        return processedHtml;
+        groups.forEach((group, i) => {
+            html += `<div class="image-group ${i === 0 ? 'active' : ''}" data-group-index="${i}">`;
+            
+            group.entries.forEach(data => {
+                const [width, height] = data['image-size'].split('x');
+                const ext = data['image-link'].split('.').pop();
+                
+                html += `<figure class="image">
+                    <picture>
+                        ${data.webpSrcset ? `<source srcset="${data.webpSrcset}" type="image/webp" sizes="">` : ''}
+                        ${data.fallbackSrcset ? `<source srcset="${data.fallbackSrcset}" type="image/${ext === 'jpg' ? 'jpeg' : ext}" sizes="">` : ''}
+                        <img src="${data['image-link']}"
+                            alt="${data.alt}"
+                            width="${width}"
+                            height="${height}"
+                            loading="lazy"
+                            onclick="showFullImage(this.src)">
+                    </picture>
+                </figure>`;
+            });
+            
+            html += '</div>';
+        });
+
+        return html + '</div></div>';
     }
 
     async function getCachedSrcset(url) {
-        if (srcsetCache[url]) return srcsetCache[url];
+        if (srcsetCache.has(url)) return srcsetCache.get(url);
         
         try {
             const response = await fetch(url);
-            if (!response.ok) throw new Error('File not found');
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const content = await response.text();
-            srcsetCache[url] = content;
+            srcsetCache.set(url, content);
             return content;
         } catch (error) {
-            srcsetCache[url] = null;
+            console.warn('Failed to load srcset:', url);
+            srcsetCache.set(url, null);
             return null;
         }
     }
 
-    function processSrcset(content, basePath) {
+    function processSrcsetContent(content, basePath) {
         if (!content) return null;
         
-        return content.split('\n')
+        return content.split(/,\r?\n/)
             .map(line => line.trim())
             .filter(line => line)
             .map(line => {
-                const [filename, width] = line.split(/\s+(?=\d+w)/);
-                return `${basePath}${filename} ${width}`;
+                const [filename, width] = line.split(/\s+(?=\d+w$)/);
+                return filename ? `${basePath}${filename.trim()}` : null;
             })
+            .filter(Boolean)
             .join(', ');
     }
-	
+
+    // Inisialisasi
     const pre = document.getElementById('imageData');
     if (pre) {
         processPreContent(pre.textContent).then(html => {
             pre.outerHTML = html;
             updateImageSizes();
-            
-            // Inisialisasi ukuran gambar
-            const images = document.querySelectorAll('.image-group img');
-            images.forEach(img => {
-                img.style.width = '100%';
-                img.style.height = 'auto';
+            document.querySelectorAll('.image-group img').forEach(img => {
+                img.style.cssText = 'width:100%;height:auto;';
             });
         });
     }
 
-    // Handle toggle grup
-    document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('group-button')) {
-            const allGroups = document.querySelectorAll('.image-group');
-            const allButtons = document.querySelectorAll('.group-button');
-            const targetGroupIndex = e.target.dataset.groupIndex;
-            
-            allGroups.forEach(group => {
-                group.style.display = group.dataset.groupIndex === targetGroupIndex ? 'block' : 'none';
+    // Toggle grup
+    document.addEventListener('click', e => {
+        if (e.target.matches('.group-button')) {
+            const index = e.target.dataset.groupIndex;
+            document.querySelectorAll('.image-group, .group-button').forEach(el => {
+                el.classList.toggle('active', el.dataset.groupIndex === index);
+                if (el.classList.contains('image-group')) {
+                    el.style.display = el.dataset.groupIndex === index ? 'block' : 'none';
+                }
             });
-            
-            allButtons.forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.groupIndex === targetGroupIndex);
-            });
-            
             updateImageSizes();
         }
     });
