@@ -537,142 +537,229 @@ overlay.addEventListener('click', (e) => {
 
 // Tab1
 document.addEventListener('DOMContentLoaded', function() {
-    const calculateSizes = () => {
-        const container = document.querySelector('.group-contents-container');
-        return container ? `(max-width: ${window.innerWidth}px) ${(container.offsetWidth/window.innerWidth*100).toFixed(2)}vw, ${container.offsetWidth}px` : '100vw';
-    };
-
-    const updateImageSizes = () => {
-        const sizesValue = calculateSizes();
-        document.querySelectorAll('.image-group picture source').forEach(source => {
-            source.setAttribute('sizes', sizesValue);
-        });
-    };
-
-    // Fungsi untuk memproses konten srcset.txt
-    const processSrcsetContent = (content, baseUrl) => {
-        return content.split(',')
-            .map(entry => entry.trim().split(/\s+/))
-            .filter(([file, width]) => file && width)
-            .map(([file, width]) => `${baseUrl}/${file} ${width}`)
-            .join(', ');
-    };
-
-    async function processPreContent(content) {
-        const entries = content.trim().split(/(?=image-link:)/);
-        const dataPromises = entries.map(async entry => {
-            if (!entry.trim()) return null;
+    // Fungsi untuk memuat dan memproses srcset.txt
+    const loadSrcsetFile = async (url) => {
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const content = await response.text();
             
+            return content
+                .split('\n')
+                .map(entry => entry.trim().replace(/,+$/, '')) // Hapus koma di akhir
+                .filter(entry => entry)
+                .map(entry => {
+                    const [filename, width] = entry.split(/\s+/);
+                    return { filename, width };
+                });
+        } catch (error) {
+            console.error(`Gagal memuat srcset: ${url}`, error);
+            return null;
+        }
+    };
+
+    // Fungsi utama untuk memproses data gambar
+    const processImageEntry = async (data) => {
+        try {
+            const originalUrl = data['original-image-link'];
+            const [width, height] = data['original-image-size'].split('x');
+            const ext = originalUrl.split('.').pop().split(/[?#]/)[0];
+            
+            // Bangun base path
+            const basePath = originalUrl.replace(/(\/[^/]+)\.\w+($|\?.*)/, '$1/');
+            const folderName = originalUrl.split('/').pop().split('.')[0];
+
+            // URL untuk srcset
+            const webpSrcsetUrl = `${basePath}webp/srcset.txt`;
+            const fallbackSrcsetUrl = `${basePath}fallback/srcset.txt`;
+
+            // Muat kedua srcset
+            const [webpEntries, fallbackEntries] = await Promise.all([
+                loadSrcsetFile(webpSrcsetUrl),
+                loadSrcsetFile(fallbackSrcsetUrl)
+            ]);
+
+            // Validasi hasil
+            if (!webpEntries || !fallbackEntries) {
+                throw new Error('Gagal memuat salah satu srcset');
+            }
+
+            // Bangun srcset string
+            const buildSrcset = (entries, subfolder) => 
+                entries.map(({filename, width}) => 
+                    `${basePath}${subfolder}/${filename} ${width}`
+                ).join(', ');
+
+            return {
+                webpSrcset: buildSrcset(webpEntries, 'webp'),
+                fallbackSrcset: buildSrcset(fallbackEntries, 'fallback'),
+                originalUrl,
+                width,
+                height,
+                ext,
+                alt: data.alt || 'Gambar notasi musik',
+                title: data.title
+            };
+        } catch (error) {
+            console.error('Error memproses gambar:', error);
+            return {
+                error: true,
+                originalUrl: data['original-image-link'],
+                alt: data.alt,
+                width: data['original-image-size'].split('x')[0],
+                height: data['original-image-size'].split('x')[1]
+            };
+        }
+    };
+
+    // Fungsi untuk membangun HTML
+    const buildImageGroups = (processedData) => {
+        const groups = [];
+        let currentGroup = null;
+
+        processedData.forEach((item) => {
+            if (!item.error) {
+                if (item.title) {
+                    currentGroup = {
+                        title: item.title,
+                        items: [item]
+                    };
+                    groups.push(currentGroup);
+                } else {
+                    if (currentGroup) {
+                        currentGroup.items.push(item);
+                    } else {
+                        currentGroup = {
+                            title: 'Gambar',
+                            items: [item]
+                        };
+                        groups.push(currentGroup);
+                    }
+                }
+            }
+        });
+
+        let html = `<div class="image-groups-wrapper">
+            <div class="group-buttons-container">
+                ${groups.map((group, index) => `
+                    <button class="group-button ${index === 0 ? 'active' : ''}" 
+                            data-group-index="${index}">
+                        ${group.title}
+                    </button>
+                `).join('')}
+            </div>
+            <div class="group-contents-container">`;
+
+        groups.forEach((group, index) => {
+            html += `<div class="image-group ${index === 0 ? 'active' : ''}" 
+                          data-group-index="${index}">`;
+            
+            group.items.forEach(item => {
+                if (item.error) {
+                    html += `
+                        <div class="image-error">
+                            <img src="${item.originalUrl}"
+                                 alt="${item.alt}"
+                                 width="${item.width}"
+                                 height="${item.height}"
+                                 loading="lazy">
+                            <div class="error-message">⚠️ Gagal memuat versi responsif</div>
+                        </div>`;
+                } else {
+                    html += `
+                        <figure class="image-figure">
+                            <picture>
+                                <source srcset="${item.webpSrcset}" 
+                                        type="image/webp"
+                                        sizes="${calculateSizes()}">
+                                <source srcset="${item.fallbackSrcset}" 
+                                        type="image/${item.ext === 'png' ? 'png' : 'jpeg'}"
+                                        sizes="${calculateSizes()}">
+                                <img src="${item.originalUrl}"
+                                     alt="${item.alt}"
+                                     width="${item.width}"
+                                     height="${item.height}"
+                                     loading="lazy"
+                                     title="${item.title || ''}">
+                            </picture>
+                            ${item.title ? `<figcaption>${item.title}</figcaption>` : ''}
+                        </figure>`;
+                }
+            });
+            
+            html += '</div>';
+        });
+
+        return html + '</div></div>';
+    };
+
+    // Inisialisasi
+    const initialize = async () => {
+        const pre = document.getElementById('imageData');
+        if (!pre) return;
+
+        const entries = pre.textContent.trim().split(/(?=original-image-link:)/);
+        
+        const processingPromises = entries.map(entry => {
             const data = {};
             entry.trim().split('\n').forEach(line => {
                 const [key, ...values] = line.split(':').map(s => s.trim());
                 if (key) data[key] = values.join(':').trim();
             });
+            return processImageEntry(data);
+        });
 
-            // Validasi field wajib
-            if (!data['image-link'] || !data['image-size'] || !data.alt) {
-                console.error('Missing required fields', data);
-                return null;
-            }
-
-            try {
-                // Bangun URL untuk srcset
-                const basePath = data['image-link'].replace(/\.\w+$/, '');
-                const [fallbackSrc, webpSrc] = await Promise.all([
-                    fetch(`${basePath}/fallback/srcset.txt`).then(r => r.text()),
-                    fetch(`${basePath}/webp/srcset.txt`).then(r => r.text())
-                ]);
-
-                data.fallbackSrcset = processSrcsetContent(fallbackSrc, `${basePath}/fallback`);
-                data.webpSrcset = processSrcsetContent(webpSrc, `${basePath}/webp`);
-                
-            } catch (error) {
-                console.error('Gagal memuat srcset:', error);
-                data.fallbackSrcset = data.webpSrcset = data['image-link'];
-            }
+        try {
+            const processedData = await Promise.all(processingPromises);
+            pre.outerHTML = buildImageGroups(processedData);
             
-            return data;
-        });
-
-        const validEntries = (await Promise.all(dataPromises)).filter(Boolean);
-        const groups = [];
-        let currentGroup = null;
-
-        // Pengelompokan berdasarkan title
-        validEntries.forEach(data => {
-            if (data.title) {
-                currentGroup = { title: data.title, entries: [data] };
-                groups.push(currentGroup);
-            } else {
-                (currentGroup || groups[groups.push({ title: 'Gambar', entries: [] })-1].entries).push(data);
-            }
-        });
-
-        // Bangun HTML
-        return `
-            <div class="image-groups-wrapper">
-                <div class="group-buttons-container">
-                    ${groups.map((g, i) => `
-                        <button class="group-button ${i === 0 ? 'active' : ''}" 
-                                data-group-index="${i}">${g.title}</button>
-                    `).join('')}
-                </div>
-                <div class="group-contents-container">
-                    ${groups.map((g, i) => `
-                        <div class="image-group ${i === 0 ? 'active' : ''}" data-group-index="${i}">
-                            ${g.entries.map(data => {
-                                const [w, h] = data['image-size'].split('x');
-                                return `
-                                    <figure class="image">
-                                        <picture>
-                                            <source srcset="${data.webpSrcset}" type="image/webp">
-                                            <source srcset="${data.fallbackSrcset}" 
-                                                    type="${data['image-link'].match(/\.(\w+)$/)[1] === 'png' ? 'image/png' : 'image/jpeg'}">
-                                            <img src="${data['image-link']}" 
-                                                alt="${data.alt}" 
-                                                width="${w}" 
-                                                height="${h}" 
-                                                loading="lazy">
-                                        </picture>
-                                    </figure>`;
-                            }).join('')}
-                        </div>
-                    `).join('')}
-                </div>
-            </div>`;
-    }
-
-    // Inisialisasi
-    const pre = document.getElementById('imageData');
-    if (pre) {
-        processPreContent(pre.textContent).then(html => {
-            pre.outerHTML = html;
-            updateImageSizes();
+            // Inisialisasi event listener untuk resize
+            initializeResizeHandler();
             
-            window.addEventListener('resize', () => {
-                clearTimeout(this.resizeTimer);
-                this.resizeTimer = setTimeout(updateImageSizes, 250);
-            });
-
-            document.querySelectorAll('.image-group img').forEach(img => {
-                img.style.width = '100%';
-                img.style.height = 'auto';
-            });
-        });
-    }
-
-    // Toggle grup
-    document.addEventListener('click', e => {
-        if (e.target.classList.contains('group-button')) {
-            const index = e.target.dataset.groupIndex;
-            document.querySelectorAll('.image-group, .group-button').forEach(el => {
-                el.classList.toggle('active', el.dataset.groupIndex === index);
-            });
-            updateImageSizes();
+            // Inisialisasi klik gambar
+            initializeImageClickHandler();
+            
+        } catch (error) {
+            console.error('Fatal error:', error);
+            pre.outerHTML = `<div class="global-error">⚠️ Gagal memuat konten gambar</div>`;
         }
-    });
-});
+    };
 
+    // Fungsi resize handler dengan debounce
+    const initializeResizeHandler = () => {
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                document.querySelectorAll('source').forEach(source => {
+                    source.setAttribute('sizes', calculateSizes());
+                });
+            }, 250);
+        });
+    };
+
+    // Fungsi untuk klik gambar
+    const initializeImageClickHandler = () => {
+        document.querySelectorAll('.image-figure img').forEach(img => {
+            img.addEventListener('click', () => {
+                window.open(img.src, '_blank');
+            });
+        });
+    };
+
+    // Fungsi kalkulasi sizes
+    const calculateSizes = () => {
+        const container = document.querySelector('.group-contents-container');
+        if (!container) return '100vw';
+        
+        const containerWidth = container.offsetWidth;
+        const viewportWidth = window.innerWidth;
+        return `(max-width: ${viewportWidth}px) ${(containerWidth/viewportWidth*100).toFixed(2)}vw, ${containerWidth}px`;
+    };
+
+    // Mulai proses
+    initialize();
+});
 
 /*
 document.addEventListener('DOMContentLoaded', function() {
