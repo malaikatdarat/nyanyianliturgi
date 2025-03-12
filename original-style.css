@@ -235,32 +235,28 @@
 	
 }
 
-/* Container utama */
 .image-groups-wrapper {
     margin: 20px 0;
 }
 
-/* Container tombol di atas */
 .group-buttons-container {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
     margin-bottom: 15px;
+    justify-content: center;
     position: relative;
-    z-index: 10;
 }
 
-/* Gaya tombol */
 .group-button {
     background: #f8f9fa;
     border: 1px solid #dee2e6;
     padding: 8px 15px;
     cursor: pointer;
     border-radius: 4px;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
     font-size: 0.95em;
     color: #333;
-    order: 1; /* Default order */
 }
 
 .group-button:hover {
@@ -272,28 +268,30 @@
     background: #007bff;
     border-color: #007bff;
     color: white;
-    order: 0; /* Tombol aktif di urutan pertama */
 }
 
-/* Container konten grup */
 .group-contents-container {
     position: relative;
-    min-height: 200px;
+    transition: min-height 0.3s ease;
 }
 
-/* Gaya grup gambar */
 .image-group {
     display: none;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
 .image-group.active {
-    display: block;
+    display: grid;
+    opacity: 1;
 }
 
-/* Grid layout untuk gambar */
-.image-group {
-    display: grid;
-    gap: 15px;
+.image-group img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: attr(width) / attr(height);
 }
 
 /* Style ini dipakai pada tab2 */
