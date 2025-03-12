@@ -537,154 +537,177 @@ overlay.addEventListener('click', (e) => {
 
 // Tab1
 document.addEventListener('DOMContentLoaded', function() {
-    const srcsetCache = new Map();
-
-    // Fungsi utama untuk memproses konten pre
-    async function processPreContent(content) {
-        const entries = content.trim().split(/(?=image-link:)/g);
-        const groups = [];
-        let currentGroup = null;
-
-        for (const entry of entries) {
-            if (!entry.trim()) continue;
-
-            const data = {};
-            entry.split('\n').forEach(line => {
-                const [key, ...vals] = line.split(':').map(s => s.trim());
-                if (key && vals.length) data[key] = vals.join(':');
-            });
-
-            if (!data['image-link'] || !data['image-size'] || !data.alt) continue;
-
-            // Proses path
-            try {
-                const url = new URL(data['image-link']);
-                const pathParts = url.pathname.split('/');
-                const filename = pathParts.pop().replace(/\.[^/.]+$/, "");
-                const baseDir = pathParts.join('/');
-
-                // Generate paths
-                const webpPath = `${baseDir}/${filename}/webp/`;
-                const fallbackPath = `${baseDir}/${filename}/fallback/`;
-
-                // Proses srcset
-                data.webpSrcset = await processSrcsetFile(`${webpPath}srcset.txt`, webpPath);
-                data.fallbackSrcset = await processSrcsetFile(`${fallbackPath}srcset.txt`, fallbackPath);
-            } catch (error) {
-                console.error('Error processing image:', error);
-            }
-
-            // Kelompokkan
-            if (data.title) {
-                currentGroup = { title: data.title, entries: [data] };
-                groups.push(currentGroup);
-            } else {
-                currentGroup?.entries.push(data);
-            }
-        }
-
-        return buildHTML(groups);
-    }
-
-    async function processSrcsetFile(url, basePath) {
-        try {
-            if (srcsetCache.has(url)) return srcsetCache.get(url);
-
-            const response = await fetch(url);
-            if (!response.ok) return null;
-            
-            const content = await response.text();
-            const srcset = content.split(/,\r?\n/)
-                .map(line => line.trim())
-                .filter(line => line)
-                .map(line => {
-                    const [file, width] = line.split(/\s+(?=\d+w$)/);
-                    return `${basePath}${file} ${width}`;
-                })
-                .join(', ');
-
-            srcsetCache.set(url, srcset);
-            return srcset;
-        } catch {
-            return null;
-        }
-    }
-
-    function buildHTML(groups) {
-        return `<div class="image-groups-wrapper">
-            <!-- Tombol Grup -->
-            <div class="group-buttons-container">
-                ${groups.map((g, i) => `
-                    <button class="group-button ${i === 0 ? 'active' : ''}" 
-                            data-group-index="${i}">${g.title}</button>
-                `).join('')}
-            </div>
-
-            <!-- Konten Gambar -->
-            <div class="group-contents-container">
-                ${groups.map((group, i) => `
-                    <div class="image-group ${i === 0 ? 'active' : ''}" data-group-index="${i}">
-                        ${group.entries.map(data => `
-                            <figure class="image">
-                                <picture>
-                                    ${data.webpSrcset ? `
-                                    <source srcset="${data.webpSrcset}"
-                                            type="image/webp"
-                                            sizes="">` : ''}
-                                    ${data.fallbackSrcset ? `
-                                    <source srcset="${data.fallbackSrcset}"
-                                            type="image/${data['image-link'].endsWith('.png') ? 'png' : 'jpeg'}"
-                                            sizes="">` : ''}
-                                    <img src="${data['image-link']}"
-                                         alt="${data.alt}"
-                                         width="${data['image-size'].split('x')[0]}"
-                                         height="${data['image-size'].split('x')[1]}"
-                                         loading="lazy"
-                                         onclick="showFullImage(this.src)">
-                                </picture>
-                            </figure>
-                        `).join('')}
-                    </div>
-                `).join('')}
-            </div>
-        </div>`;
-    }
-
-    // Fungsi responsive dan event listeners
     const calculateSizes = () => {
         const container = document.querySelector('.group-contents-container');
-        return container ? `${(container.offsetWidth / window.innerWidth * 100).toFixed(2)}vw` : '100vw';
+        if (!container) return '100vw';
+        
+        const containerWidth = container.offsetWidth;
+        const viewportWidth = window.innerWidth;
+        
+        const relativeWidth = (containerWidth / viewportWidth * 100).toFixed(2);
+        return `(max-width: ${viewportWidth}px) ${relativeWidth}vw, ${containerWidth}px`;
     };
 
     const updateImageSizes = () => {
-        const sizes = calculateSizes();
-        document.querySelectorAll('source').forEach(s => s.sizes = sizes);
+        const sizesValue = calculateSizes();
+        document.querySelectorAll('.image-group picture source').forEach(source => {
+            source.setAttribute('sizes', sizesValue);
+        });
     };
 
+    let resizeTimer;
     window.addEventListener('resize', () => {
-        clearTimeout(this.resizeTimer);
-        this.resizeTimer = setTimeout(updateImageSizes, 250);
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            updateImageSizes();
+        }, 250);
     });
 
-    // Inisialisasi
+    function processPreContent(content) {
+        const entries = content.trim().split(/(?=image-link:)/);
+        const groups = [];
+        let currentGroup = null;
+
+        const dataEntries = [];
+        entries.forEach(entry => {
+            if (!entry.trim()) return;
+            
+            const data = {};
+            const lines = entry.trim().split('\n');
+            
+            lines.forEach(line => {
+                line = line.trim();
+                if (line.includes(':')) {
+                    const [key, ...values] = line.split(':');
+                    data[key.trim()] = values.join(':').trim().replace(/^"(.*)"$/, '$1');
+                }
+            });
+
+            const requiredFields = ['image-link', 'image-size', 'fallback-srcset', 'webp-srcset', 'alt'];
+            for (const field of requiredFields) {
+                if (!data[field]) {
+                    console.error(`Missing required field: ${field}`);
+                    return;
+                }
+            }
+            dataEntries.push(data);
+        });
+
+        dataEntries.forEach((data) => {
+            if (data.title) {
+                currentGroup = {
+                    title: data.title,
+                    entries: [data]
+                };
+                groups.push(currentGroup);
+            } else {
+                if (currentGroup) {
+                    currentGroup.entries.push(data);
+                } else {
+                    currentGroup = {
+                        title: 'Gambar',
+                        entries: [data]
+                    };
+                    groups.push(currentGroup);
+                }
+            }
+        });
+
+        let processedHtml = '<div class="image-groups-wrapper">';
+        
+        processedHtml += `
+            <div class="group-buttons-container">
+                ${groups.map((group, i) => `
+                    <button class="group-button ${i === 0 ? 'active' : ''}" 
+                            data-group-index="${i}">
+                        ${group.title}
+                    </button>
+                `).join('')}
+            </div>`;
+        
+        processedHtml += '<div class="group-contents-container">';
+        groups.forEach((group, i) => {
+            processedHtml += `
+                <div class="image-group ${i === 0 ? 'active' : ''}" data-group-index="${i}">
+                    ${group.entries.map(data => {
+                        const [width, height] = data['image-size'].split('x');
+                        const imageLink = data['image-link'];
+                        const fileNameWithExt = imageLink.split('/').pop();
+                        const fileName = fileNameWithExt.replace(/\.[^/.]+$/, '');
+                        const basePath = imageLink.replace(fileNameWithExt, '');
+                        
+                        const fallbackBase = `${basePath}${fileName}/fallback/`;
+                        const webpBase = `${basePath}${fileName}/webp/`;
+
+                        const processSrcset = (srcset, base) => {
+                            return srcset.split(',')
+                                .map(entry => {
+                                    entry = entry.trim();
+                                    const lastSpace = entry.lastIndexOf(' ');
+                                    if (lastSpace === -1) return '';
+                                    const filename = entry.substring(0, lastSpace);
+                                    const width = entry.substring(lastSpace + 1).replace('w', '');
+                                    return `${base}${filename} ${width}w`;
+                                })
+                                .filter(entry => entry)
+                                .join(', ');
+                        };
+
+                        const webpSrcset = processSrcset(data['webp-srcset'], webpBase);
+                        const fallbackSrcset = processSrcset(data['fallback-srcset'], fallbackBase);
+
+                        const originalExt = fileNameWithExt.split('.').pop();
+                        let mimeType = 'image/jpeg';
+                        if (originalExt.toLowerCase() === 'png') mimeType = 'image/png';
+                        if (originalExt.toLowerCase() === 'gif') mimeType = 'image/gif';
+
+                        return `
+                            <figure class="image">
+                                <picture>
+                                    <source srcset="${webpSrcset}" type="image/webp">
+                                    <source srcset="${fallbackSrcset}" type="${mimeType}">
+                                    <img src="${data['image-link']}"
+                                        alt="${data.alt}"
+                                        width="${width}"
+                                        height="${height}"
+                                        loading="lazy"
+                                        onclick="showFullImage(this.src)">
+                                </picture>
+                            </figure>`;
+                    }).join('')}
+                </div>`;
+        });
+        processedHtml += '</div></div>';
+
+        return processedHtml;
+    }
+
     const pre = document.getElementById('imageData');
     if (pre) {
-        processPreContent(pre.textContent).then(html => {
-            pre.outerHTML = html;
-            updateImageSizes();
+        pre.outerHTML = processPreContent(pre.textContent);
+        updateImageSizes();
+        
+        const images = document.querySelectorAll('.image-group img');
+        images.forEach(img => {
+            img.style.width = '100%';
+            img.style.height = 'auto';
         });
     }
 
-    // Toggle grup
-    document.addEventListener('click', e => {
+    document.addEventListener('click', function(e) {
         if (e.target.classList.contains('group-button')) {
-            const index = e.target.dataset.groupIndex;
-            document.querySelectorAll('.image-group, .group-button').forEach(el => {
-                el.classList.toggle('active', el.dataset.groupIndex === index);
-                if (el.classList.contains('image-group')) {
-                    el.style.display = el.dataset.groupIndex === index ? 'block' : 'none';
-                }
+            const allGroups = document.querySelectorAll('.image-group');
+            const allButtons = document.querySelectorAll('.group-button');
+            const targetGroupIndex = e.target.dataset.groupIndex;
+            
+            allGroups.forEach(group => {
+                group.style.display = group.dataset.groupIndex === targetGroupIndex ? 'block' : 'none';
             });
+            
+            allButtons.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.groupIndex === targetGroupIndex);
+            });
+            
             updateImageSizes();
         }
     });
