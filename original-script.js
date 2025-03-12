@@ -539,59 +539,72 @@ overlay.addEventListener('click', (e) => {
 document.addEventListener('DOMContentLoaded', function() {
     const srcsetCache = new Map();
 
-    // Fungsi untuk membuat base path dari URL gambar
-    const createSrcsetBasePath = (imageUrl, type) => {
-        const url = new URL(imageUrl);
-        const pathParts = url.pathname.split('/');
-        const filename = pathParts.pop().split('.')[0];
-        return `${url.origin}/${pathParts.slice(3).join('/')}/${filename}/${type}/`;
-    };
-
     // Fungsi utama untuk memproses konten pre
     async function processPreContent(content) {
         const entries = content.trim().split(/(?=image-link:)/g);
         const groups = [];
-        
+        let currentGroup = null;
+
         for (const entry of entries) {
+            if (!entry.trim()) continue;
+
             const data = {};
             entry.split('\n').forEach(line => {
                 const [key, ...vals] = line.split(':').map(s => s.trim());
-                if (key) data[key] = vals.join(':');
+                if (key && vals.length) data[key] = vals.join(':');
             });
 
-            if (!data['image-link']) continue;
+            if (!data['image-link'] || !data['image-size'] || !data.alt) continue;
 
-            // Generate base paths
-            const webpBase = createSrcsetBasePath(data['image-link'], 'webp');
-            const fallbackBase = createSrcsetBasePath(data['image-link'], 'fallback');
-            
-            // Load srcset
-            data.webpSrcset = await loadSrcset(`${webpBase}srcset.txt`, webpBase);
-            data.fallbackSrcset = await loadSrcset(`${fallbackBase}srcset.txt`, fallbackBase);
+            // Proses path
+            try {
+                const url = new URL(data['image-link']);
+                const pathParts = url.pathname.split('/');
+                const filename = pathParts.pop().replace(/\.[^/.]+$/, "");
+                const baseDir = pathParts.join('/');
 
-            // Grouping logic
-            const group = groups.find(g => g.title === data.title) || { 
-                title: data.title || 'Untitled', 
-                entries: [] 
-            };
-            group.entries.push(data);
-            if (!groups.includes(group)) groups.push(group);
+                // Generate paths
+                const webpPath = `${baseDir}/${filename}/webp/`;
+                const fallbackPath = `${baseDir}/${filename}/fallback/`;
+
+                // Proses srcset
+                data.webpSrcset = await processSrcsetFile(`${webpPath}srcset.txt`, webpPath);
+                data.fallbackSrcset = await processSrcsetFile(`${fallbackPath}srcset.txt`, fallbackPath);
+            } catch (error) {
+                console.error('Error processing image:', error);
+            }
+
+            // Kelompokkan
+            if (data.title) {
+                currentGroup = { title: data.title, entries: [data] };
+                groups.push(currentGroup);
+            } else {
+                currentGroup?.entries.push(data);
+            }
         }
 
-        // Build HTML
         return buildHTML(groups);
     }
 
-    async function loadSrcset(url, basePath) {
+    async function processSrcsetFile(url, basePath) {
         try {
-            const content = srcsetCache.get(url) || await fetch(url).then(r => r.text());
-            if (!srcsetCache.has(url)) srcsetCache.set(url, content);
+            if (srcsetCache.has(url)) return srcsetCache.get(url);
+
+            const response = await fetch(url);
+            if (!response.ok) return null;
             
-            return content.split(/,\r?\n/)
-                .map(line => line.trim().split(/\s+(?=\d+w$)/))
-                .filter(([file]) => file)
-                .map(([file, width]) => `${basePath}${file} ${width}`)
+            const content = await response.text();
+            const srcset = content.split(/,\r?\n/)
+                .map(line => line.trim())
+                .filter(line => line)
+                .map(line => {
+                    const [file, width] = line.split(/\s+(?=\d+w$)/);
+                    return `${basePath}${file} ${width}`;
+                })
                 .join(', ');
+
+            srcsetCache.set(url, srcset);
+            return srcset;
         } catch {
             return null;
         }
@@ -599,13 +612,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function buildHTML(groups) {
         return `<div class="image-groups-wrapper">
+            <!-- Tombol Grup -->
             <div class="group-buttons-container">
                 ${groups.map((g, i) => `
                     <button class="group-button ${i === 0 ? 'active' : ''}" 
-                            data-group-index="${i}">
-                        ${g.title}
-                    </button>`).join('')}
+                            data-group-index="${i}">${g.title}</button>
+                `).join('')}
             </div>
+
+            <!-- Konten Gambar -->
             <div class="group-contents-container">
                 ${groups.map((group, i) => `
                     <div class="image-group ${i === 0 ? 'active' : ''}" data-group-index="${i}">
@@ -618,7 +633,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                             sizes="">` : ''}
                                     ${data.fallbackSrcset ? `
                                     <source srcset="${data.fallbackSrcset}"
-                                            type="${data['image-link'].endsWith('.png') ? 'image/png' : 'image/jpeg'}"
+                                            type="image/${data['image-link'].endsWith('.png') ? 'png' : 'jpeg'}"
                                             sizes="">` : ''}
                                     <img src="${data['image-link']}"
                                          alt="${data.alt}"
@@ -627,41 +642,29 @@ document.addEventListener('DOMContentLoaded', function() {
                                          loading="lazy"
                                          onclick="showFullImage(this.src)">
                                 </picture>
-                            </figure>`).join('')}
-                    </div>`).join('')}
+                            </figure>
+                        `).join('')}
+                    </div>
+                `).join('')}
             </div>
         </div>`;
     }
 
-    async function getCachedSrcset(url) {
-        if (srcsetCache.has(url)) return srcsetCache.get(url);
-        
-        try {
-            const response = await fetch(url);
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            const content = await response.text();
-            srcsetCache.set(url, content);
-            return content;
-        } catch (error) {
-            console.warn('Failed to load srcset:', url);
-            srcsetCache.set(url, null);
-            return null;
-        }
-    }
+    // Fungsi responsive dan event listeners
+    const calculateSizes = () => {
+        const container = document.querySelector('.group-contents-container');
+        return container ? `${(container.offsetWidth / window.innerWidth * 100).toFixed(2)}vw` : '100vw';
+    };
 
-    function processSrcsetContent(content, basePath) {
-        if (!content) return null;
-        
-        return content.split(/,\r?\n/)
-            .map(line => line.trim())
-            .filter(line => line)
-            .map(line => {
-                const [filename, width] = line.split(/\s+(?=\d+w$)/);
-                return filename ? `${basePath}${filename.trim()}` : null;
-            })
-            .filter(Boolean)
-            .join(', ');
-    }
+    const updateImageSizes = () => {
+        const sizes = calculateSizes();
+        document.querySelectorAll('source').forEach(s => s.sizes = sizes);
+    };
+
+    window.addEventListener('resize', () => {
+        clearTimeout(this.resizeTimer);
+        this.resizeTimer = setTimeout(updateImageSizes, 250);
+    });
 
     // Inisialisasi
     const pre = document.getElementById('imageData');
@@ -669,15 +672,12 @@ document.addEventListener('DOMContentLoaded', function() {
         processPreContent(pre.textContent).then(html => {
             pre.outerHTML = html;
             updateImageSizes();
-            document.querySelectorAll('.image-group img').forEach(img => {
-                img.style.cssText = 'width:100%;height:auto;';
-            });
         });
     }
 
     // Toggle grup
     document.addEventListener('click', e => {
-        if (e.target.matches('.group-button')) {
+        if (e.target.classList.contains('group-button')) {
             const index = e.target.dataset.groupIndex;
             document.querySelectorAll('.image-group, .group-button').forEach(el => {
                 el.classList.toggle('active', el.dataset.groupIndex === index);
