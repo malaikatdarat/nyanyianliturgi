@@ -87,7 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function showFullImage(clickedImageSrc) {
-    const allImages = Array.from(document.querySelectorAll('figure.image img'));
+    const allImages = Array.from(document.querySelectorAll('.image-group img'));
     const imageList = allImages.map(img => img.src);
     let currentIndex = imageList.indexOf(clickedImageSrc);
 
