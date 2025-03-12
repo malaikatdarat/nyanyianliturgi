@@ -591,17 +591,23 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Bangun HTML untuk setiap grup
-        let processedHtml = '<div class="image-groups-container">';
+        // Bangun HTML
+        let processedHtml = '<div class="image-groups-wrapper">';
+        
+        // Container untuk tombol di atas
+        processedHtml += '<div class="group-buttons-container">';
         groups.forEach((group, groupIndex) => {
-            // HTML untuk judul sebagai tombol toggle
-            const titleHtml = `
+            processedHtml += `
                 <button class="group-button ${groupIndex === 0 ? 'active' : ''}" 
                         data-group-index="${groupIndex}">
                     ${group.title}
                 </button>`;
-
-            // HTML untuk gambar
+        });
+        processedHtml += '</div>'; // Tutup container tombol
+        
+        // Container untuk konten grup
+        processedHtml += '<div class="group-contents-container">';
+        groups.forEach((group, groupIndex) => {
             let imagesHtml = '';
             group.entries.forEach(data => {
                 const [width, height] = data['original-size'].split('x');
@@ -650,15 +656,12 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             processedHtml += `
-                <div class="image-group" data-group-index="${groupIndex}" 
-                     style="${groupIndex === 0 ? '' : 'display: none;'}">
-                    <div class="group-images">
-                        ${imagesHtml}
-                    </div>
-                </div>
-                ${titleHtml}`;
+                <div class="image-group ${groupIndex === 0 ? 'active' : ''}" 
+                     data-group-index="${groupIndex}">
+                    ${imagesHtml}
+                </div>`;
         });
-        processedHtml += '</div>';
+        processedHtml += '</div></div>'; // Tutup container konten dan wrapper
 
         return processedHtml;
     }
@@ -675,22 +678,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const allButtons = document.querySelectorAll('.group-button');
             const targetGroupIndex = e.target.dataset.groupIndex;
             
-            // Toggle semua grup
+            // Update tampilan grup
             allGroups.forEach(group => {
-                if (group.dataset.groupIndex === targetGroupIndex) {
-                    group.style.display = 'block';
-                } else {
-                    group.style.display = 'none';
-                }
+                group.style.display = group.dataset.groupIndex === targetGroupIndex ? 'block' : 'none';
             });
 
             // Update status tombol
             allButtons.forEach(btn => {
-                if (btn.dataset.groupIndex === targetGroupIndex) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
+                btn.classList.toggle('active', btn.dataset.groupIndex === targetGroupIndex);
             });
         }
     });
