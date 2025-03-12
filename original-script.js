@@ -570,12 +570,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // Kelompokkan data berdasarkan title
-        dataEntries.forEach((data, index) => {
+        dataEntries.forEach((data) => {
             if (data.title) {
                 currentGroup = {
                     title: data.title,
-                    entries: [data],
-                    startIndex: index
+                    entries: [data]
                 };
                 groups.push(currentGroup);
             } else {
@@ -584,9 +583,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     // Jika ada gambar tanpa title di awal, buat group khusus
                     currentGroup = {
-                        title: null,
-                        entries: [data],
-                        startIndex: index
+                        title: 'Gambar',
+                        entries: [data]
                     };
                     groups.push(currentGroup);
                 }
@@ -596,15 +594,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Bangun HTML untuk setiap grup
         let processedHtml = '<div class="image-groups-container">';
         groups.forEach((group, groupIndex) => {
-            const isFirstGroup = groupIndex === 0;
-            
-            // HTML untuk judul
-            let titleHtml = '';
-            if (group.title) {
-                titleHtml = isFirstGroup ? 
-                    '' : // Grup pertama tidak perlu tombol
-                    `<button class="group-button" data-group-index="${groupIndex}">${group.title}</button>`;
-            }
+            // HTML untuk judul sebagai tombol toggle
+            const titleHtml = `
+                <button class="group-button ${groupIndex === 0 ? 'active' : ''}" 
+                        data-group-index="${groupIndex}">
+                    ${group.title}
+                </button>`;
 
             // HTML untuk gambar
             let imagesHtml = '';
@@ -655,12 +650,13 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             processedHtml += `
-                <div class="image-group ${isFirstGroup ? 'active' : ''}" data-group-index="${groupIndex}">
-                    ${titleHtml}
-                    <div class="group-images" ${isFirstGroup ? '' : 'style="display: none;"'}>
+                <div class="image-group" data-group-index="${groupIndex}" 
+                     style="${groupIndex === 0 ? '' : 'display: none;'}">
+                    <div class="group-images">
                         ${imagesHtml}
                     </div>
-                </div>`;
+                </div>
+                ${titleHtml}`;
         });
         processedHtml += '</div>';
 
@@ -679,20 +675,16 @@ document.addEventListener('DOMContentLoaded', function() {
             const allButtons = document.querySelectorAll('.group-button');
             const targetGroupIndex = e.target.dataset.groupIndex;
             
-            // Update active state
+            // Toggle semua grup
             allGroups.forEach(group => {
-                const groupIndex = group.dataset.groupIndex;
-                const groupImages = group.querySelector('.group-images');
-                if (groupIndex === targetGroupIndex) {
-                    group.classList.add('active');
-                    groupImages.style.display = 'block';
+                if (group.dataset.groupIndex === targetGroupIndex) {
+                    group.style.display = 'block';
                 } else {
-                    group.classList.remove('active');
-                    groupImages.style.display = 'none';
+                    group.style.display = 'none';
                 }
             });
 
-            // Update button states
+            // Update status tombol
             allButtons.forEach(btn => {
                 if (btn.dataset.groupIndex === targetGroupIndex) {
                     btn.classList.add('active');
@@ -702,14 +694,9 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     });
-
-    // Aktifkan grup pertama secara default
-    const firstGroup = document.querySelector('.image-group');
-    if (firstGroup) {
-        firstGroup.classList.add('active');
-        firstGroup.querySelector('.group-images').style.display = 'block';
-    }
 });
+
+// Fungsi showFullImage tetap sama
 
 /*
 document.addEventListener('DOMContentLoaded', function() {
