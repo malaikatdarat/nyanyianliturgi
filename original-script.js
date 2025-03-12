@@ -537,247 +537,176 @@ overlay.addEventListener('click', (e) => {
 
 // Tab1
 document.addEventListener('DOMContentLoaded', function() {
-    // Konfigurasi
-    const DEFAULT_IMAGE_QUALITY = 85;
-    const DEBOUNCE_TIME = 250;
-
-    // Fungsi utama
-    const initializeImageLoader = async () => {
+    // Fungsi untuk memuat file srcset.txt
+    const loadSrcset = async (url) => {
         try {
-            const preContent = document.getElementById('imageData').textContent;
-            const imageGroups = await processImageData(preContent);
-            renderImageGroups(imageGroups);
-            initResponsiveHandling();
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`Gagal memuat srcset: ${url}`);
+            const content = await response.text();
+            return content.split('\n')
+                .map(entry => entry.trim().replace(/,+$/, '')) // Hapus koma di akhir
+                .filter(entry => entry);
         } catch (error) {
-            console.error('Gagal memuat gambar:', error);
-            showErrorUI();
+            console.error('Error:', error);
+            return [];
         }
     };
 
-    // Proses data dari pre element
-    const processImageData = async (content) => {
-        const entries = content.split(/(?=original-image-link:)/g)
-            .filter(entry => entry.trim());
+    // Fungsi untuk memproses data gambar
+    const processImageData = async (data) => {
+        const originalPath = data['original-image-link'];
+        const fileName = originalPath.split('/').pop().split('.')[0];
+        const basePath = originalPath.replace(/(\/[^/]+)\.\w+$/, '$1/');
         
-        const processedData = await Promise.all(
-            entries.map(async entry => {
-                const data = parseEntryData(entry);
-                const srcsets = await loadSrcsets(data);
-                return createImageObject(data, srcsets);
-            })
-        );
-
-        return groupImages(processedData);
-    };
-
-    // Parsing data entry
-    const parseEntryData = (entry) => {
-        const data = {};
-        entry.split('\n').forEach(line => {
-            const [key, ...values] = line.split(':').map(s => s.trim());
-            if (key) data[key] = values.join(':').trim();
-        });
-        return data;
-    };
-
-    // Memuat srcset
-    const loadSrcsets = async (data) => {
-        const basePath = getBasePath(data['original-image-link']);
-        
-        try {
-            const [webpSrcset, fallbackSrcset] = await Promise.all([
-                fetchSrcset(`${basePath}webp/srcset.txt`),
-                fetchSrcset(`${basePath}fallback/srcset.txt`)
-            ]);
-            
-            return {
-                webp: formatSrcset(webpSrcset, `${basePath}webp/`),
-                fallback: formatSrcset(fallbackSrcset, `${basePath}fallback/`),
-                basePath
-            };
-        } catch (error) {
-            console.error('Gagal memuat srcset:', error);
-            return { webp: [], fallback: [], basePath };
-        }
-    };
-
-    // Helper functions
-    const getBasePath = (url) => {
-        const urlParts = url.split('/');
-        const fileName = urlParts.pop();
-        return `${urlParts.join('/')}/${fileName.split('.')[0]}/`;
-    };
-
-    const fetchSrcset = async (url) => {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        return response.text();
-    };
-
-    const formatSrcset = (text, baseUrl) => {
-        return text.split('\n')
-            .filter(line => line.trim())
-            .map(line => {
-                const [file, width] = line.split(' ');
-                return `${baseUrl}${file} ${width}`;
-            })
-            .join(', ');
-    };
-
-    // Membuat objek gambar
-    const createImageObject = (data, srcsets) => {
         const [width, height] = data['original-image-size'].split('x');
-        const ext = data['original-image-link'].split('.').pop();
+        const ext = originalPath.split('.').pop();
         
+        // URL untuk file srcset.txt
+        const webpSrcsetUrl = `${basePath}webp/srcset.txt`;
+        const fallbackSrcsetUrl = `${basePath}fallback/srcset.txt`;
+        
+        // Muat kedua srcset
+        const [webpEntries, fallbackEntries] = await Promise.all([
+            loadSrcset(webpSrcsetUrl),
+            loadSrcset(fallbackSrcsetUrl)
+        ]);
+        
+        // Debugging
+        console.log('Base Path:', basePath);
+        console.log('WebP Entries:', webpEntries);
+        console.log('Fallback Entries:', fallbackEntries);
+
         return {
-            original: data['original-image-link'],
-            alt: data.alt || 'Gambar partitur',
-            title: data.title || 'Untitled',
+            webpSrcset: webpEntries.map(entry => {
+                const [file, width] = entry.split(' ');
+                return `${basePath}webp/${file} ${width}`;
+            }).join(', '),
+            fallbackSrcset: fallbackEntries.map(entry => {
+                const [file, width] = entry.split(' ');
+                return `${basePath}fallback/${file} ${width}`;
+            }).join(', '),
             width,
             height,
             ext,
-            srcsets
+            data
         };
     };
 
-    // Grouping gambar
-    const groupImages = (images) => {
-        const groups = [];
-        let currentGroup = null;
-        
-        images.forEach(image => {
-            if (image.title) {
-                currentGroup = {
-                    title: image.title,
-                    images: [image]
-                };
-                groups.push(currentGroup);
-            } else {
-                currentGroup?.images.push(image);
-            }
-        });
-        
-        return groups;
-    };
-
-    // Render HTML
-    const renderImageGroups = (groups) => {
-        const html = `
-            <div class="image-groups">
-                <div class="group-selector">
-                    ${groups.map((group, i) => `
-                        <button class="group-btn ${i === 0 ? 'active' : ''}" 
-                                data-group="${i}">
-                            ${group.title}
-                        </button>
-                    `).join('')}
-                </div>
-                <div class="group-container">
-                    ${groups.map((group, i) => `
-                        <div class="image-group ${i === 0 ? 'active' : ''}" 
-                             data-group="${i}">
-                            ${group.images.map(img => renderImage(img)).join('')}
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-        
-        document.getElementById('imageData').outerHTML = html;
-    };
-
-    const renderImage = (img) => `
-        <figure class="music-image">
-            <picture>
-                <source srcset="${img.srcsets.webp}" 
-                        type="image/webp"
-                        sizes="${calculateSizes()}">
-                <source srcset="${img.srcsets.fallback}" 
-                        type="image/${img.ext === 'png' ? 'png' : 'jpeg'}" 
-                        sizes="${calculateSizes()}">
-                <img src="${img.original}"
-                     alt="${img.alt}"
-                     width="${img.width}"
-                     height="${img.height}"
-                     loading="lazy"
-                     class="zoomable"
-                     onclick="showFullImage('${img.original}')">
-            </picture>
-            ${img.title ? `<figcaption>${img.title}</figcaption>` : ''}
-        </figure>
-    `;
-
-    // Responsive handling
+    // Fungsi untuk menghitung sizes
     const calculateSizes = () => {
-        const container = document.querySelector('.group-container');
+        const container = document.querySelector('.group-contents-container');
         if (!container) return '100vw';
         
         const containerWidth = container.offsetWidth;
         const viewportWidth = window.innerWidth;
-        const ratio = Math.min((containerWidth / viewportWidth) * 100, 100);
-        
-        return `(max-width: ${viewportWidth}px) ${ratio.toFixed(2)}vw, ${containerWidth}px`;
+        const relativeWidth = (containerWidth / viewportWidth * 100).toFixed(2);
+        return `(max-width: ${viewportWidth}px) ${relativeWidth}vw, ${containerWidth}px`;
     };
 
-    const initResponsiveHandling = () => {
-        let resizeTimer;
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeTimer);
-            resizeTimer = setTimeout(updateSizes, DEBOUNCE_TIME);
+    // Proses konten pre dan bangun HTML
+    const processPreContent = async (content) => {
+        const entries = content.trim().split(/(?=original-image-link:)/);
+        const groups = [];
+        let currentGroup = null;
+
+        // Proses semua data gambar
+        const processedData = await Promise.all(
+            entries.map(async entry => {
+                const data = {};
+                entry.trim().split('\n').forEach(line => {
+                    const [key, ...values] = line.split(':');
+                    if (key) data[key.trim()] = values.join(':').trim();
+                });
+                return processImageData(data);
+            })
+        );
+
+        // Kelompokkan data
+        processedData.forEach(({data}) => {
+            if (data.title) {
+                currentGroup = {
+                    title: data.title,
+                    entries: [data]
+                };
+                groups.push(currentGroup);
+            } else {
+                currentGroup?.entries.push(data);
+            }
         });
+
+        // Bangun HTML
+        let html = '<div class="image-groups-wrapper">';
         
-        document.querySelectorAll('.group-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const groupIndex = btn.dataset.group;
-                document.querySelectorAll('.image-group').forEach(group => {
-                    group.classList.toggle('active', group.dataset.group === groupIndex);
-                });
-                document.querySelectorAll('.group-btn').forEach(b => {
-                    b.classList.toggle('active', b === btn);
-                });
-                updateSizes();
+        // Tombol grup
+        html += `<div class="group-buttons-container">
+            ${groups.map((group, i) => `
+                <button class="group-button ${i === 0 ? 'active' : ''}" 
+                        data-group-index="${i}">
+                    ${group.title}
+                </button>`).join('')}
+        </div>`;
+        
+        // Konten gambar
+        html += '<div class="group-contents-container">';
+        groups.forEach((group, i) => {
+            html += `<div class="image-group ${i === 0 ? 'active' : ''}" data-group-index="${i}">`;
+            group.entries.forEach(data => {
+                const imgData = processedData.find(p => p.data === data);
+                html += `
+                    <figure class="image">
+                        <picture>
+                            <source srcset="${imgData.webpSrcset}" type="image/webp">
+                            <source srcset="${imgData.fallbackSrcset}" type="image/${imgData.ext === 'png' ? 'png' : 'jpeg'}">
+                            <img src="${data['original-image-link']}"
+                                alt="${data.alt}"
+                                width="${imgData.width}"
+                                height="${imgData.height}"
+                                loading="lazy"
+                                onclick="showFullImage(this.src)">
+                        </picture>
+                        ${!imgData.webpSrcset || !imgData.fallbackSrcset ? 
+                            `<div class="error">Error loading image sources</div>` : ''}
+                    </figure>`;
+            });
+            html += '</div>';
+        });
+        html += '</div></div>';
+        
+        return html;
+    };
+
+    // Inisialisasi
+    const pre = document.getElementById('imageData');
+    if (pre) {
+        processPreContent(pre.textContent).then(html => {
+            pre.outerHTML = html;
+            updateImageSizes();
+            
+            // Handle resize
+            let resizeTimer;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(() => {
+                    updateImageSizes();
+                }, 250);
+            });
+
+            // Handle grup toggle
+            document.addEventListener('click', (e) => {
+                if (e.target.classList.contains('group-button')) {
+                    const index = e.target.dataset.groupIndex;
+                    document.querySelectorAll('.image-group').forEach(group => {
+                        group.style.display = group.dataset.groupIndex === index ? 'block' : 'none';
+                    });
+                    document.querySelectorAll('.group-button').forEach(btn => {
+                        btn.classList.toggle('active', btn.dataset.groupIndex === index);
+                    });
+                    updateImageSizes();
+                }
             });
         });
-    };
-
-    const updateSizes = () => {
-        const sizesValue = calculateSizes();
-        document.querySelectorAll('picture source').forEach(source => {
-            source.setAttribute('sizes', sizesValue);
-        });
-    };
-
-    // Error handling
-    const showErrorUI = () => {
-        document.getElementById('imageData').outerHTML = `
-            <div class="error-message">
-                <p>Gagal memuat gambar. Silakan coba lagi atau hubungi administrator.</p>
-                <button onclick="location.reload()">Muat Ulang</button>
-            </div>
-        `;
-    };
-
-    // Initialize
-    initializeImageLoader();
+    }
 });
-
-// Fungsi global untuk zoom
-window.showFullImage = (src) => {
-    const overlay = document.createElement('div');
-    overlay.className = 'fullscreen-overlay';
-    overlay.innerHTML = `
-        <div class="overlay-content">
-            <img src="${src}" alt="Fullscreen view">
-            <button class="close-btn">&times;</button>
-        </div>
-    `;
-    
-    overlay.querySelector('.close-btn').addEventListener('click', () => {
-        document.body.removeChild(overlay);
-    });
-    
-    document.body.appendChild(overlay);
-};
 
 /*
 document.addEventListener('DOMContentLoaded', function() {
