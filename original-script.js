@@ -590,7 +590,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const groups = [];
         let currentGroup = null;
 
-        // Parse data
+        // Parse dan kelompokkan data
         entries.forEach(entry => {
             const data = {};
             entry.split('\n').forEach(line => {
@@ -601,30 +601,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
-            // Validasi data
-            if (!data['image-link'] || !data['image-size'] || !data['alt']) {
-                console.error('Invalid entry:', data);
-                return;
-            }
+            // Validasi field wajib
+            if (!data['image-link'] || !data['image-size'] || !data['alt']) return;
 
-            // Kelompokkan berdasarkan title
+            // Logika pengelompokan
             if (data.title) {
-                currentGroup = { 
-                    title: data.title, 
-                    entries: [data],
-                    hasTitle: true
+                // Buat grup baru jika ada title
+                currentGroup = {
+                    title: data.title,
+                    entries: [data]
                 };
                 groups.push(currentGroup);
             } else {
-                if (currentGroup?.hasTitle) {
-                    currentGroup = { 
-                        title: 'Gambar', 
-                        entries: [data],
-                        hasTitle: false
+                if (currentGroup) {
+                    // Tambahkan ke grup sebelumnya jika tidak ada title
+                    currentGroup.entries.push(data);
+                } else {
+                    // Buat grup default jika belum ada grup sama sekali
+                    currentGroup = {
+                        title: 'Partitur',
+                        entries: [data]
                     };
                     groups.push(currentGroup);
-                } else {
-                    currentGroup?.entries.push(data);
                 }
             }
         });
