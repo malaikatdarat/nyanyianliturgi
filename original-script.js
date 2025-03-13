@@ -537,6 +537,7 @@ overlay.addEventListener('click', (e) => {
 
 // Tab1
 document.addEventListener('DOMContentLoaded', function() {
+    // Fungsi untuk menghitung sizes
     const calculateSizes = () => {
         const container = document.querySelector('.group-contents-container');
         if (!container) return '100vw';
@@ -548,6 +549,44 @@ document.addEventListener('DOMContentLoaded', function() {
         return `(max-width: ${viewportWidth}px) ${relativeWidth}vw, ${containerWidth}px`;
     };
 
+    // Fungsi untuk memproses srcset dengan pola khusus
+    const processSrcset = (srcset, basePath) => {
+        if (!srcset) return '';
+        
+        const entries = srcset.split(',');
+        if (entries.length === 0) return '';
+        
+        // Ekstrak pola dari entry pertama
+        const firstEntry = entries[0].trim();
+        const [firstFilename, firstWidth] = firstEntry.split(/(?=\s*\d+w$)/);
+        
+        // Cari pola angka dalam nama file pertama
+        const widthPattern = firstFilename.match(/(.*?)(\d+)(\.[^.]*)$/);
+        if (!widthPattern) return '';
+        
+        const [_, base, widthNumber, ext] = widthPattern;
+        const cleanBase = base.replace(/w_\d+$/, 'w_');
+        
+        return entries.map(entry => {
+            const trimmed = entry.trim();
+            
+            // Jika format: "349w"
+            if (/^\d+w$/.test(trimmed)) {
+                const width = trimmed.replace('w', '');
+                return `${basePath}${cleanBase}${width}${ext} ${width}w`;
+            }
+            
+            // Jika format: "filename_200.jpg 200w"
+            const [filename, width] = trimmed.split(/(?=\s*\d+w$)/);
+            if (filename && width) {
+                return `${basePath}${filename.trim()} ${width.trim()}`;
+            }
+            
+            return '';
+        }).filter(entry => entry).join(', ');
+    };
+
+    // Update sizes untuk semua gambar
     const updateImageSizes = () => {
         const sizesValue = calculateSizes();
         document.querySelectorAll('.image-group picture source').forEach(source => {
@@ -555,12 +594,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     };
 
+    // Handle resize dengan debounce
     let resizeTimer;
     window.addEventListener('resize', () => {
         clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(() => {
-            updateImageSizes();
-        }, 250);
+        resizeTimer = setTimeout(updateImageSizes, 250);
     });
 
     function processPreContent(content) {
@@ -579,133 +617,118 @@ document.addEventListener('DOMContentLoaded', function() {
                 line = line.trim();
                 if (line.includes(':')) {
                     const [key, ...values] = line.split(':');
-                    data[key.trim()] = values.join(':').trim().replace(/^"(.*)"$/, '$1');
+                    data[key.trim()] = values.join(':').trim();
                 }
             });
 
-            const requiredFields = ['image-link', 'image-size', 'fallback-srcset', 'webp-srcset', 'alt'];
-            for (const field of requiredFields) {
-                if (!data[field]) {
-                    console.error(`Missing required field: ${field}`);
-                    return;
-                }
+            // Validasi field wajib
+            const requiredFields = ['image-link', 'image-size', 'alt'];
+            const isValid = requiredFields.every(field => data[field]);
+            if (!isValid) {
+                console.error('Missing required fields in entry:', data);
+                return;
             }
+            
             dataEntries.push(data);
         });
 
+        // Kelompokkan data berdasarkan title
         dataEntries.forEach((data) => {
             if (data.title) {
-                currentGroup = {
-                    title: data.title,
-                    entries: [data]
-                };
+                currentGroup = { title: data.title, entries: [data] };
                 groups.push(currentGroup);
             } else {
-                if (currentGroup) {
-                    currentGroup.entries.push(data);
-                } else {
-                    currentGroup = {
-                        title: 'Gambar',
-                        entries: [data]
-                    };
-                    groups.push(currentGroup);
-                }
+                currentGroup?.entries.push(data);
             }
         });
 
-        let processedHtml = '<div class="image-groups-wrapper">';
+        // Bangun HTML
+        let html = '<div class="image-groups-wrapper">';
         
-        processedHtml += `
-            <div class="group-buttons-container">
-                ${groups.map((group, i) => `
-                    <button class="group-button ${i === 0 ? 'active' : ''}" 
-                            data-group-index="${i}">
-                        ${group.title}
-                    </button>
-                `).join('')}
-            </div>`;
+        // Tombol grup
+        html += `<div class="group-buttons-container">
+            ${groups.map((group, i) => `
+                <button class="group-button ${i === 0 ? 'active' : ''}" 
+                        data-group-index="${i}">
+                    ${group.title}
+                </button>
+            `).join('')}
+        </div>`;
         
-        processedHtml += '<div class="group-contents-container">';
+        // Konten gambar
+        html += '<div class="group-contents-container">';
         groups.forEach((group, i) => {
-            processedHtml += `
-                <div class="image-group ${i === 0 ? 'active' : ''}" data-group-index="${i}">
-                    ${group.entries.map(data => {
-                        const [width, height] = data['image-size'].split('x');
-                        const imageLink = data['image-link'];
-                        const fileNameWithExt = imageLink.split('/').pop();
-                        const fileName = fileNameWithExt.replace(/\.[^/.]+$/, '');
-                        const basePath = imageLink.replace(fileNameWithExt, '');
-                        
-                        const fallbackBase = `${basePath}${fileName}/fallback/`;
-                        const webpBase = `${basePath}${fileName}/webp/`;
+            html += `<div class="image-group ${i === 0 ? 'active' : ''}" data-group-index="${i}">`;
+            
+            group.entries.forEach(data => {
+                const [width, height] = data['image-size'].split('x');
+                const imageLink = data['image-link'];
+                const pathParts = imageLink.split('/');
+                const fileNameWithExt = pathParts.pop();
+                const baseDir = pathParts.join('/') + '/';
+                const fileName = fileNameWithExt.replace(/\.[^/.]+$/, '');
+                
+                // Bangun path untuk fallback dan webp
+                const fallbackBase = `${baseDir}${fileName}/fallback/`;
+                const webpBase = `${baseDir}${fileName}/webp/`;
 
-                        const processSrcset = (srcset, base) => {
-                            return srcset.split(',')
-                                .map(entry => {
-                                    entry = entry.trim();
-                                    const lastSpace = entry.lastIndexOf(' ');
-                                    if (lastSpace === -1) return '';
-                                    const filename = entry.substring(0, lastSpace);
-                                    const width = entry.substring(lastSpace + 1).replace('w', '');
-                                    return `${base}${filename} ${width}w`;
-                                })
-                                .filter(entry => entry)
-                                .join(', ');
-                        };
+                // Proses srcset
+                const fallbackSrcset = processSrcset(data['fallback-srcset'], fallbackBase);
+                const webpSrcset = processSrcset(data['webp-srcset'], webpBase);
 
-                        const webpSrcset = processSrcset(data['webp-srcset'], webpBase);
-                        const fallbackSrcset = processSrcset(data['fallback-srcset'], fallbackBase);
+                // Tentukan tipe MIME
+                const ext = fileNameWithExt.split('.').pop().toLowerCase();
+                const mimeType = ext === 'png' ? 'image/png' : 
+                               ext === 'gif' ? 'image/gif' : 'image/jpeg';
 
-                        const originalExt = fileNameWithExt.split('.').pop();
-                        let mimeType = 'image/jpeg';
-                        if (originalExt.toLowerCase() === 'png') mimeType = 'image/png';
-                        if (originalExt.toLowerCase() === 'gif') mimeType = 'image/gif';
-
-                        return `
-                            <figure class="image">
-                                <picture>
-                                    <source srcset="${webpSrcset}" type="image/webp">
-                                    <source srcset="${fallbackSrcset}" type="${mimeType}">
-                                    <img src="${data['image-link']}"
-                                        alt="${data.alt}"
-                                        width="${width}"
-                                        height="${height}"
-                                        loading="lazy"
-                                        onclick="showFullImage(this.src)">
-                                </picture>
-                            </figure>`;
-                    }).join('')}
-                </div>`;
+                html += `
+                    <figure class="image">
+                        <picture>
+                            ${webpSrcset ? `<source srcset="${webpSrcset}" type="image/webp">` : ''}
+                            ${fallbackSrcset ? `<source srcset="${fallbackSrcset}" type="${mimeType}">` : ''}
+                            <img src="${imageLink}"
+                                alt="${data.alt}"
+                                width="${width}"
+                                height="${height}"
+                                loading="lazy"
+                                onclick="showFullImage(this.src)">
+                        </picture>
+                    </figure>`;
+            });
+            
+            html += '</div>';
         });
-        processedHtml += '</div></div>';
+        html += '</div></div>';
 
-        return processedHtml;
+        return html;
     }
 
+    // Inisialisasi
     const pre = document.getElementById('imageData');
     if (pre) {
         pre.outerHTML = processPreContent(pre.textContent);
         updateImageSizes();
         
-        const images = document.querySelectorAll('.image-group img');
-        images.forEach(img => {
+        // Inisialisasi styling gambar
+        document.querySelectorAll('.image-group img').forEach(img => {
             img.style.width = '100%';
             img.style.height = 'auto';
         });
     }
 
-    document.addEventListener('click', function(e) {
+    // Handle toggle grup
+    document.addEventListener('click', (e) => {
         if (e.target.classList.contains('group-button')) {
-            const allGroups = document.querySelectorAll('.image-group');
-            const allButtons = document.querySelectorAll('.group-button');
-            const targetGroupIndex = e.target.dataset.groupIndex;
+            const index = e.target.dataset.groupIndex;
             
-            allGroups.forEach(group => {
-                group.style.display = group.dataset.groupIndex === targetGroupIndex ? 'block' : 'none';
+            // Update tombol aktif
+            document.querySelectorAll('.group-button').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.groupIndex === index);
             });
             
-            allButtons.forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.groupIndex === targetGroupIndex);
+            // Update grup aktif
+            document.querySelectorAll('.image-group').forEach(group => {
+                group.style.display = group.dataset.groupIndex === index ? 'block' : 'none';
             });
             
             updateImageSizes();
