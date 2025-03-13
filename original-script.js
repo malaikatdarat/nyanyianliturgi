@@ -537,83 +537,63 @@ overlay.addEventListener('click', (e) => {
 
 // Tab1
 document.addEventListener('DOMContentLoaded', function() {
-    // Fungsi untuk menghitung sizes
+    // ======================== FUNGSI UTAMA ========================
     const calculateSizes = () => {
         const container = document.querySelector('.group-contents-container');
         if (!container) return '100vw';
         
         const containerWidth = container.offsetWidth;
         const viewportWidth = window.innerWidth;
-        
         const relativeWidth = (containerWidth / viewportWidth * 100).toFixed(2);
         return `(max-width: ${viewportWidth}px) ${relativeWidth}vw, ${containerWidth}px`;
     };
 
-    // Fungsi untuk memproses srcset dengan pola khusus
     const processSrcset = (srcset, basePath) => {
-        if (!srcset) return '';
+        if (!srcset) return null;
         
-        const entries = srcset.split(',');
-        if (entries.length === 0) return '';
-        
+        // Handle kasus khusus dengan koma dalam nama file
+        const entries = srcset.split(/,\s*(?=\d+w\b)/).map(e => e.trim());
+        if (entries.length === 0) return null;
+
         // Ekstrak pola dari entry pertama
-        const firstEntry = entries[0].trim();
-        const [firstFilename, firstWidth] = firstEntry.split(/(?=\s*\d+w$)/);
+        const firstEntry = entries[0];
+        const [baseFile, firstWidth] = firstEntry.split(/\s+(?=\d+w$)/);
         
-        // Cari pola angka dalam nama file pertama
-        const widthPattern = firstFilename.match(/(.*?)(\d+)(\.[^.]*)$/);
-        if (!widthPattern) return '';
+        // Cari parameter unik dalam nama file
+        const patternMatch = baseFile.match(/^(.*?)(\d+)(\.[^.]+)$/);
+        if (!patternMatch) return null;
         
-        const [_, base, widthNumber, ext] = widthPattern;
-        const cleanBase = base.replace(/w_\d+$/, 'w_');
-        
+        const [_, base, widthNum, ext] = patternMatch;
+        const baseWithoutWidth = base.replace(/w_\d+$/, 'w_');
+
         return entries.map(entry => {
-            const trimmed = entry.trim();
+            const parts = entry.split(/\s+(?=\d+w$)/);
             
             // Jika format: "349w"
-            if (/^\d+w$/.test(trimmed)) {
-                const width = trimmed.replace('w', '');
-                return `${basePath}${cleanBase}${width}${ext} ${width}w`;
+            if (parts.length === 1 && /\d+w$/.test(parts[0])) {
+                const width = parts[0].replace('w', '');
+                return `${basePath}${baseWithoutWidth}${width}${ext} ${width}w`;
             }
             
-            // Jika format: "filename_200.jpg 200w"
-            const [filename, width] = trimmed.split(/(?=\s*\d+w$)/);
-            if (filename && width) {
-                return `${basePath}${filename.trim()} ${width.trim()}`;
+            // Jika format lengkap: "file_200.jpg 200w"
+            if (parts.length === 2) {
+                return `${basePath}${parts[0]} ${parts[1]}`;
             }
             
-            return '';
-        }).filter(entry => entry).join(', ');
+            return null;
+        }).filter(Boolean).join(', ');
     };
 
-    // Update sizes untuk semua gambar
-    const updateImageSizes = () => {
-        const sizesValue = calculateSizes();
-        document.querySelectorAll('.image-group picture source').forEach(source => {
-            source.setAttribute('sizes', sizesValue);
-        });
-    };
-
-    // Handle resize dengan debounce
-    let resizeTimer;
-    window.addEventListener('resize', () => {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(updateImageSizes, 250);
-    });
-
+    // ======================== LOGIKA UTAMA ========================
     function processPreContent(content) {
         const entries = content.trim().split(/(?=image-link:)/);
         const groups = [];
         let currentGroup = null;
 
-        const dataEntries = [];
+        // Parse data
         entries.forEach(entry => {
-            if (!entry.trim()) return;
-            
             const data = {};
-            const lines = entry.trim().split('\n');
-            
-            lines.forEach(line => {
+            entry.split('\n').forEach(line => {
                 line = line.trim();
                 if (line.includes(':')) {
                     const [key, ...values] = line.split(':');
@@ -621,119 +601,137 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
-            // Validasi field wajib
-            const requiredFields = ['image-link', 'image-size', 'alt'];
-            const isValid = requiredFields.every(field => data[field]);
-            if (!isValid) {
-                console.error('Missing required fields in entry:', data);
+            // Validasi data
+            if (!data['image-link'] || !data['image-size'] || !data['alt']) {
+                console.error('Invalid entry:', data);
                 return;
             }
-            
-            dataEntries.push(data);
-        });
 
-        // Kelompokkan data berdasarkan title
-        dataEntries.forEach((data) => {
+            // Kelompokkan berdasarkan title
             if (data.title) {
-                currentGroup = { title: data.title, entries: [data] };
+                currentGroup = { 
+                    title: data.title, 
+                    entries: [data],
+                    hasTitle: true
+                };
                 groups.push(currentGroup);
             } else {
-                currentGroup?.entries.push(data);
+                if (currentGroup?.hasTitle) {
+                    currentGroup = { 
+                        title: 'Gambar', 
+                        entries: [data],
+                        hasTitle: false
+                    };
+                    groups.push(currentGroup);
+                } else {
+                    currentGroup?.entries.push(data);
+                }
             }
         });
 
         // Bangun HTML
-        let html = '<div class="image-groups-wrapper">';
-        
-        // Tombol grup
-        html += `<div class="group-buttons-container">
-            ${groups.map((group, i) => `
-                <button class="group-button ${i === 0 ? 'active' : ''}" 
-                        data-group-index="${i}">
-                    ${group.title}
-                </button>
-            `).join('')}
-        </div>`;
-        
-        // Konten gambar
-        html += '<div class="group-contents-container">';
+        let html = `
+        <div class="image-groups-wrapper">
+            <div class="group-buttons-container">
+                ${groups.map((group, i) => `
+                    <button class="group-button ${i === 0 ? 'active' : ''}" 
+                            data-group-index="${i}">
+                        ${group.title}
+                    </button>
+                `).join('')}
+            </div>
+            <div class="group-contents-container">`;
+
         groups.forEach((group, i) => {
-            html += `<div class="image-group ${i === 0 ? 'active' : ''}" data-group-index="${i}">`;
-            
-            group.entries.forEach(data => {
-                const [width, height] = data['image-size'].split('x');
-                const imageLink = data['image-link'];
-                const pathParts = imageLink.split('/');
-                const fileNameWithExt = pathParts.pop();
-                const baseDir = pathParts.join('/') + '/';
-                const fileName = fileNameWithExt.replace(/\.[^/.]+$/, '');
-                
-                // Bangun path untuk fallback dan webp
-                const fallbackBase = `${baseDir}${fileName}/fallback/`;
-                const webpBase = `${baseDir}${fileName}/webp/`;
+            html += `
+            <div class="image-group ${i === 0 ? 'active' : ''}" data-group-index="${i}">
+                ${group.entries.map(data => {
+                    const [width, height] = data['image-size'].split('x');
+                    const imageLink = data['image-link'];
+                    const pathParts = imageLink.split('/');
+                    const fileNameWithExt = pathParts.pop();
+                    const baseDir = pathParts.join('/') + '/';
+                    const fileName = fileNameWithExt.replace(/\.[^/.]+$/, '');
 
-                // Proses srcset
-                const fallbackSrcset = processSrcset(data['fallback-srcset'], fallbackBase);
-                const webpSrcset = processSrcset(data['webp-srcset'], webpBase);
+                    // Bangun path
+                    const fallbackPath = `${baseDir}${fileName}/fallback/`;
+                    const webpPath = `${baseDir}${fileName}/webp/`;
 
-                // Tentukan tipe MIME
-                const ext = fileNameWithExt.split('.').pop().toLowerCase();
-                const mimeType = ext === 'png' ? 'image/png' : 
-                               ext === 'gif' ? 'image/gif' : 'image/jpeg';
+                    // Proses srcset
+                    const fallbackSrcset = processSrcset(data['fallback-srcset'], fallbackPath);
+                    const webpSrcset = processSrcset(data['webp-srcset'], webpPath);
 
-                html += `
+                    // Tentukan MIME type
+                    const ext = fileNameWithExt.split('.').pop().toLowerCase();
+                    const mimeType = ext === 'png' ? 'image/png' : 
+                                   ext === 'gif' ? 'image/gif' : 'image/jpeg';
+
+                    return `
                     <figure class="image">
                         <picture>
                             ${webpSrcset ? `<source srcset="${webpSrcset}" type="image/webp">` : ''}
                             ${fallbackSrcset ? `<source srcset="${fallbackSrcset}" type="${mimeType}">` : ''}
-                            <img src="${imageLink}"
+                            <img src="${data['image-link']}"
                                 alt="${data.alt}"
                                 width="${width}"
                                 height="${height}"
                                 loading="lazy"
-                                onclick="showFullImage(this.src)">
+                                onclick="showFullImage(this.src)"
+                                style="width:100%;height:auto">
                         </picture>
                     </figure>`;
-            });
-            
-            html += '</div>';
+                }).join('')}
+            </div>`;
         });
-        html += '</div></div>';
 
-        return html;
+        return html + '</div></div>';
     }
 
-    // Inisialisasi
-    const pre = document.getElementById('imageData');
-    if (pre) {
+    // ======================== INISIALISASI ========================
+    const init = () => {
+        const pre = document.getElementById('imageData');
+        if (!pre) return;
+
+        // Render HTML
         pre.outerHTML = processPreContent(pre.textContent);
-        updateImageSizes();
-        
-        // Inisialisasi styling gambar
-        document.querySelectorAll('.image-group img').forEach(img => {
-            img.style.width = '100%';
-            img.style.height = 'auto';
-        });
-    }
 
-    // Handle toggle grup
-    document.addEventListener('click', (e) => {
-        if (e.target.classList.contains('group-button')) {
-            const index = e.target.dataset.groupIndex;
-            
-            // Update tombol aktif
-            document.querySelectorAll('.group-button').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.groupIndex === index);
+        // Update sizes
+        const updateSizes = () => {
+            const sizesValue = calculateSizes();
+            document.querySelectorAll('.image-group picture source').forEach(source => {
+                source.setAttribute('sizes', sizesValue);
             });
-            
-            // Update grup aktif
-            document.querySelectorAll('.image-group').forEach(group => {
-                group.style.display = group.dataset.groupIndex === index ? 'block' : 'none';
-            });
-            
-            updateImageSizes();
-        }
-    });
+        };
+
+        // Handle resize
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(updateSizes, 250);
+        });
+        updateSizes();
+
+        // Handle group toggle
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('group-button')) {
+                const index = e.target.dataset.groupIndex;
+                
+                // Update tombol
+                document.querySelectorAll('.group-button').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.groupIndex === index);
+                });
+
+                // Update konten
+                document.querySelectorAll('.image-group').forEach(group => {
+                    group.style.display = group.dataset.groupIndex === index ? 'block' : 'none';
+                });
+
+                updateSizes();
+            }
+        });
+    };
+
+    init();
 });
 
 /*
