@@ -256,6 +256,17 @@ pre#imageData {
     -webkit-user-select: none; /* Tambahkan ini */
     -moz-user-select: none; /* Tambahkan ini */
     scroll-behavior: smooth; /* Smooth scroll untuk desktop */
+    position: relative; /* Untuk positioning shadow */
+}
+
+.scroll-shadow {
+    display: none; /* Sembunyikan di mobile */
+}
+
+@media (min-width: 768px) {
+    .scroll-shadow {
+        display: block;
+    }
 }
 
 .group-buttons-container:active {
