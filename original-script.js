@@ -1183,20 +1183,37 @@ function loadVideo(placeholder) {
 
 // Tab4
 document.addEventListener('DOMContentLoaded', function () {
-    function generateSrcset(baseUrl, originalWidth) {
-        const increment = Math.max(80, Math.floor(originalWidth * 0.1));
-        let breakpoints = [];
-        let currentWidth = increment;
+    // Fungsi untuk memproses srcset berdasarkan skrip referensi
+    const processSrcset = (srcset, basePath) => {
+        if (!srcset) return null;
         
-        while (currentWidth <= originalWidth && breakpoints.length < 10) {
-            breakpoints.push(currentWidth);
-            currentWidth += increment;
-        }
+        const entries = srcset.split(/,\s*(?=\d+w\b)/).map(e => e.trim());
+        if (entries.length === 0) return null;
+
+        const firstEntry = entries[0];
+        const [baseFile, firstWidth] = firstEntry.split(/\s+(?=\d+w$)/);
         
-        return breakpoints
-            .map(width => `${baseUrl}/${width}.webp ${width}w`)
-            .join(',');
-    }
+        const patternMatch = baseFile.match(/^(.*?)(\d+)(\.[^.]+)$/);
+        if (!patternMatch) return null;
+        
+        const [_, base, widthNum, ext] = patternMatch;
+        const baseWithoutWidth = base.replace(/w_\d+$/, 'w_');
+
+        return entries.map(entry => {
+            const parts = entry.split(/\s+(?=\d+w$)/);
+            
+            if (parts.length === 1 && /\d+w$/.test(parts[0])) {
+                const width = parts[0].replace('w', '');
+                return `${basePath}${baseWithoutWidth}${width}${ext} ${width}w`;
+            }
+            
+            if (parts.length === 2) {
+                return `${basePath}${parts[0]} ${parts[1]}`;
+            }
+            
+            return null;
+        }).filter(Boolean).join(', ');
+    };
 
     function createImagePage(links) {
         const newWindow = window.open('', '_blank');
@@ -1204,7 +1221,7 @@ document.addEventListener('DOMContentLoaded', function () {
             <!DOCTYPE html>
             <html>
             <head>
-                <title>Preview Images</title>
+                <title>Unduh Partitur</title>
                 <style>
                     body { margin: 20px; background: #f5f5f5; }
                     img { max-width: 100%; height: auto; margin: 10px 0; display: block; }
@@ -1222,7 +1239,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function processPreContent(content) {
-        const entries = content.trim().split(/(?=unduh-link:)/);
+        const entries = content.trim().split(/(?=download-link:)/);
         let processedHtml = '';
         let title = '';
         let itemCount = 0;
@@ -1245,13 +1262,14 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             const processedData = {
-                'unduh-link': data['unduh-link'] || '#',
+                'download-link': data['download-link'] || '#',
                 'preview-source': data['preview-source'] || 'https://placehold.co/200x300',
-                'width': data['width'] || '2481',
-                'height': data['height'] || '3508',
+                'preview-size': data['preview-size'] || '2481x3508',
                 'alt': data['alt'] || 'No description available',
                 'label': data['label'] || 'Download',
-                'sub': data['sub'] || ''
+                'sub': data['sub'] || '',
+                'fallback-srcset': data['fallback-srcset'] || '',
+                'webp-srcset': data['webp-srcset'] || ''
             };
 
             if (data['judul-lagu']) {
@@ -1259,7 +1277,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            const baseUrl = processedData['preview-source'].substring(0, processedData['preview-source'].lastIndexOf('/'));
+            // Parse preview-source untuk path
+            const imageLink = processedData['preview-source'];
+            const pathParts = imageLink.split('/');
+            const fileNameWithExt = pathParts.pop();
+            const baseDir = pathParts.join('/') + '/';
+            const fileName = fileNameWithExt.replace(/\.[^/.]+$/, '');
+
+            // Bangun path untuk srcset
+            const fallbackPath = `${baseDir}${fileName}/fallback/`;
+            const webpPath = `${baseDir}${fileName}/webp/`;
+
+            // Proses srcset
+            const fallbackSrcset = processSrcset(processedData['fallback-srcset'], fallbackPath);
+            const webpSrcset = processSrcset(processedData['webp-srcset'], webpPath);
+
+            // Parse preview-size
+            const [width, height] = processedData['preview-size'].split('x');
 
             if (processedHtml === '') {
                 processedHtml = `
@@ -1273,16 +1307,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
             itemCount++;
             
-            const links = processedData['unduh-link'].split(';').map(link => link.trim());
+            const links = processedData['download-link'].split(';').map(link => link.trim());
             const isMultipleLinks = links.length > 1;
             
-            // Generate different HTML based on number of links
             currentRow += isMultipleLinks ? 
                 `<a href="javascript:void(0)" 
                     data-links="${links.join(';')}"
                     title="${processedData.alt}" 
                     class="download-item multiple-links">` :
-                `<a href="${processedData['unduh-link']}" 
+                `<a href="${processedData['download-link']}" 
                     target="_blank" 
                     rel="noopener noreferrer" 
                     title="${processedData.alt}" 
@@ -1291,13 +1324,13 @@ document.addEventListener('DOMContentLoaded', function () {
             currentRow += `
                     <figure class="unduh-preview">
                         <picture>
-                            <source sizes="(max-width: ${data.width}px) 100vw, ${data.width}px" 
-                                    srcset="${generateSrcset(baseUrl, parseInt(data.width))}"
-                                    type="image/webp">
+                            ${webpSrcset ? `<source srcset="${webpSrcset}" type="image/webp">` : ''}
+                            ${fallbackSrcset ? `<source srcset="${fallbackSrcset}" type="image/jpeg">` : ''}
                             <img src="${processedData['preview-source']}" 
                                  alt="${processedData.alt}" 
-                                 width="${processedData.width}" 
-                                 height="${processedData.height}">
+                                 width="${width}" 
+                                 height="${height}"
+                                 loading="lazy">
                         </picture>
                     </figure>
                     <div class="download-text">
@@ -1329,7 +1362,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const html = processPreContent(content);
         pre.outerHTML = html;
 
-        // Add click event listeners only to download items with multiple links
         document.querySelectorAll('.download-item.multiple-links').forEach(item => {
             item.addEventListener('click', function(e) {
                 e.preventDefault();
