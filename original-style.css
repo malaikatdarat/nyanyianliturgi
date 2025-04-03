@@ -260,12 +260,45 @@ pre#imageData {
 }
 
 .scroll-shadow {
-    display: none; /* Sembunyikan di mobile */
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 30px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 2; /* Pastikan di atas button */
 }
 
-@media (min-width: 768px) {
+.left-shadow {
+    left: 0;
+    background: linear-gradient(to right, rgba(0,0,0,0.08) 0%, transparent 100%);
+}
+
+.right-shadow {
+    right: 0;
+    background: linear-gradient(to left, rgba(0,0,0,0.08) 0%, transparent 100%);
+}
+
+/* Untuk mobile */
+@media (max-width: 768px) {
     .scroll-shadow {
-        display: block;
+        width: 20px; /* Lebih sempit di mobile */
+    }
+    
+    .left-shadow {
+        background: linear-gradient(to right, rgba(0,0,0,0.05) 0%, transparent 100%);
+    }
+    
+    .right-shadow {
+        background: linear-gradient(to left, rgba(0,0,0,0.05) 0%, transparent 100%);
+    }
+}
+
+/* Sembunyikan tombol panah di mobile */
+@media (max-width: 768px) {
+    .scroll-nav {
+        display: none;
     }
 }
 
