@@ -245,16 +245,35 @@ pre#imageData {
 
 .group-buttons-container {
     display: flex;
-    overflow-x: auto; /* Enable horizontal scrolling */
-    flex-wrap: nowrap; /* Pastikan item tidak wrap */
+    overflow-x: auto;
+    flex-wrap: nowrap;
     gap: 8px;
     margin-bottom: 15px;
-    -webkit-overflow-scrolling: touch; /* Smooth scroll di mobile */
-    padding-bottom: 10px; /* Ruang untuk scrollbar */
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 10px;
+    cursor: grab; /* Tambahkan ini */
+    user-select: none; /* Tambahkan ini */
+    -webkit-user-select: none; /* Tambahkan ini */
+    -moz-user-select: none; /* Tambahkan ini */
+    scroll-behavior: smooth; /* Smooth scroll untuk desktop */
+}
+
+.group-buttons-container:active {
+    cursor: grabbing; /* Tambahkan ini */
 }
 
 .group-buttons-container::-webkit-scrollbar {
     display: none;
+}
+
+/* Cegah text selection di seluruh container */
+.group-buttons-container * {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .group-button {
