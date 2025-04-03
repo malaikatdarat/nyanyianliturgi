@@ -736,16 +736,25 @@ function initScrollButtons() {
     const container = document.querySelector('.group-buttons-container');
     if (!container) return;
 
-    // Create navigation buttons
+    // Create navigation buttons dan shadow
+    const wrapper = container.parentElement;
+    wrapper.style.position = 'relative'; // Tambahkan ini
+	
     const navHTML = `
         <div class="scroll-nav">
             <button class="scroll-btn left-btn" aria-label="Scroll left">&lt;</button>
             <button class="scroll-btn right-btn" aria-label="Scroll right">&gt;</button>
         </div>
+    `;
+
+    const shadowHTML = `
         <div class="scroll-shadow left-shadow"></div>
         <div class="scroll-shadow right-shadow"></div>
     `;
-    container.insertAdjacentHTML('afterend', navHTML);
+	
+    // Tempatkan shadow di dalam wrapper yang sama
+    container.insertAdjacentHTML('afterbegin', shadowHTML);
+    wrapper.insertAdjacentHTML('beforeend', navHTML);
 
     // Style elements
     const style = document.createElement('style');
