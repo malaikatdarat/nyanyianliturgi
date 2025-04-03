@@ -263,35 +263,79 @@ pre#imageData {
     position: absolute;
     top: 0;
     bottom: 0;
-    width: 30px;
+    width: 40px;
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.3s;
-    z-index: 2; /* Pastikan di atas button */
+    z-index: 1;
 }
 
 .left-shadow {
     left: 0;
-    background: linear-gradient(to right, rgba(0,0,0,0.08) 0%, transparent 100%);
+    background: linear-gradient(to right, rgba(0,0,0,0.1) 0%, transparent 100%);
 }
 
 .right-shadow {
     right: 0;
-    background: linear-gradient(to left, rgba(0,0,0,0.08) 0%, transparent 100%);
+    background: linear-gradient(to left, rgba(0,0,0,0.1) 0%, transparent 100%);
+}
+
+/* CSS untuk Panah */
+.scroll-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: calc(100% + 80px); /* Sesuaikan dengan lebar shadow */
+    left: -40px;
+    right: -40px;
+    pointer-events: none;
+    z-index: 2; /* Pastikan di atas shadow */
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.group-buttons-wrapper:hover .scroll-nav {
+    opacity: 1;
+}
+
+.scroll-btn {
+    pointer-events: all;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    position: absolute;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.scroll-btn:hover {
+    transform: scale(1.1);
+}
+
+.left-btn { left: 8px; }
+.right-btn { right: 8px; }
+
+.group-buttons-wrapper {
+    position: relative;
+    overflow: hidden;
+}
+
+.group-buttons-container {
+    position: relative;
+    z-index: 1;
 }
 
 /* Untuk mobile */
 @media (max-width: 768px) {
+    .scroll-nav {
+        display: none;
+    }
+    
     .scroll-shadow {
-        width: 20px; /* Lebih sempit di mobile */
-    }
-    
-    .left-shadow {
-        background: linear-gradient(to right, rgba(0,0,0,0.05) 0%, transparent 100%);
-    }
-    
-    .right-shadow {
-        background: linear-gradient(to left, rgba(0,0,0,0.05) 0%, transparent 100%);
+        width: 20px;
     }
 }
 
