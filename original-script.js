@@ -629,16 +629,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Bangun HTML
         let html = `
-        <div class="image-groups-wrapper">
-            <div class="group-buttons-container">
-                ${groups.map((group, i) => `
-                    <button class="group-button ${i === 0 ? 'active' : ''}" 
-                            data-group-index="${i}">
-                        ${group.title}
-                    </button>
-                `).join('')}
-            </div>
-            <div class="group-contents-container">`;
+<div class="image-groups-wrapper">
+    <div class="group-buttons-wrapper">
+        <div class="scroll-shadow left-shadow"></div>
+        <div class="scroll-shadow right-shadow"></div>
+        <div class="group-buttons-container">
+            ${groups.map((group, i) => `
+                <button class="group-button ${i === 0 ? 'active' : ''}" 
+                        data-group-index="${i}">
+                    ${group.title}
+                </button>
+            `).join('')}
+        </div>
+        <div class="scroll-nav">
+            <button class="scroll-btn left-btn" aria-label="Scroll left">&lt;</button>
+            <button class="scroll-btn right-btn" aria-label="Scroll right">&gt;</button>
+        </div>
+    </div>
+    <div class="group-contents-container">`;
 
         groups.forEach((group, i) => {
             html += `
@@ -733,89 +741,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
 	// ======================== SCROLL BUTTONS ========================
 function initScrollButtons() {
-    const container = document.querySelector('.group-buttons-container');
-    if (!container) return;
+    const wrapper = document.querySelector('.group-buttons-wrapper');
+    if (!wrapper) return;
 
-    // Create navigation buttons dan shadow
-    const wrapper = container.parentElement;
-    wrapper.style.position = 'relative'; // Tambahkan ini
-	
-    const navHTML = `
-        <div class="scroll-nav">
-            <button class="scroll-btn left-btn" aria-label="Scroll left">&lt;</button>
-            <button class="scroll-btn right-btn" aria-label="Scroll right">&gt;</button>
-        </div>
-    `;
-
-    const shadowHTML = `
-        <div class="scroll-shadow left-shadow"></div>
-        <div class="scroll-shadow right-shadow"></div>
-    `;
-	
-    // Tempatkan shadow di dalam wrapper yang sama
-    container.insertAdjacentHTML('afterbegin', shadowHTML);
-    wrapper.insertAdjacentHTML('beforeend', navHTML);
-
-    // Style elements
-    const style = document.createElement('style');
-    style.textContent = `
-        .scroll-nav {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 100%;
-            pointer-events: none;
-            z-index: 1;
-        }
-        
-        .scroll-btn {
-            pointer-events: all;
-            background: rgba(255,255,255,0.9);
-            border: 1px solid #dee2e6;
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            cursor: pointer;
-            position: absolute;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: opacity 0.3s;
-        }
-        
-        .left-btn { left: 10px; }
-        .right-btn { right: 10px; }
-        
-        .scroll-shadow {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            width: 30px;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        
-        .left-shadow {
-            left: 0;
-            background: linear-gradient(to right, rgba(0,0,0,0.1) 0%, transparent 100%);
-        }
-        
-        .right-shadow {
-            right: 0;
-            background: linear-gradient(to left, rgba(0,0,0,0.1) 0%, transparent 100%);
-        }
-    `;
-    document.head.appendChild(style);
-
-    // Get elements
-    const leftBtn = document.querySelector('.left-btn');
-    const rightBtn = document.querySelector('.right-btn');
-    const leftShadow = document.querySelector('.left-shadow');
-    const rightShadow = document.querySelector('.right-shadow');
+    const container = wrapper.querySelector('.group-buttons-container');
+    const leftBtn = wrapper.querySelector('.left-btn');
+    const rightBtn = wrapper.querySelector('.right-btn');
+    const leftShadow = wrapper.querySelector('.left-shadow');
+    const rightShadow = wrapper.querySelector('.right-shadow');
 
     // Update visibility
     const updateVisibility = () => {
-        const showLeft = container.scrollLeft > 0;
-        const showRight = container.scrollLeft < (container.scrollWidth - container.clientWidth);
+        const showLeft = container.scrollLeft > 10;
+        const showRight = container.scrollLeft < (container.scrollWidth - container.clientWidth - 10);
         
         leftShadow.style.opacity = showLeft ? '1' : '0';
         rightShadow.style.opacity = showRight ? '1' : '0';
@@ -831,42 +769,10 @@ function initScrollButtons() {
         container.scrollBy({ left: scrollStep, behavior: 'smooth' });
     });
 
-    // Update on scroll/resize
+    // Update on events
     container.addEventListener('scroll', updateVisibility);
     window.addEventListener('resize', updateVisibility);
-    
-    // Initial check
     updateVisibility();
-
-    // Enable drag scrolling
-    let isDragging = false;
-    let startX;
-    let scrollLeft;
-
-    container.addEventListener('mousedown', (e) => {
-        isDragging = true;
-        startX = e.pageX - container.offsetLeft;
-        scrollLeft = container.scrollLeft;
-        container.style.cursor = 'grabbing';
-    });
-
-    container.addEventListener('mousemove', (e) => {
-        if (!isDragging) return;
-        e.preventDefault();
-        const x = e.pageX - container.offsetLeft;
-        const walk = (x - startX) * 2;
-        container.scrollLeft = scrollLeft - walk;
-    });
-
-    container.addEventListener('mouseup', () => {
-        isDragging = false;
-        container.style.cursor = 'grab';
-    });
-
-    container.addEventListener('mouseleave', () => {
-        isDragging = false;
-        container.style.cursor = 'grab';
-    });
 }
 
 // Panggil fungsi ini di akhir init()
