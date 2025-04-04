@@ -750,8 +750,53 @@ function initScrollButtons() {
     const leftShadow = wrapper.querySelector('.left-shadow');
     const rightShadow = wrapper.querySelector('.right-shadow');
 
+    // 1. Inisialisasi Scrollbar Custom
+    const scrollbar = document.createElement('div');
+    scrollbar.className = 'custom-scrollbar';
+    const thumb = document.createElement('div');
+    thumb.className = 'scroll-thumb';
+    scrollbar.appendChild(thumb);
+    wrapper.appendChild(scrollbar);
 
-    // [1] Tambahkan di sini - DRAG HANDLER
+    // 2. Fungsi Update Scrollbar
+    const updateScrollbar = () => {
+        const scrollWidth = container.scrollWidth;
+        const clientWidth = container.clientWidth;
+        
+        if (scrollWidth <= clientWidth) {
+            thumb.style.width = '0';
+            return;
+        }
+        
+        const thumbWidth = (clientWidth / scrollWidth) * clientWidth;
+        thumb.style.width = `${thumbWidth}px`;
+        
+        const maxScroll = scrollWidth - clientWidth;
+        const scrollLeft = container.scrollLeft;
+        const thumbPosition = (scrollLeft / maxScroll) * (clientWidth - thumbWidth);
+        thumb.style.left = `${thumbPosition}px`;
+    };
+
+    // 3. Auto-hide Scrollbar
+    let scrollTimeout;
+    const handleScroll = () => {
+        updateVisibility();
+        updateScrollbar();
+        scrollbar.style.display = 'block';
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+            scrollbar.style.display = 'none';
+        }, 1000);
+    };
+
+    // 4. Event Listeners
+    container.addEventListener('scroll', handleScroll);
+    window.addEventListener('resize', () => {
+        updateVisibility();
+        updateScrollbar();
+    });
+    
+    // 5. Drag Handler
     let isDragging = false;
     let startX;
     let scrollLeft;
@@ -759,13 +804,13 @@ function initScrollButtons() {
     container.addEventListener('mousedown', (e) => {
         isDragging = true;
         container.classList.add('grabbing');
-        startX = e.pageX - container.offsetLeft;
+        startX = e.clientX - container.offsetLeft;
         scrollLeft = container.scrollLeft;
     });
 
     document.addEventListener('mousemove', (e) => {
         if (!isDragging) return;
-        const x = e.pageX - container.offsetLeft;
+        const x = e.clientX - container.offsetLeft;
         const walk = (x - startX) * 2;
         container.scrollLeft = scrollLeft - walk;
     });
@@ -775,35 +820,19 @@ function initScrollButtons() {
         container.classList.remove('grabbing');
     });
 
-    // [2] Lanjutkan dengan kode yang sudah ada
+    // 6. Scroll Buttons
     const scrollStep = 200;
-    
     leftBtn.addEventListener('click', () => {
         container.scrollBy({ left: -scrollStep, behavior: 'smooth' });
     });
-    
     rightBtn.addEventListener('click', () => {
         container.scrollBy({ left: scrollStep, behavior: 'smooth' });
     });
-	
-    // Update visibility
-    const updateVisibility = () => {
-        const showLeft = container.scrollLeft > 10;
-        const showRight = container.scrollLeft < (container.scrollWidth - container.clientWidth - 10);
-        
-        leftShadow.style.opacity = showLeft ? '1' : '0';
-        rightShadow.style.opacity = showRight ? '1' : '0';
-    };
 
-    // Update on events
-    container.addEventListener('scroll', updateVisibility);
-    window.addEventListener('resize', updateVisibility);
+    // 7. Initial Setup
     updateVisibility();
+    updateScrollbar();
 }
-
-// Panggil fungsi ini di akhir init()
-initScrollButtons();
-});
 
 /*
 document.addEventListener('DOMContentLoaded', function() {
