@@ -750,6 +750,42 @@ function initScrollButtons() {
     const leftShadow = wrapper.querySelector('.left-shadow');
     const rightShadow = wrapper.querySelector('.right-shadow');
 
+
+    // [1] Tambahkan di sini - DRAG HANDLER
+    let isDragging = false;
+    let startX;
+    let scrollLeft;
+    
+    container.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        container.classList.add('grabbing');
+        startX = e.pageX - container.offsetLeft;
+        scrollLeft = container.scrollLeft;
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const x = e.pageX - container.offsetLeft;
+        const walk = (x - startX) * 2;
+        container.scrollLeft = scrollLeft - walk;
+    });
+
+    document.addEventListener('mouseup', () => {
+        isDragging = false;
+        container.classList.remove('grabbing');
+    });
+
+    // [2] Lanjutkan dengan kode yang sudah ada
+    const scrollStep = 200;
+    
+    leftBtn.addEventListener('click', () => {
+        container.scrollBy({ left: -scrollStep, behavior: 'smooth' });
+    });
+    
+    rightBtn.addEventListener('click', () => {
+        container.scrollBy({ left: scrollStep, behavior: 'smooth' });
+    });
+	
     // Update visibility
     const updateVisibility = () => {
         const showLeft = container.scrollLeft > 10;
@@ -758,16 +794,6 @@ function initScrollButtons() {
         leftShadow.style.opacity = showLeft ? '1' : '0';
         rightShadow.style.opacity = showRight ? '1' : '0';
     };
-
-    // Scroll handlers
-    const scrollStep = 200;
-    leftBtn.addEventListener('click', () => {
-        container.scrollBy({ left: -scrollStep, behavior: 'smooth' });
-    });
-    
-    rightBtn.addEventListener('click', () => {
-        container.scrollBy({ left: scrollStep, behavior: 'smooth' });
-    });
 
     // Update on events
     container.addEventListener('scroll', updateVisibility);
