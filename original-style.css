@@ -289,6 +289,28 @@ pre#imageData {
     width: 100%;
 }
 
+/* Gradient edge indicators */
+.group-buttons-container::before,
+.group-buttons-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 20px;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.group-buttons-container::before {
+    left: 0;
+    background: linear-gradient(to right, rgba(255,255,255,1) 20%, rgba(255,255,255,0));
+}
+
+.group-buttons-container::after {
+    right: 0;
+    background: linear-gradient(to left, rgba(255,255,255,1) 20%, rgba(255,255,255,0));
+}
+
 /* Dots container */
 .group-dots-container {
     display: flex;
