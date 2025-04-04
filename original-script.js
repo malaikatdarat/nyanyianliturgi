@@ -638,7 +638,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     </button>
                 `).join('')}
             </div>
-            <div class="group-contents-container">`;
+    <div class="group-dots-container"></div>
+    <div class="group-contents-container">`;
 
         groups.forEach((group, i) => {
             html += `
@@ -777,23 +778,53 @@ document.addEventListener('DOMContentLoaded', function() {
         updateSizes();
 
         // Handle group toggle
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('group-button')) {
-                const index = e.target.dataset.groupIndex;
-                
-                // Update tombol
-                document.querySelectorAll('.group-button').forEach(btn => {
-                    btn.classList.toggle('active', btn.dataset.groupIndex === index);
-                });
-
-                // Update konten
-                document.querySelectorAll('.image-group').forEach(group => {
-                    group.style.display = group.dataset.groupIndex === index ? 'block' : 'none';
-                });
-
-                updateSizes();
-            }
+document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('group-button')) {
+        const index = e.target.dataset.groupIndex;
+        const container = document.querySelector('.group-contents-container');
+        
+        // Scroll ke tombol yang aktif
+        const button = e.target;
+        const containerRect = container.getBoundingClientRect();
+        const buttonRect = button.getBoundingClientRect();
+        
+        container.scrollTo({
+            left: button.offsetLeft - (containerRect.width/2 - buttonRect.width/2),
+            behavior: 'smooth'
         });
+
+        // Update active states
+        document.querySelectorAll('.group-button, .group-dot').forEach(el => {
+            el.classList.toggle('active', el.dataset.groupIndex === index);
+        });
+
+        // Update konten
+        document.querySelectorAll('.image-group').forEach(group => {
+            group.style.display = group.dataset.groupIndex === index ? 'block' : 'none';
+        });
+
+        updateSizes();
+    }
+    
+    if (e.target.classList.contains('group-dot')) {
+        const index = e.target.dataset.groupIndex;
+        const button = document.querySelector(`.group-button[data-group-index="${index}"]`);
+        button.click();
+    }
+});
+
+// Perbaikan scroll handler untuk update gradient
+const updateScrollIndicators = () => {
+    const container = buttonsContainer;
+    container.classList.toggle('scroll-start', container.scrollLeft <= 10);
+    container.classList.toggle('scroll-end', container.scrollLeft >= container.scrollWidth - container.clientWidth - 10);
+};
+
+buttonsContainer.addEventListener('scroll', () => {
+    updateScrollIndicators();
+    // ... kode scroll handler sebelumnya ...
+});
+
     };
 
     init();
