@@ -629,24 +629,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Bangun HTML
         let html = `
-<div class="image-groups-wrapper">
-    <div class="group-buttons-wrapper">
-        <div class="scroll-shadow left-shadow"></div>
-        <div class="scroll-shadow right-shadow"></div>
-        <div class="group-buttons-container">
-            ${groups.map((group, i) => `
-                <button class="group-button ${i === 0 ? 'active' : ''}" 
-                        data-group-index="${i}">
-                    ${group.title}
-                </button>
-            `).join('')}
-        </div>
-        <div class="scroll-nav">
-            <button class="scroll-btn left-btn" aria-label="Scroll left">&lt;</button>
-            <button class="scroll-btn right-btn" aria-label="Scroll right">&gt;</button>
-        </div>
-    </div>
-    <div class="group-contents-container">`;
+        <div class="image-groups-wrapper">
+            <div class="group-buttons-container">
+                ${groups.map((group, i) => `
+                    <button class="group-button ${i === 0 ? 'active' : ''}" 
+                            data-group-index="${i}">
+                        ${group.title}
+                    </button>
+                `).join('')}
+            </div>
+            <div class="group-contents-container">`;
 
         groups.forEach((group, i) => {
             html += `
@@ -738,101 +730,8 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     init();
+});
 
-	// ======================== SCROLL BUTTONS ========================
-function initScrollButtons() {
-    const wrapper = document.querySelector('.group-buttons-wrapper');
-    if (!wrapper) return;
-
-    const container = wrapper.querySelector('.group-buttons-container');
-    const leftBtn = wrapper.querySelector('.left-btn');
-    const rightBtn = wrapper.querySelector('.right-btn');
-    const leftShadow = wrapper.querySelector('.left-shadow');
-    const rightShadow = wrapper.querySelector('.right-shadow');
-
-    // 1. Inisialisasi Scrollbar Custom
-    const scrollbar = document.createElement('div');
-    scrollbar.className = 'custom-scrollbar';
-    const thumb = document.createElement('div');
-    thumb.className = 'scroll-thumb';
-    scrollbar.appendChild(thumb);
-    wrapper.appendChild(scrollbar);
-
-    // 2. Fungsi Update Scrollbar
-    const updateScrollbar = () => {
-        const scrollWidth = container.scrollWidth;
-        const clientWidth = container.clientWidth;
-        
-        if (scrollWidth <= clientWidth) {
-            thumb.style.width = '0';
-            return;
-        }
-        
-        const thumbWidth = (clientWidth / scrollWidth) * clientWidth;
-        thumb.style.width = `${thumbWidth}px`;
-        
-        const maxScroll = scrollWidth - clientWidth;
-        const scrollLeft = container.scrollLeft;
-        const thumbPosition = (scrollLeft / maxScroll) * (clientWidth - thumbWidth);
-        thumb.style.left = `${thumbPosition}px`;
-    };
-
-    // 3. Auto-hide Scrollbar
-    let scrollTimeout;
-    const handleScroll = () => {
-        updateVisibility();
-        updateScrollbar();
-        scrollbar.style.display = 'block';
-        clearTimeout(scrollTimeout);
-        scrollTimeout = setTimeout(() => {
-            scrollbar.style.display = 'none';
-        }, 1000);
-    };
-
-    // 4. Event Listeners
-    container.addEventListener('scroll', handleScroll);
-    window.addEventListener('resize', () => {
-        updateVisibility();
-        updateScrollbar();
-    });
-    
-    // 5. Drag Handler
-    let isDragging = false;
-    let startX;
-    let scrollLeft;
-    
-    container.addEventListener('mousedown', (e) => {
-        isDragging = true;
-        container.classList.add('grabbing');
-        startX = e.clientX - container.offsetLeft;
-        scrollLeft = container.scrollLeft;
-    });
-
-    document.addEventListener('mousemove', (e) => {
-        if (!isDragging) return;
-        const x = e.clientX - container.offsetLeft;
-        const walk = (x - startX) * 2;
-        container.scrollLeft = scrollLeft - walk;
-    });
-
-    document.addEventListener('mouseup', () => {
-        isDragging = false;
-        container.classList.remove('grabbing');
-    });
-
-    // 6. Scroll Buttons
-    const scrollStep = 200;
-    leftBtn.addEventListener('click', () => {
-        container.scrollBy({ left: -scrollStep, behavior: 'smooth' });
-    });
-    rightBtn.addEventListener('click', () => {
-        container.scrollBy({ left: scrollStep, behavior: 'smooth' });
-    });
-
-    // 7. Initial Setup
-    updateVisibility();
-    updateScrollbar();
-}
 
 /*
 document.addEventListener('DOMContentLoaded', function() {
