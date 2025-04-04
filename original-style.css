@@ -471,7 +471,6 @@ ol {
 
 .download-item img {
     border-radius: 8px;
-    margin-bottom: 10px;
     max-width: 100%;
     height: auto;
 }
@@ -510,7 +509,6 @@ ol {
     width: 100%;
     height: auto;
     border-radius: 8px;
-    margin-bottom: 10px;
     display: block;
     transition: transform 0.3s ease;
 }
