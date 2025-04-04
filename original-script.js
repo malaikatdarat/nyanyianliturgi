@@ -709,6 +709,73 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         updateSizes();
 
+        // ============= MODIFIKASI BARU (START) =============
+        const groups = document.querySelectorAll('.image-group');
+        const buttonsContainer = document.querySelector('.group-buttons-container');
+        const dotsContainer = document.querySelector('.group-dots-container');
+        
+        // Sembunyikan navigasi jika hanya 1 group
+        if (groups.length <= 1) {
+            buttonsContainer.style.display = 'none';
+            dotsContainer.style.display = 'none';
+            updateSizes();
+            return;
+        }
+
+        // Tambahkan dot indicators
+        dotsContainer.innerHTML = Array.from(groups).map((_, i) => `
+            <span class="group-dot ${i === 0 ? 'active' : ''}" data-group-index="${i}"></span>
+        `).join('');
+
+        // Handle scroll snap
+        let isDragging = false;
+        buttonsContainer.addEventListener('scroll', () => {
+            clearTimeout(buttonsContainer.scrollTimer);
+            buttonsContainer.scrollTimer = setTimeout(() => {
+                const scrollPos = buttonsContainer.scrollLeft;
+                const buttonWidth = buttonsContainer.firstElementChild.offsetWidth;
+                const activeIndex = Math.round(scrollPos / buttonWidth);
+                
+                // Update active states
+                document.querySelectorAll('.group-button, .group-dot').forEach(el => {
+                    el.classList.remove('active');
+                    if (el.dataset.groupIndex == activeIndex) {
+                        el.classList.add('active');
+                    }
+                });
+            }, 100);
+        });
+
+        // Prevent text selection saat drag
+        buttonsContainer.addEventListener('mousedown', (e) => {
+            isDragging = false;
+            const startX = e.pageX;
+            const startScroll = buttonsContainer.scrollLeft;
+            
+            const onMouseMove = (e) => {
+                isDragging = true;
+                buttonsContainer.scrollLeft = startScroll - (e.pageX - startX);
+            };
+            
+            const onMouseUp = () => {
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+                
+                if (isDragging) {
+                    buttonsContainer.classList.add('no-pointer-events');
+                    setTimeout(() => {
+                        buttonsContainer.classList.remove('no-pointer-events');
+                    }, 100);
+                }
+            };
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        });
+
+        // Update initial sizes
+        updateSizes();
+
         // Handle group toggle
         document.addEventListener('click', (e) => {
             if (e.target.classList.contains('group-button')) {
