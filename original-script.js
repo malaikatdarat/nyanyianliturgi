@@ -1169,7 +1169,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const processedData = {
                 'download-link': data['download-link'] || '#',
-                'preview-source': data['preview-source'] || 'https://placehold.co/200x300',
+                'preview-source': data['preview-source'] || 'https://placehold.co/250x354',
                 'preview-size': data['preview-size'] || '2481x3508',
                 'alt': data['alt'] || 'No description available',
                 'label': data['label'] || 'Download',
