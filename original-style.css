@@ -245,10 +245,25 @@ pre#imageData {
 
 .group-buttons-container {
     display: flex;
-    flex-wrap: wrap;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
     gap: 8px;
-    margin-bottom: 15px;
-    justify-content: center;
+    padding: 8px 0;
+    margin: 0 30px 15px;
+    position: relative;
+    mask-image: linear-gradient(
+        to right, 
+        transparent 0%, 
+        black 20px, 
+        black calc(100% - 20px), 
+        transparent 100%
+    );
+}
+
+.group-buttons-container.no-pointer-events {
+    pointer-events: none;
 }
 
 .group-button {
@@ -258,6 +273,10 @@ pre#imageData {
     cursor: pointer;
     border-radius: 4px;
     transition: all 0.3s ease;
+    scroll-snap-align: start;
+    flex-shrink: 0;
+    padding: 8px 20px;
+    position: relative;
 }
 
 .group-button.active {
@@ -268,6 +287,68 @@ pre#imageData {
 
 .group-contents-container {
     width: 100%;
+}
+
+
+/* Gradient edge indicators */
+.group-buttons-container::before,
+.group-buttons-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 20px;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.group-buttons-container::before {
+    left: 0;
+    background: linear-gradient(to right, rgba(255,255,255,1) 20%, rgba(255,255,255,0));
+}
+
+.group-buttons-container::after {
+    right: 0;
+    background: linear-gradient(to left, rgba(255,255,255,1) 20%, rgba(255,255,255,0));
+}
+
+/* Dots container */
+.group-dots-container {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 12px;
+}
+
+.group-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #dee2e6;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.group-dot.active {
+    background: #007bff;
+    transform: scale(1.2);
+}
+
+/* Hide navigation for single group */
+.group-buttons-container:only-child,
+.group-dots-container:only-child {
+    display: none !important;
+}
+
+@media (max-width: 768px) {
+    .group-buttons-container {
+        margin: 0 15px 10px;
+        mask-image: none; /* Disable gradient on mobile */
+    }
+    
+    .group-button {
+        padding: 8px 15px;
+    }
 }
 
 .image-group {
