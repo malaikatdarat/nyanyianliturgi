@@ -243,93 +243,14 @@ pre#imageData {
     margin: 20px 0;
 }
 
-/* Hapus CSS untuk .scroll-nav dan .scroll-btn versi lama */
 .group-buttons-container {
     display: flex;
-    overflow-x: auto;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     gap: 8px;
     margin-bottom: 15px;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 10px;
-    scroll-behavior: smooth;
-    position: relative;
+    justify-content: center;
 }
 
-/* Shadow baru dengan efek lebih halus */
-.scroll-shadow {
-    position: absolute;
-    top: 8px;
-    height: calc(100% - 16px);
-    width: 60px;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.3s;
-    z-index: 2;
-    background: linear-gradient(
-        to right, 
-        rgba(0,0,0,0.08) 0%, 
-        transparent 30%, 
-        transparent 70%, 
-        rgba(0,0,0,0.08) 100%
-    );
-}
-
-.left-shadow { 
-    left: -60px;
-    transform: translateX(40px);
-}
-
-.right-shadow { 
-    right: -60px;
-    transform: translateX(-40px);
-}
-
-/* Scrollbar custom */
-.custom-scrollbar {
-    height: 3px;
-    background: rgba(0,0,0,0.1);
-    width: calc(100% - 80px);
-    position: absolute;
-    bottom: 5px;
-    left: 40px;
-    display: none;
-    border-radius: 3px;
-    overflow: hidden;
-    z-index: 3;
-}
-
-.scroll-thumb {
-    height: 100%;
-    background: rgba(0,0,0,0.4);
-    width: 0;
-    position: absolute;
-    left: 0;
-    transition: width 0.2s, left 0.2s, opacity 0.3s;
-}
-
-.group-buttons-wrapper:hover .custom-scrollbar {
-    display: block;
-}
-
-/* Drag feedback */
-.group-buttons-container.grabbing {
-    cursor: grabbing;
-    scroll-behavior: auto !important;
-}
-
-.group-buttons-container {
-    cursor: grab;
-    user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-}
-
-.group-buttons-container:active {
-    cursor: grabbing;
-}
-
-/* Group button styling tetap sama */
 .group-button {
     background: #f8f9fa;
     border: 1px solid #dee2e6;
@@ -337,8 +258,6 @@ pre#imageData {
     cursor: pointer;
     border-radius: 4px;
     transition: all 0.3s ease;
-    white-space: nowrap;
-    flex-shrink: 0;
 }
 
 .group-button.active {
@@ -347,36 +266,6 @@ pre#imageData {
     color: white;
 }
 
-/* Sembunyikan scrollbar default */
-.group-buttons-container::-webkit-scrollbar {
-    display: none;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .scroll-shadow {
-        width: 30px;
-        height: calc(100% - 10px);
-        top: 5px;
-    }
-    
-    .left-shadow { left: -30px; }
-    .right-shadow { right: -30px; }
-    
-    .custom-scrollbar {
-        display: none !important;
-    }
-    
-    .group-buttons-container {
-        scroll-snap-type: x mandatory;
-    }
-    
-    .group-button {
-        scroll-snap-align: start;
-    }
-}
-
-/* Container konten tetap sama */
 .group-contents-container {
     width: 100%;
 }
@@ -398,6 +287,7 @@ pre#imageData {
     height: auto;
     display: block;
 }
+
 
 /* Style ini dipakai pada tab2 */
 p {
