@@ -727,34 +727,72 @@ document.addEventListener('DOMContentLoaded', function() {
             <span class="group-dot ${i === 0 ? 'active' : ''}" data-group-index="${i}"></span>
         `).join('');
 
+        // Fungsi untuk memperbarui grup aktif
+        const updateActiveGroup = (index) => {
+            const buttonElement = document.querySelector(`.group-button[data-group-index="${index}"]`);
+            if (!buttonElement) return;
+            
+            // Scroll tombol aktif ke tengah container
+            const containerWidth = buttonsContainer.offsetWidth;
+            const buttonWidth = buttonElement.offsetWidth;
+            const scrollLeft = buttonElement.offsetLeft - (containerWidth / 2) + (buttonWidth / 2);
+            
+            buttonsContainer.scrollTo({
+                left: scrollLeft,
+                behavior: 'smooth'
+            });
+
+            // Update active states
+            document.querySelectorAll('.group-button, .group-dot').forEach(el => {
+                el.classList.toggle('active', el.dataset.groupIndex === index);
+            });
+
+            // Update konten dengan transisi smooth
+            document.querySelectorAll('.image-group').forEach(group => {
+                group.classList.toggle('active', group.dataset.groupIndex === index);
+            });
+
+            updateSizes();
+        };
+
+        // Fungsi untuk menangani navigasi kiri/kanan
+        const navigateGroup = (direction) => {
+            const currentIndex = parseInt(document.querySelector('.group-button.active').dataset.groupIndex);
+            const totalGroups = groups.length;
+            
+            let newIndex;
+            if (direction === 'next') {
+                newIndex = (currentIndex + 1) % totalGroups;
+            } else {
+                newIndex = (currentIndex - 1 + totalGroups) % totalGroups;
+            }
+            
+            updateActiveGroup(String(newIndex));
+        };
+
+        // Tambahkan event listener untuk klik pada group-buttons-container
+        buttonsContainer.addEventListener('click', function(e) {
+            // Klik langsung pada tombol ditangani oleh event listener lain
+            if (e.target.classList.contains('group-button')) return;
+            
+            const rect = buttonsContainer.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            
+            // Deteksi klik sisi kiri atau kanan
+            if (clickX < rect.width * 0.3) {
+                // Klik di sepertiga kiri container
+                navigateGroup('prev');
+            } else if (clickX > rect.width * 0.7) {
+                // Klik di sepertiga kanan container
+                navigateGroup('next');
+            }
+        });
+
         // Handle group toggle
         document.addEventListener('click', (e) => {
             if (e.target.classList.contains('group-button') || e.target.classList.contains('group-dot')) {
                 const index = e.target.dataset.groupIndex;
-                const buttonsContainer = document.querySelector('.group-buttons-container');
-                const button = document.querySelector(`.group-button[data-group-index="${index}"]`);
-                
-                // Scroll tombol aktif ke tengah container
-                const containerWidth = buttonsContainer.offsetWidth;
-                const buttonWidth = button.offsetWidth;
-                const scrollLeft = button.offsetLeft - (containerWidth / 2) + (buttonWidth / 2);
-                
-                buttonsContainer.scrollTo({
-                    left: scrollLeft,
-                    behavior: 'smooth'
-                });
-
-                // Update active states
-                document.querySelectorAll('.group-button, .group-dot').forEach(el => {
-                    el.classList.toggle('active', el.dataset.groupIndex === index);
-                });
-
-                // Update konten dengan transisi smooth
-                document.querySelectorAll('.image-group').forEach(group => {
-                    group.classList.toggle('active', group.dataset.groupIndex === index);
-                });
-
-                updateSizes();
+                updateActiveGroup(index);
             }
         });
 
@@ -764,8 +802,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     init();
 });
-
-
 
 /*
 document.addEventListener('DOMContentLoaded', function() {
