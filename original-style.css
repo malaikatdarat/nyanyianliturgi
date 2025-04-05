@@ -249,8 +249,8 @@ pre#imageData {
     display: none;
 }
 .group-button {
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(222, 226, 230, 0.3);
     padding: 8px 20px;
     cursor: pointer;
     border-radius: 4px;
@@ -258,10 +258,12 @@ pre#imageData {
     scroll-snap-align: start;
     flex-shrink: 0;
     position: relative;
+    color: inherit; /* Menggunakan warna teks yang sama dengan tema */
 }
+
 .group-button.active {
-    background: #007bff;
-    border-color: #007bff;
+    background: #0d6efd; /* Warna biru yang lebih kontras */
+    border-color: #0d6efd;
     color: white;
 }
 .group-contents-container {
@@ -278,28 +280,66 @@ pre#imageData {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: #dee2e6;
+    background: rgba(222, 226, 230, 0.5); /* Sedikit transparan */
     cursor: pointer;
     transition: all 0.2s ease;
 }
+
 .group-dot.active {
-    background: #007bff;
+    background: #0d6efd; /* Menggunakan warna yang sama dengan button aktif */
     transform: scale(1.2);
 }
+
+@media (prefers-color-scheme: dark) {
+    .group-button {
+        background: rgba(30, 30, 30, 0.8);
+        border-color: rgba(70, 70, 70, 0.5);
+    }
+    
+    .group-button.active {
+        background: #0d6efd;
+        border-color: #0d6efd;
+    }
+    
+    .group-dot {
+        background: rgba(70, 70, 70, 0.8);
+    }
+}
+
 @media (max-width: 768px) {
     .group-buttons-container {
-        margin: 0 15px 10px;
+        margin: 0 10px 10px;
+        padding: 10px 0;
+        gap: 6px;
         scroll-snap-type: none; /* Nonaktifkan snap di mobile */
     }
     
     .group-button {
-        padding: 8px 15px;
+        padding: 6px 12px;
+        font-size: 14px; /* Ukuran font lebih kecil di mobile */
+        min-width: auto; /* Biarkan lebar mengikuti konten */
         scroll-snap-align: none; /* Nonaktifkan snap alignment di mobile */
     }
     
     /* Tambahkan margin bawah untuk dot container di mobile */
     .group-dots-container {
+	touch-action: pan-x;
+        -webkit-overflow-scrolling: touch;
         margin-bottom: 20px;
+    }
+
+    .group-dot {
+        width: 10px;
+        height: 10px;
+    }
+}
+@media (max-width: 480px) {
+    .group-button {
+        padding: 8px 10px;
+        min-height: 40px; /* Tinggi minimum untuk area tap */
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 }
 .image-group {
