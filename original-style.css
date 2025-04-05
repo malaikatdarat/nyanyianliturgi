@@ -289,10 +289,17 @@ pre#imageData {
 @media (max-width: 768px) {
     .group-buttons-container {
         margin: 0 15px 10px;
+        scroll-snap-type: none; /* Nonaktifkan snap di mobile */
     }
     
     .group-button {
         padding: 8px 15px;
+        scroll-snap-align: none; /* Nonaktifkan snap alignment di mobile */
+    }
+    
+    /* Tambahkan margin bawah untuk dot container di mobile */
+    .group-dots-container {
+        margin-bottom: 20px;
     }
 }
 .image-group {
