@@ -261,8 +261,8 @@ pre#imageData {
 }
 
 .group-button.active {
-    background: rgba(13, 110, 253, 0.5);
-    border-color: rgba(13, 110, 253, 0.5);
+    background: rgba(13, 110, 253, 0.7);
+    border-color: rgba(13, 110, 253, 0.7);
     color: white;
 }
 .group-contents-container {
