@@ -241,7 +241,6 @@ pre#imageData {
     white-space: nowrap;
     gap: 8px;
     padding: 8px 0;
-    margin: 0 30px 15px;
     position: relative;
     scrollbar-width: none;
 }
@@ -275,6 +274,7 @@ pre#imageData {
     justify-content: center;
     gap: 6px;
     margin-top: 12px;
+    margin-bottom: 12px;
 }
 .group-dot {
     width: 8px;
