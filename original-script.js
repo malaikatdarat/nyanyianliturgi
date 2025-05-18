@@ -1289,7 +1289,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       extractedTexts.push(slashIndex !== -1 ? p1.substring(0, slashIndex) : p1);
 
-      return `<a href="/search/label/${urlPart}" target="_blank">${originalText}</a>`;
+      return `<a href="https://www.nyanyianliturgi.com/search/label/${urlPart}" target="_blank">${originalText}</a>`;
     });
 
     result = result.replace(/(.*?)\s*\[(https?:\/\/.*?)\]/, (match, textBefore, url) => {
@@ -1297,7 +1297,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     result = result.replace(/(.+?)\s*\{(.*?)\}/g, (match, textBefore, p1) => {
-        return `<a href="/p/${p1}.html" target="_blank">${textBefore.trim()}</a>`;
+        return `<a href="https://www.nyanyianliturgi.com/p/${p1}.html" target="_blank">${textBefore.trim()}</a>`;
     });
     return result;
   }
