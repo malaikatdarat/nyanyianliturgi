@@ -474,7 +474,7 @@ ol {
     background-color: transparent;
 }
 
-#download-section h2 {
+#download-section unduh-title {
     text-align: center;
     font-size: 1.5em;
     color: #333;
@@ -583,7 +583,7 @@ ol {
         width: 150px;
     }
 
-    #download-section h2 {
+    #download-section unduh-title {
         font-size: 1.2em;
     }
     
