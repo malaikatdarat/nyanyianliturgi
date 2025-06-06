@@ -1190,7 +1190,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (processedHtml === '') {
                 processedHtml = `
                 <div id="download-section">
-                    <h3>Unduh Partitur</h3>
+                    <p class="unduh-title">Unduh Partitur</p>
                     <p class="unduh-description">
                     <span class="baris1">Pilih format yang sesuai </span><span class="baris1">untuk mengunduh partitur lagu </span><span class="baris2"><strong>${title}</strong>.</span>
                     </p>
